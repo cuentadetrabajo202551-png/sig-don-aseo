@@ -1048,10 +1048,14 @@ async function previewDoc(docId) {
   } else if(info.mime === 'application/pdf') {
     // Use PDF.js via CDN for inline preview
     body.innerHTML = `<iframe src="https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(info.url)}" style="width:100%;height:100%;border:none"></iframe>`;
-  } else if(info.mime?.includes('word') || info.mime?.includes('excel') || info.mime?.includes('officedocument') || info.mime?.includes('spreadsheet')) {
-    // Office docs via Google Docs Viewer
+  } else if(info.mime?.includes('word') || info.mime?.includes('officedocument.wordprocessing')) {
+    // Word: Google Docs Viewer
     const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(info.url)}&embedded=true`;
-    body.innerHTML = `<iframe src="${viewerUrl}" style="width:100%;height:100%;border:none" onload="this.previousSibling&&this.previousSibling.remove()"></iframe>`;
+    body.innerHTML = `<iframe src="${viewerUrl}" style="width:100%;height:100%;border:none"></iframe>`;
+  } else if(info.mime?.includes('excel') || info.mime?.includes('spreadsheet') || info.mime?.includes('officedocument.spreadsheet')) {
+    // Excel: abrir en Microsoft Office Online
+    const officeUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(info.url)}`;
+    body.innerHTML = `<iframe src="${officeUrl}" style="width:100%;height:100%;border:none"></iframe>`;
   } else {
     body.innerHTML = `<div class="side-panel-loading">
       <div style="font-size:36px">📄</div>
