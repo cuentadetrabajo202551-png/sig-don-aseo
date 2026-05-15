@@ -987,14 +987,35 @@ async function previewDoc(docId) {
   if(!info) { showToast('Sin archivo adjunto','error'); return; }
   previewUrl = info;
   const doc = allDocs.find(d=>d.id===docId);
+
+  // PDFs y docs de Office: abrir en nueva pestaña directamente
+  if(info.mime==='application/pdf' ||
+     info.mime?.includes('word') ||
+     info.mime?.includes('excel') ||
+     info.mime?.includes('spreadsheet') ||
+     info.mime?.includes('presentation')) {
+    window.open(info.url, '_blank');
+    // Auditoría
+    await sb.from('auditoria').insert({
+      usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+      accion:'VER', tabla:'documentos', registro_id:docId,
+      detalle:`Visualizó ${doc?.codigo} - ${doc?.nombre}`
+    });
+    return;
+  }
+
+  // Imágenes: mostrar en modal
   document.getElementById('preview-title').textContent = doc?.nombre||'Vista previa';
   const content = document.getElementById('preview-content');
-  if(info.mime==='application/pdf') {
-    content.innerHTML = `<iframe class="preview-frame" src="${info.url}"></iframe>`;
-  } else if(info.mime?.startsWith('image/')) {
-    content.innerHTML = `<img src="${info.url}" style="max-width:100%;border-radius:8px">`;
+  if(info.mime?.startsWith('image/')) {
+    content.innerHTML = `<img src="${info.url}" style="max-width:100%;border-radius:8px;display:block;margin:0 auto">`;
   } else {
-    content.innerHTML = `<div class="preview-unavail"><div class="icon">📄</div><div>Vista previa no disponible para este formato.</div><div style="margin-top:8px;font-size:12px;color:var(--gray-500)">Descarga el archivo para abrirlo.</div></div>`;
+    content.innerHTML = `<div class="preview-unavail">
+      <div class="icon">📄</div>
+      <div style="font-weight:600;margin-bottom:8px">${info.nombre}</div>
+      <div>Este formato no tiene vista previa disponible.</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--gray-500)">Usa el botón Descargar para abrirlo.</div>
+    </div>`;
   }
   document.getElementById('modal-preview').classList.add('open');
 }
