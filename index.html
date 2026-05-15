@@ -937,7 +937,12 @@ async function saveDoc() {
     if(file) {
       // Determinar carpeta en Storage
       const prefS = sistema==='SST'?'sst':sistema==='Calidad'?'calidad':'ambiental';
-      const prefT = tipo.toLowerCase().replace(/ /g,'_');
+      const tipoMap = {
+        'Procedimiento':'procedimientos','Formato':'formatos','Manual':'manuales',
+        'Instructivo':'instructivos','Política':'politicas','Matriz':'matrices',
+        'Plan':'planes','Programa':'programas','Registro':'registros','Otro':'otros'
+      };
+      const prefT = tipoMap[tipo] || 'documentos';
       const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
       const path = `${prefS}/${prefT}/${fileName}`;
 
