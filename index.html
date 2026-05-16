@@ -443,9 +443,9 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-item" onclick="showPage('pendientes',this)">⏰&nbsp;Pendientes</div>
       <div class="nav-item" onclick="showPage('generar',this)">📄&nbsp;Generar doc.</div>
       <div class="nav-item" onclick="showPage('tareas',this)">✅&nbsp;Tareas</div>
-      <div class="nav-sec admin-only">Administración</div>
-      <div class="nav-item admin-only" onclick="showPage('usuarios',this)">👥&nbsp;Usuarios</div>
-      <div class="nav-item admin-only" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
+      <div class="nav-sec editor-up">Administración</div>
+      <div class="nav-item editor-up" onclick="showPage('usuarios',this)">👥&nbsp;Usuarios</div>
+      <div class="nav-item editor-up" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
     </div>
 
     <div class="main">
@@ -966,6 +966,7 @@ function canEdit(){return currentPerfil&&(currentPerfil.rol==='admin'||currentPe
 function canDelete(){return currentPerfil&&currentPerfil.rol==='admin';}
 function applyPermissions() {
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=currentPerfil?.rol==='admin'?'':'none');
+  document.querySelectorAll('.editor-up').forEach(el=>el.style.display=(currentPerfil?.rol==='admin'||currentPerfil?.rol==='editor')?'':'none');
   ['sst','calidad','ambiental'].forEach(sys=>{
     const sysName=sys==='sst'?'SST':sys==='calidad'?'Calidad':'Ambiental';
     document.getElementById('addbtn-'+sys).innerHTML=canEdit()?`<button class="add-btn" onclick="openDocModal('${sysName}')">+ Nuevo documento</button>`:'';
