@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
 :root{
   --navy:#003399;--navy-dark:#002277;--navy-light:#e6ecff;
@@ -452,9 +453,12 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div class="page-title">Panel principal</div>
-        <div class="page-sub" style="display:flex;align-items:center;justify-content:space-between">
+        <div class="page-sub" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
           <span>Resumen del Sistema Integrado de Gestión — Don Aseo Ltda</span>
-          <button class="export-btn" onclick="exportToExcel()">📊 Exportar a Excel</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="export-btn" onclick="exportToExcel()">📊 Exportar Excel</button>
+            <button class="export-btn admin-only" style="background:var(--navy)" onclick="downloadBackup()" id="backup-btn">💾 Respaldo completo (ZIP)</button>
+          </div>
         </div>
         <div class="metrics">
           <div class="metric" style="--mc:var(--navy)"><div class="metric-label">Total docs</div><div class="metric-value" id="dash-total">—</div><div class="metric-sub">3 sistemas</div></div>
@@ -1696,6 +1700,160 @@ function generateDoc(tipo) {
   document.getElementById('modal-gen').classList.add('open');
 }
 function printGen(){const c=document.getElementById('gen-content').innerHTML;const w=window.open('','_blank');w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Don Aseo Ltda</title><style>body{font-family:Arial,sans-serif;padding:24px}table{border-collapse:collapse}@media print{body{padding:0}}</style></head><body>${c}</body></html>`);w.document.close();w.print();}
+
+
+
+// ── BACKUP ZIP (solo admin) ───────────────────────────────
+async function downloadBackup() {
+  if(currentPerfil?.rol !== 'admin') {
+    showToast('Solo administradores pueden descargar respaldos','error');
+    return;
+  }
+  if(typeof JSZip === 'undefined') {
+    showToast('Librería ZIP no cargada, recarga la página','error');
+    return;
+  }
+
+  const btn = document.getElementById('backup-btn');
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Preparando respaldo...';
+
+  try {
+    const zip = new JSZip();
+    const fechaBackup = new Date().toISOString().slice(0,10);
+
+    // Crear estructura de carpetas
+    const sst = zip.folder('SST');
+    const cal = zip.folder('Calidad');
+    const amb = zip.folder('Ambiental');
+    const carpetas = {SST: sst, Calidad: cal, Ambiental: amb};
+
+    // Contar archivos a descargar
+    let totalArchivos = 0;
+    let descargados = 0;
+    allDocs.forEach(d => {
+      const versiones = d.versiones || [];
+      const vActiva = versiones.find(v => v.activa) || versiones[versiones.length-1];
+      if(vActiva?.archivo_path) totalArchivos++;
+    });
+
+    if(totalArchivos === 0) {
+      showToast('No hay documentos con archivos para respaldar','error');
+      btn.disabled = false; btn.innerHTML = original;
+      return;
+    }
+
+    btn.innerHTML = `<span class="spinner"></span>Descargando 0/${totalArchivos}...`;
+
+    // Descargar cada archivo y agregarlo al ZIP
+    for(const doc of allDocs) {
+      const versiones = doc.versiones || [];
+      const vActiva = versiones.find(v => v.activa) || versiones[versiones.length-1];
+      if(!vActiva?.archivo_path) continue;
+
+      try {
+        // Obtener URL firmada del archivo
+        const {data: urlData} = await sb.storage.from('documentos').createSignedUrl(vActiva.archivo_path, 600);
+        if(!urlData?.signedUrl) continue;
+
+        // Descargar el archivo como blob
+        const response = await fetch(urlData.signedUrl);
+        const blob = await response.blob();
+
+        // Nombre limpio para el archivo dentro del ZIP
+        const carpeta = carpetas[doc.sistema];
+        const extension = vActiva.archivo_nombre?.split('.').pop() || 'pdf';
+        const nombreLimpio = `${doc.codigo}_${doc.nombre.replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,60)}.${extension}`;
+        carpeta.file(nombreLimpio, blob);
+
+        descargados++;
+        btn.innerHTML = `<span class="spinner"></span>Descargando ${descargados}/${totalArchivos}...`;
+      } catch(err) {
+        console.warn(`Error descargando ${doc.codigo}:`, err);
+      }
+    }
+
+    // Generar índice Excel con todos los documentos
+    if(typeof XLSX !== 'undefined') {
+      const indiceData = [['SISTEMA','CÓDIGO','NOMBRE','TIPO','ESTADO','VERSIÓN','FECHA REVISIÓN','TIENE ARCHIVO','DESCRIPCIÓN']];
+      allDocs.forEach(d => {
+        const versiones = d.versiones || [];
+        const tieneArchivo = versiones.some(v => v.activa) ? 'Sí' : 'No';
+        indiceData.push([d.sistema, d.codigo, d.nombre, d.tipo, d.estado, `v${d.version_actual||1}`, d.fecha_revision||'', tieneArchivo, d.descripcion||'']);
+      });
+      const ws = XLSX.utils.aoa_to_sheet(indiceData);
+      ws['!cols'] = [{wch:12},{wch:14},{wch:40},{wch:15},{wch:12},{wch:8},{wch:14},{wch:12},{wch:40}];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Índice');
+      const xlsxBlob = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+      zip.file('INDICE_DOCUMENTOS.xlsx', xlsxBlob);
+    }
+
+    // Crear archivo README con info del respaldo
+    const readme = `RESPALDO PANEL SIG - DON ASEO LTDA
+═══════════════════════════════════════════════
+NIT: 812.000.152-7
+Montería - Córdoba
+
+Fecha del respaldo: ${new Date().toLocaleString('es-CO')}
+Generado por: ${currentPerfil.nombre}
+
+CONTENIDO DEL RESPALDO
+──────────────────────────────────────────────
+Total documentos en sistema: ${allDocs.length}
+Documentos con archivo: ${descargados}/${totalArchivos}
+
+Por sistema:
+  SST:       ${allDocs.filter(d=>d.sistema==='SST').length} documentos
+  Calidad:   ${allDocs.filter(d=>d.sistema==='Calidad').length} documentos
+  Ambiental: ${allDocs.filter(d=>d.sistema==='Ambiental').length} documentos
+
+ESTRUCTURA DE CARPETAS
+──────────────────────────────────────────────
+/SST/         → Documentos del sistema SST
+/Calidad/     → Documentos ISO 9001
+/Ambiental/   → Documentos ISO 14001
+INDICE_DOCUMENTOS.xlsx → Listado completo con metadatos
+README.txt    → Este archivo
+
+═══════════════════════════════════════════════
+Este respaldo fue generado automáticamente por
+el Panel Maestro de SIG. Guarda este archivo
+en un lugar seguro.
+`;
+    zip.file('README.txt', readme);
+
+    // Generar ZIP final
+    btn.innerHTML = `<span class="spinner"></span>Comprimiendo ZIP...`;
+    const zipBlob = await zip.generateAsync({type:'blob', compression:'DEFLATE', compressionOptions:{level:6}});
+
+    // Descargar
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Respaldo_SIG_DonAseo_${fechaBackup}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Auditoría
+    await sb.from('auditoria').insert({
+      usuario_id: currentUser.id,
+      usuario_nombre: currentPerfil.nombre,
+      accion: 'RESPALDO',
+      tabla: 'documentos',
+      detalle: `Descargó respaldo completo (${descargados} archivos, ${allDocs.length} documentos)`
+    });
+
+    showToast(`Respaldo completo descargado ✓ (${descargados} archivos)`, 'success');
+  } catch(e) {
+    console.error(e);
+    showToast('Error generando respaldo: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
+}
 
 // ── UTILS ─────────────────────────────────────────────────
 function closeModal(id){document.getElementById(id).classList.remove('open');}
