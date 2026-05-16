@@ -251,6 +251,83 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 }
 body.dark .comment-dot{border-color:var(--white)}
 
+
+/* ORGANIGRAMA */
+.org-wrap{padding:24px 0;overflow-x:auto;min-height:400px}
+.org-tree{display:flex;flex-direction:column;align-items:center;gap:0;position:relative}
+.org-level{display:flex;justify-content:center;align-items:flex-start;gap:24px;position:relative;flex-wrap:wrap}
+.org-level + .org-level{margin-top:48px}
+.org-level + .org-level::before{
+  content:"";position:absolute;top:-48px;left:50%;
+  width:1.5px;height:24px;background:var(--border);
+}
+.org-node{display:flex;flex-direction:column;align-items:center;position:relative}
+.org-node-children{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;position:relative;margin-top:36px}
+.org-node-children::before{
+  content:"";position:absolute;top:-18px;left:0;right:0;
+  height:1.5px;background:var(--border);
+}
+.org-node-children > .org-node::before{
+  content:"";position:absolute;top:-18px;left:50%;
+  width:1.5px;height:18px;background:var(--border);
+}
+.org-node-children:has(> .org-node:only-child)::before{display:none}
+.org-node:only-child::before{
+  content:"";position:absolute;top:-18px;left:50%;
+  width:1.5px;height:18px;background:var(--border);
+}
+
+.org-card{
+  background:var(--white);border:1.5px solid var(--border);border-radius:14px;
+  padding:14px;width:200px;text-align:center;cursor:pointer;
+  transition:all .15s;position:relative;
+  box-shadow:0 2px 6px rgba(0,0,51,.06);
+}
+.org-card:hover{
+  border-color:var(--navy);box-shadow:0 6px 20px rgba(0,0,51,.12);
+  transform:translateY(-2px);
+}
+.org-photo{
+  width:64px;height:64px;border-radius:50%;
+  margin:0 auto 8px;overflow:hidden;
+  background:var(--navy-light);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--navy);font-weight:700;font-size:20px;
+  border:3px solid var(--white);
+  box-shadow:0 2px 8px rgba(0,0,51,.15);
+}
+.org-photo img{width:100%;height:100%;object-fit:cover}
+.org-nombre{font-size:13px;font-weight:700;color:var(--gray-900);line-height:1.3;margin-bottom:3px}
+.org-cargo{font-size:11px;color:var(--gray-500);font-weight:600;line-height:1.3}
+.org-area{font-size:10px;color:var(--navy);font-weight:700;margin-top:4px;text-transform:uppercase;letter-spacing:.04em}
+.org-actions{
+  position:absolute;top:6px;right:6px;display:none;gap:3px;
+}
+.org-card:hover .org-actions{display:flex}
+.org-actions .icon-btn{padding:2px 6px;font-size:10px}
+.org-empty{
+  text-align:center;padding:60px 20px;color:var(--gray-500);
+}
+.org-empty .icon{font-size:48px;margin-bottom:14px}
+
+/* Modal detalle persona */
+.person-detail{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0 16px}
+.person-detail-photo{
+  width:120px;height:120px;border-radius:50%;overflow:hidden;
+  background:var(--navy-light);display:flex;align-items:center;justify-content:center;
+  color:var(--navy);font-weight:700;font-size:36px;
+  border:4px solid var(--white);box-shadow:0 4px 16px rgba(0,0,51,.18);
+}
+.person-detail-photo img{width:100%;height:100%;object-fit:cover}
+.person-detail-name{font-size:18px;font-weight:800;color:var(--gray-900);text-align:center}
+.person-detail-cargo{font-size:13px;color:var(--gray-500);font-weight:600;text-align:center}
+.person-detail-info{width:100%;margin-top:8px}
+.pd-info-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--gray-100);font-size:13px}
+.pd-info-row:last-child{border-bottom:none}
+.pd-info-icon{width:28px;text-align:center;color:var(--gray-500)}
+.pd-info-label{font-size:11px;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:.04em;min-width:80px}
+.pd-info-value{flex:1;color:var(--gray-900);font-weight:600}
+
 /* MISC */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--gray-900);color:#fff;padding:12px 20px;border-radius:var(--radius-sm);font-size:13px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;font-weight:600;box-shadow:var(--shadow-md);max-width:320px}
 .toast.show{opacity:1}
@@ -446,6 +523,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-item" onclick="showPage('pendientes',this)">⏰&nbsp;Pendientes</div>
       <div class="nav-item" onclick="showPage('generar',this)">📄&nbsp;Generar doc.</div>
       <div class="nav-item" onclick="showPage('tareas',this)">✅&nbsp;Tareas</div>
+      <div class="nav-item" onclick="showPage('organigrama',this)">🏢&nbsp;Organigrama</div>
       <div class="nav-sec editor-up">Administración</div>
       <div class="nav-item editor-up" onclick="showPage('usuarios',this)">👥&nbsp;Usuarios</div>
       <div class="nav-item editor-up" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
@@ -660,6 +738,24 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         </div>
         <div id="list-tareas"><div class="loading">Cargando...</div></div>
       </div>
+
+      <!-- ORGANIGRAMA -->
+      <div class="page" id="page-organigrama">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div>
+            <div class="page-title">Organigrama</div>
+            <div class="page-sub">Estructura organizacional — Don Aseo Ltda</div>
+          </div>
+          <div id="addbtn-org"></div>
+        </div>
+        <div id="perm-org"></div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="org-wrap" id="org-tree-container">
+            <div class="loading">Cargando organigrama...</div>
+          </div>
+        </div>
+      </div>
+
 
       <!-- USUARIOS -->
       <div class="page" id="page-usuarios">
@@ -953,6 +1049,51 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 </div>
 
 
+<!-- MODAL PERSONA ORGANIGRAMA -->
+<div class="modal-overlay" id="modal-org-edit">
+  <div class="modal">
+    <div class="modal-title" id="modal-org-title">Nueva persona</div>
+    <div class="photo-circle" id="org-photo-circle" onclick="document.getElementById('org-photo-input').click()">
+      <div>📷<br>Foto<br>(opcional)</div>
+    </div>
+    <input type="file" id="org-photo-input" accept="image/*" style="display:none" onchange="previewOrgPhoto(this)">
+    <label class="form-label">Nombre completo *</label>
+    <input class="form-input" id="og-nombre" placeholder="Ej. Juan Pérez">
+    <label class="form-label">Cargo *</label>
+    <input class="form-input" id="og-cargo" placeholder="Ej. Gerente General">
+    <label class="form-label">Área</label>
+    <input class="form-input" id="og-area" placeholder="Ej. Administrativa, Operativa, SST...">
+    <div class="form-row">
+      <div><label class="form-label">Correo</label><input class="form-input" id="og-correo" type="email" placeholder="correo@donaseo.com"></div>
+      <div><label class="form-label">Teléfono</label><input class="form-input" id="og-telefono" placeholder="300 123 4567"></div>
+    </div>
+    <label class="form-label">Fecha de ingreso</label>
+    <input class="form-input" id="og-ingreso" type="date">
+    <label class="form-label">Jefe directo <span class="form-hint">(deja vacío si es el nivel más alto)</span></label>
+    <select class="form-select" id="og-jefe">
+      <option value="">— Sin jefe (nivel superior) —</option>
+    </select>
+    <label class="form-label">Notas</label>
+    <textarea class="form-textarea" id="og-notas" placeholder="Información adicional..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-org-edit')">Cancelar</button>
+      <button class="btn-primary" id="btn-save-org" onclick="saveOrgPersona()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE PERSONA -->
+<div class="modal-overlay" id="modal-org-detail">
+  <div class="modal">
+    <div id="org-detail-content"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-org-detail')">Cerrar</button>
+      <button class="btn-primary" id="btn-edit-from-detail" onclick="editFromDetail()">✏ Editar</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -977,6 +1118,7 @@ let currentComDocId=null, editTareaId=null, tareaFilter='todas';
 let chartSistema=null, chartEstado=null, chartTipo=null;
 let allActas=[], allMiembros=[];
 let editActaId=null, editMiembroId=null;
+let allOrg=[], editOrgId=null, orgPhotoFile=null, currentOrgDetailId=null;
 
 
 // ── SANITIZACIÓN XSS ──────────────────────────────────────
@@ -1103,6 +1245,8 @@ function applyPermissions() {
   });
   document.getElementById('addbtn-usuarios').innerHTML=currentPerfil?.rol==='admin'?'<button class="add-btn" onclick="openUserModal()">+ Nuevo usuario</button>':'';
   document.getElementById('addbtn-tareas').innerHTML=canEdit()?'<button class="add-btn" onclick="openTareaModal()">+ Nueva tarea</button>':'';
+  document.getElementById('addbtn-org').innerHTML=canEdit()?'<button class="add-btn" style="margin-bottom:0" onclick="openOrgModal()">+ Agregar persona</button>':'';
+  document.getElementById('perm-org').innerHTML=!canEdit()?'<div class="perm-notice">⚠️ Solo puedes ver el organigrama.</div>':'';
   ['copasst','ccl'].forEach(c=>{
     const comite=c.toUpperCase();
     document.getElementById('perm-'+c).innerHTML=!canEdit()?'<div class="perm-notice">⚠️ Solo puedes ver el contenido del comité.</div>':'';
@@ -1124,6 +1268,7 @@ function showPage(id,el) {
   if(id==='auditoria') loadAuditoria();
   if(id==='tareas') renderTareas();
   if(id==='copasst'||id==='ccl') renderComite(id.toUpperCase());
+  if(id==='organigrama') renderOrganigrama();
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────
@@ -1136,19 +1281,21 @@ async function loadAll() {
     }
     docsQuery = docsQuery.order('sistema').order('codigo');
 
-    const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes]=await Promise.all([
+    const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes,orgRes]=await Promise.all([
       docsQuery,
       sb.from('perfiles').select('*').eq('activo',true).order('nombre'),
       sb.from('tareas').select('*').order('creado_en',{ascending:false}),
       sb.from('comentarios').select('documento_id'),
       sb.from('actas_comites').select('*').order('fecha_reunion',{ascending:false}),
-      sb.from('miembros_comites').select('*').order('comite').order('cargo_comite')
+      sb.from('miembros_comites').select('*').order('comite').order('cargo_comite'),
+      sb.from('organigrama').select('*').eq('activo',true).order('orden').order('nombre')
     ]);
     allDocs=docsRes.data||[];
     allUsers=usersRes.data||[];
     allTareas=tareasRes.data||[];
     allActas=actasRes.data||[];
     allMiembros=miembrosRes.data||[];
+    allOrg=orgRes.data||[];
     // Contar comentarios por documento
     const comCounts={};
     (comRes.data||[]).forEach(c=>{comCounts[c.documento_id]=(comCounts[c.documento_id]||0)+1;});
@@ -2318,6 +2465,222 @@ async function downloadActa(id) {
     accion:'DESCARGAR', tabla:'actas_comites', registro_id:id,
     detalle:`Descargó acta ${a.comite}: ${a.titulo}`
   });
+}
+
+
+// ── ORGANIGRAMA ───────────────────────────────────────────
+function renderOrganigrama() {
+  const container = document.getElementById('org-tree-container');
+  if(!allOrg.length) {
+    container.innerHTML = `<div class="org-empty">
+      <div class="icon">🏢</div>
+      <div style="font-weight:700;font-size:14px;margin-bottom:6px">Aún no hay personas en el organigrama</div>
+      <div style="font-size:12px">${canEdit()?'Haz clic en "Agregar persona" para empezar':'Pídele al administrador agregar personas'}</div>
+    </div>`;
+    return;
+  }
+
+  // Construir árbol jerárquico
+  const roots = allOrg.filter(p => !p.jefe_id);
+  if(!roots.length) {
+    container.innerHTML = '<div class="org-empty"><div class="icon">⚠️</div><div>No hay nodo raíz (alguien sin jefe). Edita una persona para que sea la cabeza.</div></div>';
+    return;
+  }
+
+  function getChildren(parentId) {
+    return allOrg.filter(p => p.jefe_id === parentId).sort((a,b) => (a.orden||0) - (b.orden||0));
+  }
+
+  function renderNode(persona) {
+    const children = getChildren(persona.id);
+    const ini = persona.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const photo = persona.foto_url
+      ? `<img src="${esc(persona.foto_url)}" alt="">`
+      : `<span>${ini}</span>`;
+    let nodeHtml = `<div class="org-node">
+      <div class="org-card" onclick="showOrgDetail('${persona.id}')">
+        ${canEdit()?`<div class="org-actions">
+          <button class="icon-btn" onclick="event.stopPropagation();openEditOrg('${persona.id}')" title="Editar">✏</button>
+          ${canDelete()?`<button class="icon-btn danger" onclick="event.stopPropagation();deleteOrg('${persona.id}')" title="Eliminar">🗑</button>`:''}
+        </div>`:''}
+        <div class="org-photo">${photo}</div>
+        <div class="org-nombre">${esc(persona.nombre)}</div>
+        <div class="org-cargo">${esc(persona.cargo)}</div>
+        ${persona.area?`<div class="org-area">${esc(persona.area)}</div>`:''}
+      </div>`;
+    if(children.length > 0) {
+      nodeHtml += `<div class="org-node-children">${children.map(renderNode).join('')}</div>`;
+    }
+    nodeHtml += `</div>`;
+    return nodeHtml;
+  }
+
+  container.innerHTML = `<div class="org-tree">${roots.map(renderNode).join('')}</div>`;
+}
+
+function populateJefeSelect() {
+  const sel = document.getElementById('og-jefe');
+  // Filtrar para no permitir que alguien sea su propio jefe (o crear ciclos)
+  let opciones = '<option value="">— Sin jefe (nivel superior) —</option>';
+  allOrg.forEach(p => {
+    if(p.id !== editOrgId) {
+      opciones += `<option value="${p.id}">${escapeHtml(p.nombre)} — ${escapeHtml(p.cargo)}</option>`;
+    }
+  });
+  sel.innerHTML = opciones;
+}
+
+function openOrgModal() {
+  editOrgId = null; orgPhotoFile = null;
+  document.getElementById('modal-org-title').textContent = 'Nueva persona';
+  ['og-nombre','og-cargo','og-area','og-correo','og-telefono','og-ingreso','og-notas'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('og-photo-circle').innerHTML = '<div>📷<br>Foto<br>(opcional)</div>';
+  document.getElementById('org-photo-circle').innerHTML = '<div>📷<br>Foto<br>(opcional)</div>';
+  populateJefeSelect();
+  document.getElementById('og-jefe').value = '';
+  document.getElementById('modal-org-edit').classList.add('open');
+}
+
+function openEditOrg(id) {
+  const p = allOrg.find(x=>x.id===id); if(!p) return;
+  editOrgId = id; orgPhotoFile = null;
+  document.getElementById('modal-org-title').textContent = 'Editar — '+p.nombre;
+  document.getElementById('og-nombre').value = p.nombre;
+  document.getElementById('og-cargo').value = p.cargo;
+  document.getElementById('og-area').value = p.area||'';
+  document.getElementById('og-correo').value = p.correo||'';
+  document.getElementById('og-telefono').value = p.telefono||'';
+  document.getElementById('og-ingreso').value = p.fecha_ingreso||'';
+  document.getElementById('og-notas').value = p.notas||'';
+  const circle = document.getElementById('org-photo-circle');
+  if(p.foto_url) {
+    circle.innerHTML = `<img src="${esc(p.foto_url)}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    const ini = p.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    circle.innerHTML = `<span style="font-size:22px;font-weight:700;color:var(--navy)">${ini}</span>`;
+  }
+  populateJefeSelect();
+  document.getElementById('og-jefe').value = p.jefe_id||'';
+  document.getElementById('modal-org-edit').classList.add('open');
+}
+
+function previewOrgPhoto(input) {
+  const file = input.files[0]; if(!file) return;
+  orgPhotoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('org-photo-circle').innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveOrgPersona() {
+  const nombre = document.getElementById('og-nombre').value.trim();
+  const cargo = document.getElementById('og-cargo').value.trim();
+  if(!nombre||!cargo) { showToast('Nombre y cargo son obligatorios','error'); return; }
+  const btn = document.getElementById('btn-save-org');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Guardando...';
+  try {
+    let foto_url = editOrgId ? (allOrg.find(p=>p.id===editOrgId)?.foto_url||null) : null;
+
+    // Subir foto si hay nueva
+    if(orgPhotoFile) {
+      const ext = orgPhotoFile.name.split('.').pop();
+      const path = `organigrama_${Date.now()}.${ext}`;
+      const {error:upErr} = await sb.storage.from('fotos').upload(path, orgPhotoFile, {upsert:true});
+      if(upErr) throw upErr;
+      const {data:urlData} = sb.storage.from('fotos').getPublicUrl(path);
+      foto_url = urlData.publicUrl;
+    }
+
+    const data = {
+      nombre, cargo,
+      area: document.getElementById('og-area').value.trim()||null,
+      correo: document.getElementById('og-correo').value.trim()||null,
+      telefono: document.getElementById('og-telefono').value.trim()||null,
+      fecha_ingreso: document.getElementById('og-ingreso').value||null,
+      jefe_id: document.getElementById('og-jefe').value||null,
+      notas: document.getElementById('og-notas').value.trim()||null,
+      foto_url,
+      actualizado_en: new Date().toISOString()
+    };
+
+    if(editOrgId) {
+      await sb.from('organigrama').update(data).eq('id',editOrgId);
+      const idx = allOrg.findIndex(p=>p.id===editOrgId);
+      if(idx!==-1) allOrg[idx] = {...allOrg[idx],...data};
+      showToast('Persona actualizada ✓','success');
+    } else {
+      const {data:newP, error} = await sb.from('organigrama').insert(data).select().single();
+      if(error) throw error;
+      allOrg.push(newP);
+      showToast('Persona agregada ✓','success');
+    }
+
+    await sb.from('auditoria').insert({
+      usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+      accion:editOrgId?'EDITAR':'CREAR', tabla:'organigrama',
+      detalle:`${editOrgId?'Editó':'Agregó'} en organigrama: ${nombre} (${cargo})`
+    });
+
+    closeModal('modal-org-edit');
+    renderOrganigrama();
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+  finally { btn.disabled=false; btn.textContent='Guardar'; }
+}
+
+async function deleteOrg(id) {
+  const p = allOrg.find(x=>x.id===id);
+  const children = allOrg.filter(x=>x.jefe_id===id);
+  let confirmMsg = `¿Eliminar a ${p?.nombre} del organigrama?`;
+  if(children.length > 0) {
+    confirmMsg += `\n\nNOTA: ${children.length} persona${children.length>1?'s':''} bajo su mando quedarán sin jefe directo.`;
+  }
+  if(!confirm(confirmMsg)) return;
+  try {
+    await sb.from('organigrama').delete().eq('id',id);
+    allOrg = allOrg.filter(x=>x.id!==id);
+    // Refrescar los que tenían a esta persona como jefe
+    allOrg.forEach(x => { if(x.jefe_id===id) x.jefe_id=null; });
+    await sb.from('auditoria').insert({
+      usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+      accion:'ELIMINAR', tabla:'organigrama',
+      detalle:`Eliminó del organigrama: ${p?.nombre}`
+    });
+    showToast('Persona eliminada','success');
+    renderOrganigrama();
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+}
+
+function showOrgDetail(id) {
+  const p = allOrg.find(x=>x.id===id); if(!p) return;
+  currentOrgDetailId = id;
+  const ini = p.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const jefe = p.jefe_id ? allOrg.find(x=>x.id===p.jefe_id) : null;
+  const subordinados = allOrg.filter(x=>x.jefe_id===id);
+
+  document.getElementById('org-detail-content').innerHTML = `
+    <div class="person-detail">
+      <div class="person-detail-photo">${p.foto_url?`<img src="${esc(p.foto_url)}" alt="">`:`<span>${ini}</span>`}</div>
+      <div class="person-detail-name">${esc(p.nombre)}</div>
+      <div class="person-detail-cargo">${esc(p.cargo)}${p.area?' · '+esc(p.area):''}</div>
+      <div class="person-detail-info">
+        ${p.correo?`<div class="pd-info-row"><span class="pd-info-icon">📧</span><span class="pd-info-label">Correo</span><span class="pd-info-value">${esc(p.correo)}</span></div>`:''}
+        ${p.telefono?`<div class="pd-info-row"><span class="pd-info-icon">📞</span><span class="pd-info-label">Teléfono</span><span class="pd-info-value">${esc(p.telefono)}</span></div>`:''}
+        ${p.fecha_ingreso?`<div class="pd-info-row"><span class="pd-info-icon">📅</span><span class="pd-info-label">Ingreso</span><span class="pd-info-value">${fDate(p.fecha_ingreso)}</span></div>`:''}
+        ${jefe?`<div class="pd-info-row"><span class="pd-info-icon">⬆️</span><span class="pd-info-label">Reporta a</span><span class="pd-info-value">${esc(jefe.nombre)} <span style="font-weight:400;color:var(--gray-500)">— ${esc(jefe.cargo)}</span></span></div>`:''}
+        ${subordinados.length?`<div class="pd-info-row"><span class="pd-info-icon">👥</span><span class="pd-info-label">A cargo</span><span class="pd-info-value">${subordinados.length} persona${subordinados.length>1?'s':''}</span></div>`:''}
+        ${p.notas?`<div class="pd-info-row" style="align-items:flex-start"><span class="pd-info-icon">📝</span><span class="pd-info-label">Notas</span><span class="pd-info-value">${esc(p.notas)}</span></div>`:''}
+      </div>
+    </div>`;
+  document.getElementById('btn-edit-from-detail').style.display = canEdit() ? '' : 'none';
+  document.getElementById('modal-org-detail').classList.add('open');
+}
+
+function editFromDetail() {
+  if(!currentOrgDetailId) return;
+  closeModal('modal-org-detail');
+  setTimeout(() => openEditOrg(currentOrgDetailId), 200);
 }
 
 // ── UTILS ─────────────────────────────────────────────────
