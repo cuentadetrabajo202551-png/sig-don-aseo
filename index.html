@@ -992,8 +992,15 @@ function showPage(id,el) {
 // ── LOAD DATA ─────────────────────────────────────────────
 async function loadAll() {
   try {
+    // Si es viewer, filtrar documentos ocultos. Admin y editor ven todo
+    let docsQuery = sb.from('documentos').select('*,versiones(*)');
+    if(currentPerfil?.rol === 'viewer') {
+      docsQuery = docsQuery.eq('oculto', false);
+    }
+    docsQuery = docsQuery.order('sistema').order('codigo');
+
     const [docsRes,usersRes,tareasRes,comRes]=await Promise.all([
-      sb.from('documentos').select('*,versiones(*)').order('sistema').order('codigo'),
+      docsQuery,
       sb.from('perfiles').select('*').eq('activo',true).order('nombre'),
       sb.from('tareas').select('*').order('creado_en',{ascending:false}),
       sb.from('comentarios').select('documento_id')
@@ -1040,10 +1047,11 @@ function renderDocList(sys) {
     const nVer=versiones.length;
     const sinArchivo=!vActiva;
     const commentCount=d.commentCount||0;
-    return `<div class="doc-row">
+    const oculto=d.oculto===true;
+    return `<div class="doc-row" style="${oculto?'opacity:0.6;background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(230,119,0,0.05) 10px,rgba(230,119,0,0.05) 20px)':''}">
       <span class="doc-code">${d.codigo}</span>
       <div class="doc-info">
-        <div class="doc-name">${d.nombre}</div>
+        <div class="doc-name">${d.nombre} ${oculto?'<span style="font-size:11px;color:var(--amber);font-weight:700;margin-left:4px">🔒 Oculto</span>':''}</div>
         <div class="doc-meta">${d.tipo}${d.descripcion?' · '+d.descripcion.slice(0,50)+'...':''}
           ${nVer>0?`<span class="badge b-ver" style="margin-left:4px">v${d.version_actual} (${nVer}v)</span>`:''}
         </div>
@@ -1056,6 +1064,7 @@ function renderDocList(sys) {
            <button class="icon-btn green" onclick="downloadDoc('${d.id}')">⬇</button>`:'<span style="font-size:11px;color:var(--gray-300)">Sin archivo</span>'}
         ${nVer>1?`<button class="icon-btn amber" onclick="showVersiones('${d.id}')">🕐</button>`:''}
         <span class="comment-btn-wrap"><button class="icon-btn" onclick="openComentarios('${d.id}')">💬</button>${commentCount>0?`<span class="comment-dot" title="${commentCount} comentario${commentCount>1?'s':''}"></span>`:''}</span>
+        ${canEdit()?`<button class="icon-btn ${oculto?'amber':''}" onclick="toggleOcultoDoc('${d.id}')" title="${oculto?'Visible para visualizadores':'Ocultar a visualizadores'}">${oculto?'🔓':'🔒'}</button>`:''}
         ${canEdit()?`<button class="icon-btn" onclick="openEditDoc('${d.id}')">✏</button>`:''}
         ${canDelete()?`<button class="icon-btn danger" onclick="deleteDoc('${d.id}')">🗑</button>`:''}
       </div>
@@ -1148,15 +1157,17 @@ function renderSearch() {
       const vActiva=versiones.find(v=>v.activa);
       const sinArchivo=!vActiva;
       const cc=d.commentCount||0;
-      return `<div class="doc-row">
+      const ocultoS=d.oculto===true;
+      return `<div class="doc-row" style="${ocultoS?'opacity:0.6;background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(230,119,0,0.05) 10px,rgba(230,119,0,0.05) 20px)':''}">
         <span class="doc-code">${d.codigo}</span>
-        <div class="doc-info"><div class="doc-name">${d.nombre}</div><div class="doc-meta">${d.tipo} · ${d.sistema}</div></div>
+        <div class="doc-info"><div class="doc-name">${d.nombre} ${ocultoS?'<span style="font-size:11px;color:var(--amber);font-weight:700">🔒</span>':''}</div><div class="doc-meta">${d.tipo} · ${d.sistema}</div></div>
         ${sinArchivo?'<span class="no-file-badge">⚠️ Sin archivo</span>':''}
         <span class="badge ${sysBadge(d.sistema)}">${d.sistema}</span>
         <span class="badge ${sBadge(d.estado)}">${d.estado}</span>
         <div class="doc-actions">
           ${vActiva?`<button class="icon-btn green" onclick="previewDoc('${d.id}')">👁 Ver</button><button class="icon-btn green" onclick="downloadDoc('${d.id}')">⬇</button>`:''}
           <span class="comment-btn-wrap"><button class="icon-btn" onclick="openComentarios('${d.id}')">💬</button>${cc>0?`<span class="comment-dot"></span>`:''}</span>
+          ${canEdit()?`<button class="icon-btn ${ocultoS?'amber':''}" onclick="toggleOcultoDoc('${d.id}')" title="${ocultoS?'Visible':'Ocultar'}">${ocultoS?'🔓':'🔒'}</button>`:''}
           ${canEdit()?`<button class="icon-btn" onclick="openEditDoc('${d.id}')">✏</button>`:''}
         </div>
       </div>`;
@@ -1282,6 +1293,28 @@ async function downloadVersion(path,nombre) {
   const {data}=await sb.storage.from('documentos').createSignedUrl(path,3600);
   if(!data?.signedUrl){showToast('Error generando enlace','error');return;}
   const a=document.createElement('a');a.href=data.signedUrl;a.download=nombre;a.target='_blank';a.click();
+}
+
+
+async function toggleOcultoDoc(id) {
+  if(!canEdit()) {
+    showToast('Sin permiso','error');
+    return;
+  }
+  const doc=allDocs.find(d=>d.id===id);
+  if(!doc) return;
+  const nuevoEstado=!doc.oculto;
+  try {
+    await sb.from('documentos').update({oculto:nuevoEstado, actualizado_en:new Date().toISOString()}).eq('id',id);
+    doc.oculto=nuevoEstado;
+    await sb.from('auditoria').insert({
+      usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+      accion:nuevoEstado?'OCULTAR':'MOSTRAR', tabla:'documentos', registro_id:id,
+      detalle:`${nuevoEstado?'Ocultó':'Hizo visible'} a visualizadores: ${doc.codigo} - ${doc.nombre}`
+    });
+    showToast(nuevoEstado?'🔒 Documento oculto para visualizadores':'🔓 Documento visible para todos','success');
+    renderAll();
+  } catch(e){showToast('Error: '+e.message,'error');}
 }
 
 // ── DOC CRUD ──────────────────────────────────────────────
