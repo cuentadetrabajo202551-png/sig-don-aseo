@@ -2534,7 +2534,6 @@ function openOrgModal() {
   editOrgId = null; orgPhotoFile = null;
   document.getElementById('modal-org-title').textContent = 'Nueva persona';
   ['og-nombre','og-cargo','og-area','og-correo','og-telefono','og-ingreso','og-notas'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('og-photo-circle').innerHTML = '<div>📷<br>Foto<br>(opcional)</div>';
   document.getElementById('org-photo-circle').innerHTML = '<div>📷<br>Foto<br>(opcional)</div>';
   populateJefeSelect();
   document.getElementById('og-jefe').value = '';
