@@ -240,6 +240,16 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 /* Shrink main when panel open */
 .layout.panel-open .main{margin-right:480px;transition:margin .25s ease}
 
+
+.comment-btn-wrap{position:relative;display:inline-block}
+.comment-dot{
+  position:absolute;top:-3px;right:-3px;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--red);border:2px solid var(--white);
+  box-shadow:0 0 0 1px var(--red);
+}
+body.dark .comment-dot{border-color:var(--white)}
+
 /* MISC */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--gray-900);color:#fff;padding:12px 20px;border-radius:var(--radius-sm);font-size:13px;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;font-weight:600;box-shadow:var(--shadow-md);max-width:320px}
 .toast.show{opacity:1}
@@ -978,14 +988,19 @@ function showPage(id,el) {
 // ── LOAD DATA ─────────────────────────────────────────────
 async function loadAll() {
   try {
-    const [docsRes,usersRes,tareasRes]=await Promise.all([
+    const [docsRes,usersRes,tareasRes,comRes]=await Promise.all([
       sb.from('documentos').select('*,versiones(*)').order('sistema').order('codigo'),
       sb.from('perfiles').select('*').eq('activo',true).order('nombre'),
-      sb.from('tareas').select('*').order('creado_en',{ascending:false})
+      sb.from('tareas').select('*').order('creado_en',{ascending:false}),
+      sb.from('comentarios').select('documento_id')
     ]);
     allDocs=docsRes.data||[];
     allUsers=usersRes.data||[];
     allTareas=tareasRes.data||[];
+    // Contar comentarios por documento
+    const comCounts={};
+    (comRes.data||[]).forEach(c=>{comCounts[c.documento_id]=(comCounts[c.documento_id]||0)+1;});
+    allDocs.forEach(d=>{d.commentCount=comCounts[d.id]||0;});
     renderAll();
   } catch(e) {
     showToast('Error cargando datos: '+e.message,'error');
@@ -1020,6 +1035,7 @@ function renderDocList(sys) {
     const vActiva=versiones.find(v=>v.activa)||versiones[versiones.length-1];
     const nVer=versiones.length;
     const sinArchivo=!vActiva;
+    const commentCount=d.commentCount||0;
     return `<div class="doc-row">
       <span class="doc-code">${d.codigo}</span>
       <div class="doc-info">
@@ -1035,7 +1051,7 @@ function renderDocList(sys) {
         ${vActiva?`<button class="icon-btn green" onclick="previewDoc('${d.id}')">👁 Ver</button>
            <button class="icon-btn green" onclick="downloadDoc('${d.id}')">⬇</button>`:'<span style="font-size:11px;color:var(--gray-300)">Sin archivo</span>'}
         ${nVer>1?`<button class="icon-btn amber" onclick="showVersiones('${d.id}')">🕐</button>`:''}
-        <button class="icon-btn" onclick="openComentarios('${d.id}')">💬</button>
+        <span class="comment-btn-wrap"><button class="icon-btn" onclick="openComentarios('${d.id}')">💬</button>${commentCount>0?`<span class="comment-dot" title="${commentCount} comentario${commentCount>1?'s':''}"></span>`:''}</span>
         ${canEdit()?`<button class="icon-btn" onclick="openEditDoc('${d.id}')">✏</button>`:''}
         ${canDelete()?`<button class="icon-btn danger" onclick="deleteDoc('${d.id}')">🗑</button>`:''}
       </div>
@@ -1127,6 +1143,7 @@ function renderSearch() {
       const versiones=d.versiones||[];
       const vActiva=versiones.find(v=>v.activa);
       const sinArchivo=!vActiva;
+      const cc=d.commentCount||0;
       return `<div class="doc-row">
         <span class="doc-code">${d.codigo}</span>
         <div class="doc-info"><div class="doc-name">${d.nombre}</div><div class="doc-meta">${d.tipo} · ${d.sistema}</div></div>
@@ -1135,6 +1152,7 @@ function renderSearch() {
         <span class="badge ${sBadge(d.estado)}">${d.estado}</span>
         <div class="doc-actions">
           ${vActiva?`<button class="icon-btn green" onclick="previewDoc('${d.id}')">👁 Ver</button><button class="icon-btn green" onclick="downloadDoc('${d.id}')">⬇</button>`:''}
+          <span class="comment-btn-wrap"><button class="icon-btn" onclick="openComentarios('${d.id}')">💬</button>${cc>0?`<span class="comment-dot"></span>`:''}</span>
           ${canEdit()?`<button class="icon-btn" onclick="openEditDoc('${d.id}')">✏</button>`:''}
         </div>
       </div>`;
@@ -1426,6 +1444,14 @@ async function saveNewUser() {
 }
 
 async function deleteUser(id) {
+  if(currentPerfil?.rol!=='admin') {
+    showToast('Solo los administradores pueden eliminar usuarios','error');
+    return;
+  }
+  if(id===currentUser.id) {
+    showToast('No puedes eliminarte a ti mismo','error');
+    return;
+  }
   if(!confirm('¿Desactivar este usuario?')) return;
   try {
     await sb.from('perfiles').update({activo:false}).eq('id',id);
@@ -1436,6 +1462,11 @@ async function deleteUser(id) {
 
 function openEditProfile(uid) {
   const u=allUsers.find(x=>x.id===uid);if(!u)return;
+  // Solo admin puede editar otros perfiles
+  if(currentPerfil?.rol!=='admin' && currentPerfil?.id!==uid) {
+    showToast('No tienes permiso para editar este perfil','error');
+    return;
+  }
   editProfileUserId=uid;editProfilePhotoFile=null;
   document.getElementById('ep-title').textContent='Editar perfil: '+u.nombre;
   document.getElementById('ep-nombre').value=u.nombre;
@@ -1634,6 +1665,10 @@ async function saveComentario() {
     await sb.from('comentarios').insert({documento_id:currentComDocId,usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,texto});
     document.getElementById('com-input').value='';
     await loadComentarios();
+    // Actualizar contador en allDocs
+    const doc=allDocs.find(d=>d.id===currentComDocId);
+    if(doc) doc.commentCount=(doc.commentCount||0)+1;
+    renderAll();
   } catch(e){showToast('Error: '+e.message,'error');}
 }
 
