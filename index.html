@@ -438,6 +438,9 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-item" onclick="showPage('sst',this)"><div class="nav-dot dot-sst"></div>SST<span class="nav-cnt" id="cnt-sst">—</span></div>
       <div class="nav-item" onclick="showPage('calidad',this)"><div class="nav-dot dot-cal"></div>Calidad<span class="nav-cnt" id="cnt-cal">—</span></div>
       <div class="nav-item" onclick="showPage('ambiental',this)"><div class="nav-dot dot-amb"></div>Ambiental<span class="nav-cnt" id="cnt-amb">—</span></div>
+      <div class="nav-sec">Comités</div>
+      <div class="nav-item" onclick="showPage('copasst',this)"><div class="nav-dot" style="background:#ff8c42"></div>COPASST</div>
+      <div class="nav-item" onclick="showPage('ccl',this)"><div class="nav-dot" style="background:#9b59b6"></div>CCL</div>
       <div class="nav-sec">Herramientas</div>
       <div class="nav-item" onclick="showPage('buscar',this)">🔍&nbsp;Buscador</div>
       <div class="nav-item" onclick="showPage('pendientes',this)">⏰&nbsp;Pendientes</div>
@@ -589,6 +592,53 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <div class="gen-card" onclick="generateDoc('acta')"><div class="gen-title">📋 Acta de reunión SIG</div><div class="gen-desc">Acta oficial con datos precargados</div><div style="margin-top:10px"><span class="badge" style="background:#f0eeff;color:#5533cc">General</span></div></div>
           <div class="gen-card" onclick="generateDoc('residuos')"><div class="gen-title">♻️ Control de residuos</div><div class="gen-desc">Seguimiento y disposición de residuos</div><div style="margin-top:10px"><span class="badge b-amb">Ambiental</span></div></div>
           <div class="gen-card" onclick="generateDoc('inspeccion')"><div class="gen-title">🔍 Inspección de seguridad</div><div class="gen-desc">Checklist de inspección de áreas</div><div style="margin-top:10px"><span class="badge b-sst">SST</span></div></div>
+        </div>
+      </div>
+
+
+      <!-- COPASST -->
+      <div class="page" id="page-copasst">
+        <div class="page-title">COPASST</div>
+        <div class="page-sub">Comité Paritario de Seguridad y Salud en el Trabajo</div>
+        <div id="perm-copasst"></div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div class="card-title" style="margin:0">👥 Miembros del comité</div>
+            <div id="addbtn-miembro-copasst"></div>
+          </div>
+          <div id="list-miembros-copasst"><div class="loading">Cargando...</div></div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div class="card-title" style="margin:0">📋 Actas de reunión</div>
+            <div id="addbtn-acta-copasst"></div>
+          </div>
+          <div id="list-actas-copasst"><div class="loading">Cargando...</div></div>
+        </div>
+      </div>
+
+      <!-- CCL -->
+      <div class="page" id="page-ccl">
+        <div class="page-title">CCL — Comité de Convivencia Laboral</div>
+        <div class="page-sub">Trazabilidad del Comité de Convivencia Laboral</div>
+        <div id="perm-ccl"></div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div class="card-title" style="margin:0">👥 Miembros del comité</div>
+            <div id="addbtn-miembro-ccl"></div>
+          </div>
+          <div id="list-miembros-ccl"><div class="loading">Cargando...</div></div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div class="card-title" style="margin:0">📋 Actas de reunión</div>
+            <div id="addbtn-acta-ccl"></div>
+          </div>
+          <div id="list-actas-ccl"><div class="loading">Cargando...</div></div>
         </div>
       </div>
 
@@ -839,6 +889,70 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 </div>
 
 
+<!-- MODAL ACTA COMITÉ -->
+<div class="modal-overlay" id="modal-acta">
+  <div class="modal">
+    <div class="modal-title" id="modal-acta-title">Nueva acta</div>
+    <input type="hidden" id="a-comite">
+    <div class="form-row">
+      <div><label class="form-label">N° de acta</label><input class="form-input" id="a-numero" placeholder="Ej. 001-2026"></div>
+      <div><label class="form-label">Fecha de reunión *</label><input class="form-input" id="a-fecha" type="date"></div>
+    </div>
+    <label class="form-label">Título / Tema *</label>
+    <input class="form-input" id="a-titulo" placeholder="Ej. Reunión ordinaria mensual">
+    <label class="form-label">Resumen / Temas tratados</label>
+    <textarea class="form-textarea" id="a-resumen" placeholder="Resumen de lo tratado..."></textarea>
+    <label class="form-label">Archivo del acta <span class="form-hint">(PDF, Word, Excel)</span></label>
+    <div class="file-drop" onclick="document.getElementById('a-file').click()">
+      <input type="file" id="a-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg" onchange="onActaFileChosen(this)">
+      <p>Haz clic para <span>seleccionar archivo</span></p>
+      <div class="file-name" id="a-file-name"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-acta')">Cancelar</button>
+      <button class="btn-primary" id="btn-save-acta" onclick="saveActa()">Guardar acta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MIEMBRO COMITÉ -->
+<div class="modal-overlay" id="modal-miembro">
+  <div class="modal">
+    <div class="modal-title" id="modal-miembro-title">Nuevo miembro</div>
+    <input type="hidden" id="m-comite">
+    <label class="form-label">Nombre completo *</label>
+    <input class="form-input" id="m-nombre" placeholder="Ej. María Pérez González">
+    <div class="form-row">
+      <div><label class="form-label">Documento de identidad</label><input class="form-input" id="m-documento" placeholder="C.C. 1.000.000.000"></div>
+      <div><label class="form-label">Cargo en la empresa</label><input class="form-input" id="m-cargo-empresa" placeholder="Ej. Supervisora"></div>
+    </div>
+    <label class="form-label">Cargo en el comité *</label>
+    <select class="form-select" id="m-cargo-comite">
+      <option>Presidente</option><option>Vicepresidente</option><option>Secretario</option>
+      <option>Miembro principal</option><option>Miembro suplente</option>
+    </select>
+    <label class="form-label">Representa a</label>
+    <select class="form-select" id="m-representa">
+      <option value="empleador">Empleador</option>
+      <option value="trabajadores">Trabajadores</option>
+      <option value="ambos">Ambos</option>
+    </select>
+    <div class="form-row">
+      <div><label class="form-label">Fecha de elección</label><input class="form-input" id="m-fecha-eleccion" type="date"></div>
+      <div><label class="form-label">Inicio de periodo</label><input class="form-input" id="m-inicio-periodo" type="date"></div>
+    </div>
+    <label class="form-label">Fin de periodo</label>
+    <input class="form-input" id="m-fin-periodo" type="date">
+    <label class="form-label">Notas <span class="form-hint">(opcional)</span></label>
+    <textarea class="form-textarea" id="m-notas" placeholder="Información adicional..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-miembro')">Cancelar</button>
+      <button class="btn-primary" id="btn-save-miembro" onclick="saveMiembro()">Guardar miembro</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -861,6 +975,8 @@ let searchFilter='', editDocId=null, editProfileUserId=null;
 let editProfilePhotoFile=null, newUserPhotoFile=null, previewUrl=null;
 let currentComDocId=null, editTareaId=null, tareaFilter='todas';
 let chartSistema=null, chartEstado=null, chartTipo=null;
+let allActas=[], allMiembros=[];
+let editActaId=null, editMiembroId=null;
 
 
 // ── SANITIZACIÓN XSS ──────────────────────────────────────
@@ -987,6 +1103,12 @@ function applyPermissions() {
   });
   document.getElementById('addbtn-usuarios').innerHTML=currentPerfil?.rol==='admin'?'<button class="add-btn" onclick="openUserModal()">+ Nuevo usuario</button>':'';
   document.getElementById('addbtn-tareas').innerHTML=canEdit()?'<button class="add-btn" onclick="openTareaModal()">+ Nueva tarea</button>':'';
+  ['copasst','ccl'].forEach(c=>{
+    const comite=c.toUpperCase();
+    document.getElementById('perm-'+c).innerHTML=!canEdit()?'<div class="perm-notice">⚠️ Solo puedes ver el contenido del comité.</div>':'';
+    document.getElementById('addbtn-miembro-'+c).innerHTML=canEdit()?`<button class="add-btn" style="margin-bottom:0" onclick="openMiembroModal('${comite}')">+ Miembro</button>`:'';
+    document.getElementById('addbtn-acta-'+c).innerHTML=canEdit()?`<button class="add-btn" style="margin-bottom:0" onclick="openActaModal('${comite}')">+ Acta</button>`:'';
+  });
 }
 
 // ── NAVIGATION ────────────────────────────────────────────
@@ -1001,6 +1123,7 @@ function showPage(id,el) {
   if(id==='usuarios') renderUsers();
   if(id==='auditoria') loadAuditoria();
   if(id==='tareas') renderTareas();
+  if(id==='copasst'||id==='ccl') renderComite(id.toUpperCase());
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────
@@ -1013,15 +1136,19 @@ async function loadAll() {
     }
     docsQuery = docsQuery.order('sistema').order('codigo');
 
-    const [docsRes,usersRes,tareasRes,comRes]=await Promise.all([
+    const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes]=await Promise.all([
       docsQuery,
       sb.from('perfiles').select('*').eq('activo',true).order('nombre'),
       sb.from('tareas').select('*').order('creado_en',{ascending:false}),
-      sb.from('comentarios').select('documento_id')
+      sb.from('comentarios').select('documento_id'),
+      sb.from('actas_comites').select('*').order('fecha_reunion',{ascending:false}),
+      sb.from('miembros_comites').select('*').order('comite').order('cargo_comite')
     ]);
     allDocs=docsRes.data||[];
     allUsers=usersRes.data||[];
     allTareas=tareasRes.data||[];
+    allActas=actasRes.data||[];
+    allMiembros=miembrosRes.data||[];
     // Contar comentarios por documento
     const comCounts={};
     (comRes.data||[]).forEach(c=>{comCounts[c.documento_id]=(comCounts[c.documento_id]||0)+1;});
@@ -1900,6 +2027,297 @@ en un lugar seguro.
     btn.disabled = false;
     btn.innerHTML = original;
   }
+}
+
+
+// ── COMITÉS COPASST / CCL ─────────────────────────────────
+function renderComite(comite) {
+  const sufijo = comite==='COPASST' ? 'copasst' : 'ccl';
+
+  // Render miembros
+  const miembros = allMiembros.filter(m => m.comite===comite && m.activo);
+  const mEl = document.getElementById('list-miembros-'+sufijo);
+  if(!miembros.length) {
+    mEl.innerHTML = '<div class="empty">No hay miembros registrados aún.</div>';
+  } else {
+    mEl.innerHTML = miembros.map(m => {
+      const repLabel = m.representa==='empleador'?'🏢 Empleador':m.representa==='trabajadores'?'👷 Trabajadores':'⚖️ Ambos';
+      const vencido = m.fecha_fin_periodo && new Date(m.fecha_fin_periodo) < new Date();
+      return `<div class="doc-row">
+        <div style="flex:1">
+          <div class="doc-name">${esc(m.nombre)}</div>
+          <div class="doc-meta">${esc(m.cargo_empresa)||'—'}${m.documento?' · '+esc(m.documento):''}</div>
+        </div>
+        <span class="badge b-ver">${esc(m.cargo_comite)}</span>
+        <span style="font-size:11px;color:var(--gray-500)">${repLabel}</span>
+        ${m.fecha_fin_periodo?`<span style="font-size:11px;color:${vencido?'var(--red)':'var(--gray-500)'};font-weight:${vencido?'700':'400'}">Hasta: ${fDate(m.fecha_fin_periodo)}${vencido?' ⚠️':''}</span>`:''}
+        <div class="doc-actions">
+          ${canEdit()?`<button class="icon-btn" onclick="openEditMiembro('${m.id}')">✏</button>`:''}
+          ${canDelete()?`<button class="icon-btn danger" onclick="deleteMiembro('${m.id}')">🗑</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Render actas
+  const actas = allActas.filter(a => a.comite===comite);
+  const aEl = document.getElementById('list-actas-'+sufijo);
+  if(!actas.length) {
+    aEl.innerHTML = '<div class="empty">No hay actas registradas aún.</div>';
+  } else {
+    aEl.innerHTML = actas.map(a => `<div class="doc-row">
+      ${a.numero?`<span class="doc-code">${esc(a.numero)}</span>`:''}
+      <div class="doc-info">
+        <div class="doc-name">${esc(a.titulo)}</div>
+        <div class="doc-meta">${fDate(a.fecha_reunion)}${a.resumen?' · '+esc(a.resumen.slice(0,60))+'...':''}</div>
+      </div>
+      ${!a.archivo_path?'<span class="no-file-badge">⚠️ Sin archivo</span>':''}
+      <div class="doc-actions">
+        ${a.archivo_path?`<button class="icon-btn green" onclick="previewActa('${a.id}')">👁 Ver</button>
+          <button class="icon-btn green" onclick="downloadActa('${a.id}')">⬇</button>`:''}
+        ${canEdit()?`<button class="icon-btn" onclick="openEditActa('${a.id}')">✏</button>`:''}
+        ${canDelete()?`<button class="icon-btn danger" onclick="deleteActa('${a.id}')">🗑</button>`:''}
+      </div>
+    </div>`).join('');
+  }
+}
+
+// ── MIEMBROS ──────────────────────────────────────────────
+function openMiembroModal(comite) {
+  editMiembroId = null;
+  document.getElementById('modal-miembro-title').textContent = 'Nuevo miembro — '+comite;
+  document.getElementById('m-comite').value = comite;
+  ['m-nombre','m-documento','m-cargo-empresa','m-fecha-eleccion','m-inicio-periodo','m-fin-periodo','m-notas'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-cargo-comite').value = 'Miembro principal';
+  document.getElementById('m-representa').value = 'trabajadores';
+  document.getElementById('modal-miembro').classList.add('open');
+}
+
+function openEditMiembro(id) {
+  const m = allMiembros.find(x=>x.id===id); if(!m) return;
+  editMiembroId = id;
+  document.getElementById('modal-miembro-title').textContent = 'Editar miembro';
+  document.getElementById('m-comite').value = m.comite;
+  document.getElementById('m-nombre').value = m.nombre;
+  document.getElementById('m-documento').value = m.documento||'';
+  document.getElementById('m-cargo-empresa').value = m.cargo_empresa||'';
+  document.getElementById('m-cargo-comite').value = m.cargo_comite;
+  document.getElementById('m-representa').value = m.representa||'trabajadores';
+  document.getElementById('m-fecha-eleccion').value = m.fecha_eleccion||'';
+  document.getElementById('m-inicio-periodo').value = m.fecha_inicio_periodo||'';
+  document.getElementById('m-fin-periodo').value = m.fecha_fin_periodo||'';
+  document.getElementById('m-notas').value = m.notas||'';
+  document.getElementById('modal-miembro').classList.add('open');
+}
+
+async function saveMiembro() {
+  const nombre = document.getElementById('m-nombre').value.trim();
+  if(!nombre) { showToast('El nombre es obligatorio','error'); return; }
+  const btn = document.getElementById('btn-save-miembro');
+  btn.disabled = true; btn.innerHTML='<span class="spinner"></span>Guardando...';
+  try {
+    const data = {
+      comite: document.getElementById('m-comite').value,
+      nombre,
+      documento: document.getElementById('m-documento').value.trim()||null,
+      cargo_empresa: document.getElementById('m-cargo-empresa').value.trim()||null,
+      cargo_comite: document.getElementById('m-cargo-comite').value,
+      representa: document.getElementById('m-representa').value,
+      fecha_eleccion: document.getElementById('m-fecha-eleccion').value||null,
+      fecha_inicio_periodo: document.getElementById('m-inicio-periodo').value||null,
+      fecha_fin_periodo: document.getElementById('m-fin-periodo').value||null,
+      notas: document.getElementById('m-notas').value.trim()||null
+    };
+    if(editMiembroId) {
+      await sb.from('miembros_comites').update(data).eq('id',editMiembroId);
+      const idx = allMiembros.findIndex(m=>m.id===editMiembroId);
+      if(idx!==-1) allMiembros[idx] = {...allMiembros[idx],...data};
+      showToast('Miembro actualizado ✓','success');
+    } else {
+      const {data:newM, error} = await sb.from('miembros_comites').insert(data).select().single();
+      if(error) throw error;
+      allMiembros.push(newM);
+      showToast('Miembro agregado ✓','success');
+    }
+    await sb.from('auditoria').insert({
+      usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+      accion:editMiembroId?'EDITAR':'CREAR', tabla:'miembros_comites',
+      detalle:`${editMiembroId?'Editó':'Agregó'} miembro ${data.comite}: ${nombre}`
+    });
+    closeModal('modal-miembro');
+    renderComite(data.comite);
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+  finally { btn.disabled=false; btn.textContent='Guardar miembro'; }
+}
+
+async function deleteMiembro(id) {
+  if(!confirm('¿Eliminar este miembro?')) return;
+  const m = allMiembros.find(x=>x.id===id);
+  try {
+    await sb.from('miembros_comites').delete().eq('id',id);
+    allMiembros = allMiembros.filter(x=>x.id!==id);
+    await sb.from('auditoria').insert({
+      usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+      accion:'ELIMINAR', tabla:'miembros_comites',
+      detalle:`Eliminó miembro ${m?.comite}: ${m?.nombre}`
+    });
+    showToast('Miembro eliminado','success');
+    if(m) renderComite(m.comite);
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+}
+
+// ── ACTAS ─────────────────────────────────────────────────
+function openActaModal(comite) {
+  editActaId = null;
+  document.getElementById('modal-acta-title').textContent = 'Nueva acta — '+comite;
+  document.getElementById('a-comite').value = comite;
+  ['a-numero','a-titulo','a-resumen','a-fecha'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('a-file-name').textContent = '';
+  document.getElementById('a-file').value = '';
+  document.getElementById('a-fecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('modal-acta').classList.add('open');
+}
+
+function openEditActa(id) {
+  const a = allActas.find(x=>x.id===id); if(!a) return;
+  editActaId = id;
+  document.getElementById('modal-acta-title').textContent = 'Editar acta';
+  document.getElementById('a-comite').value = a.comite;
+  document.getElementById('a-numero').value = a.numero||'';
+  document.getElementById('a-titulo').value = a.titulo;
+  document.getElementById('a-resumen').value = a.resumen||'';
+  document.getElementById('a-fecha').value = a.fecha_reunion||'';
+  document.getElementById('a-file-name').textContent = a.archivo_nombre||'';
+  document.getElementById('a-file').value = '';
+  document.getElementById('modal-acta').classList.add('open');
+}
+
+function onActaFileChosen(input) {
+  document.getElementById('a-file-name').textContent = input.files[0]?.name||'';
+}
+
+async function saveActa() {
+  const titulo = document.getElementById('a-titulo').value.trim();
+  const fecha = document.getElementById('a-fecha').value;
+  if(!titulo||!fecha) { showToast('Título y fecha son obligatorios','error'); return; }
+  const btn = document.getElementById('btn-save-acta');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Guardando...';
+  try {
+    const comite = document.getElementById('a-comite').value;
+    const file = document.getElementById('a-file').files[0]||null;
+
+    const data = {
+      comite,
+      numero: document.getElementById('a-numero').value.trim()||null,
+      titulo,
+      fecha_reunion: fecha,
+      resumen: document.getElementById('a-resumen').value.trim()||null,
+      actualizado_en: new Date().toISOString()
+    };
+
+    let actaId = editActaId;
+    if(editActaId) {
+      await sb.from('actas_comites').update(data).eq('id',editActaId);
+    } else {
+      data.creado_por = currentUser.id;
+      data.creado_por_nombre = currentPerfil.nombre;
+      const {data:newA, error} = await sb.from('actas_comites').insert(data).select().single();
+      if(error) throw error;
+      actaId = newA.id;
+    }
+
+    // Subir archivo si hay
+    if(file) {
+      const folder = comite.toLowerCase();
+      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+      const path = `${folder}/${fileName}`;
+      const {error:upErr} = await sb.storage.from('comites').upload(path, file);
+      if(upErr) throw upErr;
+      await sb.from('actas_comites').update({
+        archivo_nombre: file.name,
+        archivo_path: path,
+        archivo_size: file.size,
+        archivo_mime: file.type
+      }).eq('id', actaId);
+    }
+
+    await sb.from('auditoria').insert({
+      usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+      accion:editActaId?'EDITAR':'CREAR', tabla:'actas_comites', registro_id:actaId,
+      detalle:`${editActaId?'Editó':'Creó'} acta ${comite}: ${titulo}`
+    });
+
+    showToast(editActaId?'Acta actualizada ✓':'Acta creada ✓','success');
+    closeModal('modal-acta');
+    // Recargar actas
+    const {data:actasFresh} = await sb.from('actas_comites').select('*').order('fecha_reunion',{ascending:false});
+    allActas = actasFresh||[];
+    renderComite(comite);
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+  finally { btn.disabled=false; btn.textContent='Guardar acta'; }
+}
+
+async function deleteActa(id) {
+  if(!confirm('¿Eliminar esta acta?')) return;
+  const a = allActas.find(x=>x.id===id);
+  try {
+    if(a?.archivo_path) await sb.storage.from('comites').remove([a.archivo_path]);
+    await sb.from('actas_comites').delete().eq('id',id);
+    allActas = allActas.filter(x=>x.id!==id);
+    await sb.from('auditoria').insert({
+      usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+      accion:'ELIMINAR', tabla:'actas_comites',
+      detalle:`Eliminó acta ${a?.comite}: ${a?.titulo}`
+    });
+    showToast('Acta eliminada','success');
+    if(a) renderComite(a.comite);
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+}
+
+async function previewActa(id) {
+  const a = allActas.find(x=>x.id===id);
+  if(!a?.archivo_path) { showToast('Sin archivo','error'); return; }
+  const {data} = await sb.storage.from('comites').createSignedUrl(a.archivo_path, 3600);
+  if(!data?.signedUrl) { showToast('Error generando enlace','error'); return; }
+  previewUrl = {url:data.signedUrl, nombre:a.archivo_nombre, mime:a.archivo_mime};
+  document.getElementById('sp-title').textContent = a.titulo;
+  document.getElementById('sp-meta').textContent = `${a.comite} · ${fDate(a.fecha_reunion)}${a.numero?' · '+a.numero:''}`;
+  const body = document.getElementById('sp-body');
+  body.innerHTML = `<div class="side-panel-loading"><div class="spin"></div><div>Cargando...</div></div>`;
+  document.getElementById('side-panel').classList.add('open');
+  document.getElementById('side-overlay').classList.add('open');
+  document.querySelector('.layout').classList.add('panel-open');
+  const mime = a.archivo_mime || '';
+  if(mime.startsWith('image/')) {
+    body.innerHTML = `<img src="${data.signedUrl}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
+  } else if(mime==='application/pdf') {
+    body.innerHTML = `<iframe src="https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(data.signedUrl)}" style="width:100%;height:100%;border:none"></iframe>`;
+  } else if(mime.includes('word')||mime.includes('officedocument.wordprocessing')) {
+    body.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(data.signedUrl)}&embedded=true" style="width:100%;height:100%;border:none"></iframe>`;
+  } else if(mime.includes('excel')||mime.includes('spreadsheet')||mime.includes('officedocument.spreadsheet')) {
+    body.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(data.signedUrl)}" style="width:100%;height:100%;border:none"></iframe>`;
+  } else {
+    body.innerHTML = `<div class="side-panel-loading"><div style="font-size:36px">📄</div><div>${esc(a.archivo_nombre)}</div></div>`;
+  }
+  await sb.from('auditoria').insert({
+    usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+    accion:'VER', tabla:'actas_comites', registro_id:id,
+    detalle:`Visualizó acta ${a.comite}: ${a.titulo}`
+  });
+}
+
+async function downloadActa(id) {
+  const a = allActas.find(x=>x.id===id);
+  if(!a?.archivo_path) { showToast('Sin archivo','error'); return; }
+  const {data} = await sb.storage.from('comites').createSignedUrl(a.archivo_path, 3600);
+  if(!data?.signedUrl) { showToast('Error','error'); return; }
+  const el = document.createElement('a');
+  el.href = data.signedUrl; el.download = a.archivo_nombre; el.target='_blank'; el.click();
+  await sb.from('auditoria').insert({
+    usuario_id:currentUser.id, usuario_nombre:currentPerfil.nombre,
+    accion:'DESCARGAR', tabla:'actas_comites', registro_id:id,
+    detalle:`Descargó acta ${a.comite}: ${a.titulo}`
+  });
 }
 
 // ── UTILS ─────────────────────────────────────────────────
