@@ -1945,7 +1945,7 @@ async function saveEditProfile() {
     }
     await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'EDITAR_PERFIL',tabla:'perfiles',registro_id:editProfileUserId,detalle:`Editó perfil de ${nombre}`});
     closeModal('modal-edit-profile');
-    await loadAll();renderUsers();
+    await loadAll();renderUsers();renderOrganigrama();
     if(!editProfilePhotoFile) showToast('Perfil actualizado ✓','success');
   } catch(e){showToast('Error: '+e.message,'error');}
   finally{btn.disabled=false;btn.textContent='Guardar cambios';}
