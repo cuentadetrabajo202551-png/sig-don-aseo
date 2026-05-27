@@ -540,7 +540,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-item" onclick="showPage('organigrama',this)">🏢&nbsp;Organigrama</div>
       <div class="nav-sec">Administración</div>
       <div class="nav-item" onclick="showPage('usuarios',this)">👥&nbsp;Usuarios</div>
-      <div class="nav-item" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
+      <div class="nav-item editor-up" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
     </div>
 
     <div class="main">
@@ -1297,6 +1297,7 @@ function canEdit(){return currentPerfil&&(currentPerfil.rol==='admin'||currentPe
 function canDelete(){return currentPerfil&&currentPerfil.rol==='admin';}
 function applyPermissions() {
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=currentPerfil?.rol==='admin'?'':'none');
+  document.querySelectorAll('.editor-up').forEach(el=>el.style.display=canEdit()?'':'none');
   ['sst','calidad','ambiental'].forEach(sys=>{
     const sysName=sys==='sst'?'SST':sys==='calidad'?'Calidad':'Ambiental';
     document.getElementById('addbtn-'+sys).innerHTML=canEdit()?`<button class="add-btn" onclick="openDocModal('${sysName}')">+ Nuevo documento</button>`:'';
@@ -1596,14 +1597,10 @@ async function previewDoc(docId) {
     body.innerHTML=`<img src="${info.url}" alt="${info.nombre}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
   } else if(info.mime==='application/pdf') {
     body.innerHTML=`<iframe src="${info.url}" style="width:100%;height:100%;border:none"></iframe>`;
-  } else if(info.mime?.includes('word')||info.mime?.includes('officedocument.wordprocessing')||
-            info.mime?.includes('excel')||info.mime?.includes('spreadsheet')||info.mime?.includes('officedocument.spreadsheet')) {
-    const ext=info.nombre?.split('.').pop()?.toUpperCase()||'archivo';
-    body.innerHTML=`<div class="preview-unavail" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px">
-      <div style="font-size:48px">${info.mime?.includes('excel')||info.mime?.includes('spreadsheet')?'📊':'📝'}</div>
-      <div style="font-weight:700;font-size:15px;color:var(--gray-900);text-align:center;padding:0 20px">${esc(info.nombre)}</div>
-      <div style="font-size:12px;color:var(--gray-500);text-align:center">Los archivos ${ext} no tienen vista previa.<br>Usa el botón <b>Descargar</b> para abrirlo.</div>
-    </div>`;
+  } else if(info.mime?.includes('word')||info.mime?.includes('officedocument.wordprocessing')) {
+    body.innerHTML=`<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(info.url)}&embedded=true" style="width:100%;height:100%;border:none"></iframe>`;
+  } else if(info.mime?.includes('excel')||info.mime?.includes('spreadsheet')||info.mime?.includes('officedocument.spreadsheet')) {
+    body.innerHTML=`<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(info.url)}" style="width:100%;height:100%;border:none"></iframe>`;
   } else {
     body.innerHTML=`<div class="side-panel-loading"><div style="font-size:36px">📄</div><div style="font-weight:600">${esc(info.nombre)}</div><div style="font-size:12px">Vista previa no disponible — usa Descargar</div></div>`;
   }
@@ -2506,14 +2503,10 @@ async function previewActa(id) {
     body.innerHTML = `<img src="${data.signedUrl}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
   } else if(mime==='application/pdf') {
     body.innerHTML = `<iframe src="${data.signedUrl}" style="width:100%;height:100%;border:none"></iframe>`;
-  } else if(mime.includes('word')||mime.includes('officedocument.wordprocessing')||
-            mime.includes('excel')||mime.includes('spreadsheet')||mime.includes('officedocument.spreadsheet')) {
-    const ext=a.archivo_nombre?.split('.').pop()?.toUpperCase()||'archivo';
-    body.innerHTML = `<div class="preview-unavail" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px">
-      <div style="font-size:48px">${mime.includes('excel')||mime.includes('spreadsheet')?'📊':'📝'}</div>
-      <div style="font-weight:700;font-size:15px;color:var(--gray-900);text-align:center;padding:0 20px">${esc(a.archivo_nombre)}</div>
-      <div style="font-size:12px;color:var(--gray-500);text-align:center">Los archivos ${ext} no tienen vista previa.<br>Usa el botón <b>Descargar</b> para abrirlo.</div>
-    </div>`;
+  } else if(mime.includes('word')||mime.includes('officedocument.wordprocessing')) {
+    body.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(data.signedUrl)}&embedded=true" style="width:100%;height:100%;border:none"></iframe>`;
+  } else if(mime.includes('excel')||mime.includes('spreadsheet')||mime.includes('officedocument.spreadsheet')) {
+    body.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(data.signedUrl)}" style="width:100%;height:100%;border:none"></iframe>`;
   } else {
     body.innerHTML = `<div class="side-panel-loading"><div style="font-size:36px">📄</div><div>${esc(a.archivo_nombre)}</div></div>`;
   }
