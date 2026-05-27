@@ -187,6 +187,17 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .add-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:18px;transition:background .12s}
 .add-btn:hover{background:var(--navy-dark)}
 
+/* LINK CARDS (Cartera / Nómina) */
+.link-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:4px}
+.link-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:10px;transition:box-shadow .15s,border-color .15s;position:relative}
+.link-card:hover{box-shadow:var(--shadow-md);border-color:var(--gray-300)}
+.link-card-icon{font-size:32px;line-height:1}
+.link-card-name{font-size:15px;font-weight:800;color:var(--gray-900)}
+.link-card-desc{font-size:12px;color:var(--gray-500);flex:1}
+.link-card-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:background .12s;align-self:flex-start}
+.link-card-btn:hover{background:var(--navy-dark)}
+.link-card-actions{position:absolute;top:10px;right:10px;display:flex;gap:4px}
+
 /* FILE DROP */
 .file-drop{border:2px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--gray-50);margin-top:8px}
 .file-drop:hover{border-color:var(--navy);background:var(--navy-light)}
@@ -518,6 +529,9 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-sec">Comités</div>
       <div class="nav-item" onclick="showPage('copasst',this)"><div class="nav-dot" style="background:#ff8c42"></div>COPASST</div>
       <div class="nav-item" onclick="showPage('ccl',this)"><div class="nav-dot" style="background:#9b59b6"></div>CCL</div>
+      <div class="nav-sec">Recursos</div>
+      <div class="nav-item" onclick="showPage('cartera',this)">💼&nbsp;Cartera</div>
+      <div class="nav-item" onclick="showPage('nomina',this)">💰&nbsp;Nómina</div>
       <div class="nav-sec">Herramientas</div>
       <div class="nav-item" onclick="showPage('buscar',this)">🔍&nbsp;Buscador</div>
       <div class="nav-item" onclick="showPage('pendientes',this)">⏰&nbsp;Pendientes</div>
@@ -756,6 +770,30 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         </div>
       </div>
 
+
+      <!-- CARTERA -->
+      <div class="page" id="page-cartera">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+          <div>
+            <div class="page-title">Cartera</div>
+            <div class="page-sub">Acceso rápido a archivos de cartera en OneDrive</div>
+          </div>
+          <div id="addbtn-cartera"></div>
+        </div>
+        <div class="link-cards-grid" id="grid-cartera"><div class="loading">Cargando...</div></div>
+      </div>
+
+      <!-- NÓMINA -->
+      <div class="page" id="page-nomina">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+          <div>
+            <div class="page-title">Nómina</div>
+            <div class="page-sub">Acceso rápido a archivos de nómina en OneDrive</div>
+          </div>
+          <div id="addbtn-nomina"></div>
+        </div>
+        <div class="link-cards-grid" id="grid-nomina"><div class="loading">Cargando...</div></div>
+      </div>
 
       <!-- USUARIOS -->
       <div class="page" id="page-usuarios">
@@ -1094,6 +1132,27 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 </div>
 
 
+<div class="modal-overlay" id="modal-enlace">
+  <div class="modal">
+    <div class="modal-title" id="modal-enlace-title">Nueva tarjeta</div>
+    <input type="hidden" id="enlace-seccion">
+    <label class="form-label">Ícono <span class="form-hint">(un emoji)</span></label>
+    <input class="form-input" id="enlace-icono" maxlength="4" placeholder="📊" style="font-size:22px;width:70px;text-align:center">
+    <label class="form-label">Nombre</label>
+    <input class="form-input" id="enlace-nombre" maxlength="60" placeholder="Ej: Cartera Junio 2025">
+    <label class="form-label">Descripción <span class="form-hint">(opcional)</span></label>
+    <input class="form-input" id="enlace-desc" maxlength="120" placeholder="Ej: Reporte mensual de cartera">
+    <label class="form-label">URL de OneDrive</label>
+    <input class="form-input" id="enlace-url" type="url" placeholder="https://...">
+    <label class="form-label">Visible para <span class="form-hint">(deja todo sin marcar = visible para todos)</span></label>
+    <div id="enlace-visibilidad" style="display:flex;flex-direction:column;gap:7px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-50);max-height:160px;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-enlace')">Cancelar</button>
+      <button class="btn-primary" onclick="saveEnlace()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1119,6 +1178,7 @@ let chartSistema=null, chartEstado=null, chartTipo=null;
 let allActas=[], allMiembros=[];
 let editActaId=null, editMiembroId=null;
 let allOrg=[], editOrgId=null, orgPhotoFile=null, currentOrgDetailId=null;
+let allEnlaces=[], editEnlaceId=null;
 
 
 // ── SANITIZACIÓN XSS ──────────────────────────────────────
@@ -1281,14 +1341,15 @@ async function loadAll() {
     }
     docsQuery = docsQuery.order('sistema').order('codigo');
 
-    const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes,orgRes]=await Promise.all([
+    const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes,orgRes,enlacesRes]=await Promise.all([
       docsQuery,
       sb.from('perfiles').select('*').eq('activo',true).order('nombre'),
       sb.from('tareas').select('*').order('creado_en',{ascending:false}),
       sb.from('comentarios').select('documento_id'),
       sb.from('actas_comites').select('*').order('fecha_reunion',{ascending:false}),
       sb.from('miembros_comites').select('*').order('comite').order('cargo_comite'),
-      sb.from('organigrama').select('*').eq('activo',true).order('orden').order('nombre')
+      sb.from('organigrama').select('*').eq('activo',true).order('orden').order('nombre'),
+      sb.from('enlaces_recursos').select('*').order('seccion').order('orden')
     ]);
     allDocs=docsRes.data||[];
     allUsers=usersRes.data||[];
@@ -1296,6 +1357,7 @@ async function loadAll() {
     allActas=actasRes.data||[];
     allMiembros=miembrosRes.data||[];
     allOrg=orgRes.data||[];
+    allEnlaces=enlacesRes.data||[];
     // Contar comentarios por documento
     const comCounts={};
     (comRes.data||[]).forEach(c=>{comCounts[c.documento_id]=(comCounts[c.documento_id]||0)+1;});
@@ -1310,6 +1372,8 @@ function renderAll() {
   renderDocList('SST');renderDocList('Calidad');renderDocList('Ambiental');
   updateDashboard();updateCounts();
   setTimeout(renderCharts,200);
+  renderEnlaces('cartera');renderEnlaces('nomina');
+  renderAddBtnEnlaces();
 }
 
 // ── HELPERS ───────────────────────────────────────────────
@@ -2680,6 +2744,130 @@ function editFromDetail() {
   if(!currentOrgDetailId) return;
   closeModal('modal-org-detail');
   setTimeout(() => openEditOrg(currentOrgDetailId), 200);
+}
+
+// ── ENLACES RECURSOS (Cartera / Nómina) ──────────────────
+function renderAddBtnEnlaces() {
+  ['cartera','nomina'].forEach(sec=>{
+    const el=document.getElementById('addbtn-'+sec);
+    if(!el) return;
+    el.innerHTML=canDelete()?`<button class="add-btn" onclick="openEnlaceModal('${sec}')">+ Agregar tarjeta</button>`:'';
+  });
+}
+
+function renderEnlaces(sec) {
+  const grid=document.getElementById('grid-'+sec);
+  if(!grid) return;
+  const items=allEnlaces.filter(e=>{
+    if(e.seccion!==sec) return false;
+    if(canDelete()) return true; // admin ve todo
+    const vp=e.visible_para;
+    if(!vp||vp.length===0) return true; // sin restricción = todos
+    return vp.includes(currentUser.id);
+  });
+  if(!items.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1;padding:40px 0;text-align:center;color:var(--gray-500)">${canDelete()?'Sin tarjetas. Usa <b>+ Agregar tarjeta</b> para crear la primera.':'Sin tarjetas disponibles por el momento.'}</div>`;
+    return;
+  }
+  grid.innerHTML=items.map(e=>{
+    const vp=e.visible_para;
+    const etiq=canDelete()&&vp&&vp.length?`<div style="font-size:10px;color:var(--gray-500);margin-top:2px">👁 ${vp.map(uid=>{const u=allUsers.find(x=>x.id===uid);return u?u.nombre.split(' ')[0]:'?';}).join(', ')}</div>`:'';
+    return `<div class="link-card">
+      ${canDelete()?`<div class="link-card-actions">
+        <button class="icon-btn" onclick="openEditEnlace('${e.id}')" title="Editar">✏</button>
+        <button class="icon-btn danger" onclick="deleteEnlace('${e.id}')" title="Eliminar">🗑</button>
+      </div>`:''}
+      <div class="link-card-icon">${esc(e.icono)||'📄'}</div>
+      <div class="link-card-name">${esc(e.nombre)}</div>
+      ${e.descripcion?`<div class="link-card-desc">${esc(e.descripcion)}</div>`:'<div class="link-card-desc"></div>'}
+      ${etiq}
+      <a class="link-card-btn" href="${esc(e.url)}" target="_blank" rel="noopener">Abrir en OneDrive ↗</a>
+    </div>`;
+  }).join('');
+}
+
+function buildVisibilidadChecks(selectedIds=[]) {
+  const cont=document.getElementById('enlace-visibilidad');
+  const otros=allUsers.filter(u=>u.id!==currentUser.id);
+  if(!otros.length){cont.innerHTML='<span style="font-size:12px;color:var(--gray-500)">No hay otros usuarios registrados aún.</span>';return;}
+  cont.innerHTML=otros.map(u=>`
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+      <input type="checkbox" value="${u.id}" ${selectedIds.includes(u.id)?'checked':''} style="width:15px;height:15px;accent-color:var(--navy)">
+      <span>${esc(u.nombre)}</span>
+      <span style="font-size:11px;color:var(--gray-500);font-weight:400">${esc(u.cargo||'')}</span>
+    </label>`).join('');
+}
+
+function openEnlaceModal(sec) {
+  editEnlaceId=null;
+  document.getElementById('modal-enlace-title').textContent='Nueva tarjeta';
+  document.getElementById('enlace-seccion').value=sec;
+  document.getElementById('enlace-icono').value='';
+  document.getElementById('enlace-nombre').value='';
+  document.getElementById('enlace-desc').value='';
+  document.getElementById('enlace-url').value='';
+  buildVisibilidadChecks([]);
+  document.getElementById('modal-enlace').classList.add('open');
+}
+
+function openEditEnlace(id) {
+  const e=allEnlaces.find(x=>x.id===id);
+  if(!e) return;
+  editEnlaceId=id;
+  document.getElementById('modal-enlace-title').textContent='Editar tarjeta';
+  document.getElementById('enlace-seccion').value=e.seccion;
+  document.getElementById('enlace-icono').value=e.icono||'';
+  document.getElementById('enlace-nombre').value=e.nombre||'';
+  document.getElementById('enlace-desc').value=e.descripcion||'';
+  document.getElementById('enlace-url').value=e.url||'';
+  buildVisibilidadChecks(e.visible_para||[]);
+  document.getElementById('modal-enlace').classList.add('open');
+}
+
+async function saveEnlace() {
+  const sec=document.getElementById('enlace-seccion').value;
+  const nombre=document.getElementById('enlace-nombre').value.trim();
+  const url=document.getElementById('enlace-url').value.trim();
+  if(!nombre){showToast('El nombre es obligatorio','error');return;}
+  if(!url){showToast('La URL es obligatoria','error');return;}
+  const checks=[...document.querySelectorAll('#enlace-visibilidad input[type=checkbox]:checked')];
+  const visible_para=checks.map(c=>c.value);
+  const data={
+    seccion:sec,
+    icono:document.getElementById('enlace-icono').value.trim()||'📄',
+    nombre,
+    descripcion:document.getElementById('enlace-desc').value.trim()||null,
+    url,
+    visible_para: visible_para.length ? visible_para : null,
+    orden: editEnlaceId ? allEnlaces.find(x=>x.id===editEnlaceId)?.orden??99 : (allEnlaces.filter(e=>e.seccion===sec).length+1),
+    actualizado_en:new Date().toISOString()
+  };
+  let error;
+  if(editEnlaceId){
+    ({error}=await sb.from('enlaces_recursos').update(data).eq('id',editEnlaceId));
+  } else {
+    data.creado_en=new Date().toISOString();
+    ({error}=await sb.from('enlaces_recursos').insert(data));
+  }
+  if(error){showToast('Error: '+error.message,'error');return;}
+  const dest=visible_para.length?visible_para.map(uid=>{const u=allUsers.find(x=>x.id===uid);return u?u.nombre:'?';}).join(', '):'todos';
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editEnlaceId?'EDITAR':'CREAR',tabla:'enlaces_recursos',detalle:`${editEnlaceId?'Editó':'Creó'} tarjeta "${nombre}" en ${sec} — visible para: ${dest}`});
+  closeModal('modal-enlace');
+  showToast(editEnlaceId?'Tarjeta actualizada':'Tarjeta creada');
+  const {data:fresh}=await sb.from('enlaces_recursos').select('*').order('seccion').order('orden');
+  allEnlaces=fresh||[];
+  renderEnlaces('cartera');renderEnlaces('nomina');
+}
+
+async function deleteEnlace(id) {
+  const e=allEnlaces.find(x=>x.id===id);
+  if(!e||!confirm(`¿Eliminar la tarjeta "${e.nombre}"?`)) return;
+  const {error}=await sb.from('enlaces_recursos').delete().eq('id',id);
+  if(error){showToast('Error: '+error.message,'error');return;}
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'enlaces_recursos',detalle:`Eliminó tarjeta "${e.nombre}" de ${e.seccion}`});
+  showToast('Tarjeta eliminada');
+  allEnlaces=allEnlaces.filter(x=>x.id!==id);
+  renderEnlaces('cartera');renderEnlaces('nomina');
 }
 
 // ── UTILS ─────────────────────────────────────────────────
