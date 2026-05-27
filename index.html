@@ -1595,12 +1595,30 @@ async function previewDoc(docId) {
   document.querySelector('.layout').classList.add('panel-open');
   if(info.mime?.startsWith('image/')) {
     body.innerHTML=`<img src="${info.url}" alt="${info.nombre}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
-  } else if(info.mime==='application/pdf') {
-    body.innerHTML=`<iframe src="${info.url}" style="width:100%;height:100%;border:none"></iframe>`;
-  } else if(info.mime?.includes('word')||info.mime?.includes('officedocument.wordprocessing')) {
-    body.innerHTML=`<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(info.url)}&embedded=true" style="width:100%;height:100%;border:none"></iframe>`;
-  } else if(info.mime?.includes('excel')||info.mime?.includes('spreadsheet')||info.mime?.includes('officedocument.spreadsheet')) {
-    body.innerHTML=`<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(info.url)}" style="width:100%;height:100%;border:none"></iframe>`;
+  } else if(info.mime==='application/pdf'||info.mime?.includes('pdf')) {
+    body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando PDF…</div></div>`;
+    try {
+      const resp=await fetch(info.url);
+      const blob=await resp.blob();
+      const blobUrl=URL.createObjectURL(blob);
+      body.innerHTML=`<iframe src="${blobUrl}" style="width:100%;height:100%;border:none"></iframe>`;
+    } catch(e) {
+      body.innerHTML=`<div class="preview-unavail"><div style="font-size:36px;margin-bottom:10px">📄</div><div style="font-weight:700">${esc(info.nombre)}</div><div style="margin-top:8px;font-size:12px;color:var(--gray-500)">No se pudo cargar la vista previa.</div><a href="${info.url}" target="_blank" style="margin-top:12px;display:inline-block;padding:8px 18px;background:var(--navy);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:700">Abrir en nueva pestaña</a></div>`;
+    }
+  } else if(info.mime?.includes('word')||info.mime?.includes('officedocument.wordprocessing')||
+            info.mime?.includes('excel')||info.mime?.includes('spreadsheet')||info.mime?.includes('officedocument.spreadsheet')||
+            info.mime?.includes('presentation')||info.mime?.includes('powerpoint')) {
+    const isExcel=info.mime?.includes('excel')||info.mime?.includes('spreadsheet');
+    const icon=isExcel?'📊':'📝';
+    body.innerHTML=`<div class="preview-unavail" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;padding:24px;text-align:center">
+      <div style="font-size:52px">${icon}</div>
+      <div style="font-weight:800;font-size:15px;color:var(--gray-900)">${esc(info.nombre)}</div>
+      <div style="font-size:12px;color:var(--gray-500);max-width:260px">El navegador no puede previsualizar este formato directamente. Ábrelo en una nueva pestaña o descárgalo.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px">
+        <a href="${info.url}" target="_blank" style="padding:9px 18px;background:var(--navy);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:700">Abrir en nueva pestaña</a>
+        <button onclick="downloadFromSidePanel()" style="padding:9px 18px;background:var(--white);color:var(--gray-700);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">Descargar</button>
+      </div>
+    </div>`;
   } else {
     body.innerHTML=`<div class="side-panel-loading"><div style="font-size:36px">📄</div><div style="font-weight:600">${esc(info.nombre)}</div><div style="font-size:12px">Vista previa no disponible — usa Descargar</div></div>`;
   }
@@ -2499,14 +2517,32 @@ async function previewActa(id) {
   document.getElementById('side-overlay').classList.add('open');
   document.querySelector('.layout').classList.add('panel-open');
   const mime = a.archivo_mime || '';
+  const sUrl = data.signedUrl;
   if(mime.startsWith('image/')) {
-    body.innerHTML = `<img src="${data.signedUrl}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
-  } else if(mime==='application/pdf') {
-    body.innerHTML = `<iframe src="${data.signedUrl}" style="width:100%;height:100%;border:none"></iframe>`;
-  } else if(mime.includes('word')||mime.includes('officedocument.wordprocessing')) {
-    body.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(data.signedUrl)}&embedded=true" style="width:100%;height:100%;border:none"></iframe>`;
-  } else if(mime.includes('excel')||mime.includes('spreadsheet')||mime.includes('officedocument.spreadsheet')) {
-    body.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(data.signedUrl)}" style="width:100%;height:100%;border:none"></iframe>`;
+    body.innerHTML = `<img src="${sUrl}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
+  } else if(mime==='application/pdf'||mime.includes('pdf')) {
+    body.innerHTML = `<div class="side-panel-loading"><div class="spin"></div><div>Cargando PDF…</div></div>`;
+    try {
+      const resp=await fetch(sUrl);
+      const blob=await resp.blob();
+      const blobUrl=URL.createObjectURL(blob);
+      body.innerHTML = `<iframe src="${blobUrl}" style="width:100%;height:100%;border:none"></iframe>`;
+    } catch(e) {
+      body.innerHTML = `<div class="preview-unavail"><div style="font-size:36px;margin-bottom:10px">📄</div><div style="font-weight:700">${esc(a.archivo_nombre)}</div><a href="${sUrl}" target="_blank" style="margin-top:12px;display:inline-block;padding:8px 18px;background:var(--navy);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:700">Abrir en nueva pestaña</a></div>`;
+    }
+  } else if(mime.includes('word')||mime.includes('officedocument.wordprocessing')||
+            mime.includes('excel')||mime.includes('spreadsheet')||mime.includes('officedocument.spreadsheet')||
+            mime.includes('presentation')||mime.includes('powerpoint')) {
+    const isExcel=mime.includes('excel')||mime.includes('spreadsheet');
+    body.innerHTML = `<div class="preview-unavail" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;padding:24px;text-align:center">
+      <div style="font-size:52px">${isExcel?'📊':'📝'}</div>
+      <div style="font-weight:800;font-size:15px;color:var(--gray-900)">${esc(a.archivo_nombre)}</div>
+      <div style="font-size:12px;color:var(--gray-500);max-width:260px">El navegador no puede previsualizar este formato directamente. Ábrelo en una nueva pestaña o descárgalo.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px">
+        <a href="${sUrl}" target="_blank" style="padding:9px 18px;background:var(--navy);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:700">Abrir en nueva pestaña</a>
+        <button onclick="downloadActa('${a.id}')" style="padding:9px 18px;background:var(--white);color:var(--gray-700);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">Descargar</button>
+      </div>
+    </div>`;
   } else {
     body.innerHTML = `<div class="side-panel-loading"><div style="font-size:36px">📄</div><div>${esc(a.archivo_nombre)}</div></div>`;
   }
