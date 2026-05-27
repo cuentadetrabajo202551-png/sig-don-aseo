@@ -538,9 +538,9 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-item" onclick="showPage('generar',this)">📄&nbsp;Generar doc.</div>
       <div class="nav-item" onclick="showPage('tareas',this)">✅&nbsp;Tareas</div>
       <div class="nav-item" onclick="showPage('organigrama',this)">🏢&nbsp;Organigrama</div>
-      <div class="nav-sec editor-up">Administración</div>
-      <div class="nav-item editor-up" onclick="showPage('usuarios',this)">👥&nbsp;Usuarios</div>
-      <div class="nav-item editor-up" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
+      <div class="nav-sec">Administración</div>
+      <div class="nav-item" onclick="showPage('usuarios',this)">👥&nbsp;Usuarios</div>
+      <div class="nav-item" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
     </div>
 
     <div class="main">
@@ -1297,19 +1297,18 @@ function canEdit(){return currentPerfil&&(currentPerfil.rol==='admin'||currentPe
 function canDelete(){return currentPerfil&&currentPerfil.rol==='admin';}
 function applyPermissions() {
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=currentPerfil?.rol==='admin'?'':'none');
-  document.querySelectorAll('.editor-up').forEach(el=>el.style.display=(currentPerfil?.rol==='admin'||currentPerfil?.rol==='editor')?'':'none');
   ['sst','calidad','ambiental'].forEach(sys=>{
     const sysName=sys==='sst'?'SST':sys==='calidad'?'Calidad':'Ambiental';
     document.getElementById('addbtn-'+sys).innerHTML=canEdit()?`<button class="add-btn" onclick="openDocModal('${sysName}')">+ Nuevo documento</button>`:'';
-    document.getElementById('perm-'+sys).innerHTML=!canEdit()?'<div class="perm-notice">⚠️ Solo puedes ver y descargar documentos.</div>':'';
+    document.getElementById('perm-'+sys).innerHTML='';
   });
   document.getElementById('addbtn-usuarios').innerHTML=currentPerfil?.rol==='admin'?'<button class="add-btn" onclick="openUserModal()">+ Nuevo usuario</button>':'';
   document.getElementById('addbtn-tareas').innerHTML=canEdit()?'<button class="add-btn" onclick="openTareaModal()">+ Nueva tarea</button>':'';
   document.getElementById('addbtn-org').innerHTML=canEdit()?'<button class="add-btn" style="margin-bottom:0" onclick="openOrgModal()">+ Agregar persona</button>':'';
-  document.getElementById('perm-org').innerHTML=!canEdit()?'<div class="perm-notice">⚠️ Solo puedes ver el organigrama.</div>':'';
+  document.getElementById('perm-org').innerHTML='';
   ['copasst','ccl'].forEach(c=>{
     const comite=c.toUpperCase();
-    document.getElementById('perm-'+c).innerHTML=!canEdit()?'<div class="perm-notice">⚠️ Solo puedes ver el contenido del comité.</div>':'';
+    document.getElementById('perm-'+c).innerHTML='';
     document.getElementById('addbtn-miembro-'+c).innerHTML=canEdit()?`<button class="add-btn" style="margin-bottom:0" onclick="openMiembroModal('${comite}')">+ Miembro</button>`:'';
     document.getElementById('addbtn-acta-'+c).innerHTML=canEdit()?`<button class="add-btn" style="margin-bottom:0" onclick="openActaModal('${comite}')">+ Acta</button>`:'';
   });
@@ -1343,7 +1342,7 @@ async function loadAll() {
 
     const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes,orgRes,enlacesRes]=await Promise.all([
       docsQuery,
-      sb.from('perfiles').select('*').eq('activo',true).order('nombre'),
+      sb.from('perfiles').select('*').eq('activo',true).order('creado_en',{ascending:true}),
       sb.from('tareas').select('*').order('creado_en',{ascending:false}),
       sb.from('comentarios').select('documento_id'),
       sb.from('actas_comites').select('*').order('fecha_reunion',{ascending:false}),
