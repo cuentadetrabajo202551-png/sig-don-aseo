@@ -1618,6 +1618,11 @@ async function previewDoc(docId) {
         ignoreHeight:false,breakPages:true,experimental:true,
         trimXmlDeclaration:true,useBase64URL:true
       });
+      const inner=wrap.querySelector('.docx-wrapper');
+      if(inner){
+        const scale=Math.min(1,(wrap.clientWidth-32)/inner.scrollWidth);
+        if(scale<1) inner.style.zoom=scale;
+      }
     } catch(e){ body.innerHTML=fallbackPreview(info.nombre,info.url); }
   } else if(info.mime?.includes('excel')||info.mime?.includes('spreadsheet')||info.mime?.includes('officedocument.spreadsheet')||info.nombre?.toLowerCase().endsWith('.xlsx')||info.nombre?.toLowerCase().endsWith('.xls')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando hoja de cálculo…</div></div>`;
@@ -2545,7 +2550,7 @@ async function previewActa(id) {
     body.innerHTML=`<iframe src="https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(sUrl)}" style="width:100%;height:100%;border:none"></iframe>`;
   } else if(mime.includes('word')||mime.includes('officedocument.wordprocessing')||a.archivo_nombre?.toLowerCase().endsWith('.docx')||a.archivo_nombre?.toLowerCase().endsWith('.doc')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando documento Word…</div></div>`;
-    try { const r=await fetch(sUrl);const bl=await r.blob();const wr=document.createElement('div');wr.style.cssText='width:100%;height:100%;overflow:auto;background:#525659;padding:16px;box-sizing:border-box';body.innerHTML='';body.appendChild(wr);await docx.renderAsync(bl,wr,null,{className:'docx',inWrapper:true,ignoreWidth:false,ignoreHeight:false,breakPages:true,experimental:true,trimXmlDeclaration:true,useBase64URL:true}); } catch(e){ body.innerHTML=fbActa; }
+    try { const r=await fetch(sUrl);const bl=await r.blob();const wr=document.createElement('div');wr.style.cssText='width:100%;height:100%;overflow:auto;background:#525659;padding:16px;box-sizing:border-box';body.innerHTML='';body.appendChild(wr);await docx.renderAsync(bl,wr,null,{className:'docx',inWrapper:true,ignoreWidth:false,ignoreHeight:false,breakPages:true,experimental:true,trimXmlDeclaration:true,useBase64URL:true});const inn=wr.querySelector('.docx-wrapper');if(inn){const sc=Math.min(1,(wr.clientWidth-32)/inn.scrollWidth);if(sc<1)inn.style.zoom=sc;} } catch(e){ body.innerHTML=fbActa; }
   } else if(mime.includes('excel')||mime.includes('spreadsheet')||mime.includes('officedocument.spreadsheet')||a.archivo_nombre?.toLowerCase().endsWith('.xlsx')||a.archivo_nombre?.toLowerCase().endsWith('.xls')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando hoja de cálculo…</div></div>`;
     try { const r=await fetch(sUrl);const buf=await r.arrayBuffer();const wb=XLSX.read(buf,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];body.innerHTML=`<div style="overflow:auto;height:100%;padding:10px">${XLSX.utils.sheet_to_html(ws)}</div>`;body.querySelectorAll('table').forEach(t=>{t.style.cssText='border-collapse:collapse;font-size:11px;font-family:var(--font)';t.querySelectorAll('td,th').forEach(c=>{c.style.cssText='border:1px solid #dde0f0;padding:3px 8px;white-space:nowrap'});}); } catch(e){ body.innerHTML=fbActa; }
