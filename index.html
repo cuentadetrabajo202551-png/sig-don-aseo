@@ -1112,6 +1112,10 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
     <select class="form-select" id="og-jefe">
       <option value="">— Sin jefe (nivel superior) —</option>
     </select>
+    <label class="form-label">Vincular a usuario del panel <span class="form-hint">(opcional — sincroniza fotos de perfil)</span></label>
+    <select class="form-select" id="og-perfil-id">
+      <option value="">— Sin vincular —</option>
+    </select>
     <label class="form-label">Notas</label>
     <textarea class="form-textarea" id="og-notas" placeholder="Información adicional..."></textarea>
     <div class="modal-actions">
@@ -1929,12 +1933,9 @@ async function saveEditProfile() {
     if(currentPerfil?.rol==='admin') updates.rol=document.getElementById('ep-rol').value;
     await sb.from('perfiles').update(updates).eq('id',editProfileUserId);
     if(editProfileUserId===currentUser.id){currentPerfil={...currentPerfil,...updates};updateTopbar();}
-    // Sincronizar foto con organigrama si cambió
+    // Sincronizar foto con tarjeta de organigrama vinculada
     if(editProfilePhotoFile && foto_url) {
-      const emailBuscado = editProfileUserId===currentUser.id ? currentUser.email?.toLowerCase() : null;
-      const orgEntry = emailBuscado
-        ? allOrg.find(o=>o.correo?.toLowerCase()===emailBuscado)
-        : allOrg.find(o=>o.nombre?.toLowerCase()===u.nombre?.toLowerCase());
+      const orgEntry=allOrg.find(o=>o.perfil_id===editProfileUserId);
       if(orgEntry) {
         await sb.from('organigrama').update({foto_url}).eq('id',orgEntry.id);
         const idx=allOrg.findIndex(o=>o.id===orgEntry.id);
@@ -2653,6 +2654,12 @@ function populateJefeSelect() {
   sel.innerHTML = opciones;
 }
 
+function populatePerfilSelect(selectedId='') {
+  const sel=document.getElementById('og-perfil-id');
+  sel.innerHTML='<option value="">— Sin vincular —</option>'+
+    allUsers.map(u=>`<option value="${u.id}"${u.id===selectedId?' selected':''}>${esc(u.nombre)} (${u.rol})</option>`).join('');
+}
+
 function openOrgModal() {
   editOrgId = null; orgPhotoFile = null;
   document.getElementById('modal-org-title').textContent = 'Nueva persona';
@@ -2660,6 +2667,7 @@ function openOrgModal() {
   document.getElementById('org-photo-circle').innerHTML = '<div>📷<br>Foto<br>(opcional)</div>';
   populateJefeSelect();
   document.getElementById('og-jefe').value = '';
+  populatePerfilSelect('');
   document.getElementById('modal-org-edit').classList.add('open');
 }
 
@@ -2683,6 +2691,7 @@ function openEditOrg(id) {
   }
   populateJefeSelect();
   document.getElementById('og-jefe').value = p.jefe_id||'';
+  populatePerfilSelect(p.perfil_id||'');
   document.getElementById('modal-org-edit').classList.add('open');
 }
 
@@ -2715,6 +2724,12 @@ async function saveOrgPersona() {
       foto_url = urlData.publicUrl;
     }
 
+    const perfilId = document.getElementById('og-perfil-id').value||null;
+    // Si se vincula un usuario y no hay foto propia, usar la foto del perfil
+    if(perfilId && !foto_url) {
+      const perfil = allUsers.find(u=>u.id===perfilId);
+      if(perfil?.foto_url) foto_url = perfil.foto_url;
+    }
     const data = {
       nombre, cargo,
       area: document.getElementById('og-area').value.trim()||null,
@@ -2723,6 +2738,7 @@ async function saveOrgPersona() {
       fecha_ingreso: document.getElementById('og-ingreso').value||null,
       jefe_id: document.getElementById('og-jefe').value||null,
       notas: document.getElementById('og-notas').value.trim()||null,
+      perfil_id: perfilId,
       foto_url,
       actualizado_en: new Date().toISOString()
     };
