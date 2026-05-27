@@ -1929,6 +1929,18 @@ async function saveEditProfile() {
     if(currentPerfil?.rol==='admin') updates.rol=document.getElementById('ep-rol').value;
     await sb.from('perfiles').update(updates).eq('id',editProfileUserId);
     if(editProfileUserId===currentUser.id){currentPerfil={...currentPerfil,...updates};updateTopbar();}
+    // Sincronizar foto con organigrama si cambió
+    if(editProfilePhotoFile && foto_url) {
+      const emailBuscado = editProfileUserId===currentUser.id ? currentUser.email?.toLowerCase() : null;
+      const orgEntry = emailBuscado
+        ? allOrg.find(o=>o.correo?.toLowerCase()===emailBuscado)
+        : allOrg.find(o=>o.nombre?.toLowerCase()===u.nombre?.toLowerCase());
+      if(orgEntry) {
+        await sb.from('organigrama').update({foto_url}).eq('id',orgEntry.id);
+        const idx=allOrg.findIndex(o=>o.id===orgEntry.id);
+        if(idx>=0) allOrg[idx].foto_url=foto_url;
+      }
+    }
     await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'EDITAR_PERFIL',tabla:'perfiles',registro_id:editProfileUserId,detalle:`Editó perfil de ${nombre}`});
     showToast('Perfil actualizado ✓','success');
     closeModal('modal-edit-profile');
