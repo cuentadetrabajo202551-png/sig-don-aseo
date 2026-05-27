@@ -1937,10 +1937,14 @@ async function saveEditProfile() {
     if(editProfilePhotoFile && foto_url) {
       const {data:orgVinc}=await sb.from('organigrama').select('id').eq('perfil_id',editProfileUserId).maybeSingle();
       if(orgVinc?.id) {
-        await sb.from('organigrama').update({foto_url,actualizado_en:new Date().toISOString()}).eq('id',orgVinc.id);
-        const idx=allOrg.findIndex(o=>o.id===orgVinc.id);
-        if(idx>=0) allOrg[idx].foto_url=foto_url;
-        showToast('Foto actualizada en perfil y organigrama ✓','success');
+        const {error:orgErr}=await sb.from('organigrama').update({foto_url,actualizado_en:new Date().toISOString()}).eq('id',orgVinc.id);
+        if(orgErr){
+          showToast('Perfil actualizado pero sin permiso para actualizar organigrama: '+orgErr.message,'error');
+        } else {
+          const idx=allOrg.findIndex(o=>o.id===orgVinc.id);
+          if(idx>=0) allOrg[idx].foto_url=foto_url;
+          showToast('Foto actualizada en perfil y organigrama ✓','success');
+        }
       }
     }
     await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'EDITAR_PERFIL',tabla:'perfiles',registro_id:editProfileUserId,detalle:`Editó perfil de ${nombre}`});
