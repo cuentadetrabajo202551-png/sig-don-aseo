@@ -1615,7 +1615,29 @@ async function previewDoc(docId) {
       const resp=await fetch(info.url);
       const buf=await resp.arrayBuffer();
       const result=await mammoth.convertToHtml({arrayBuffer:buf});
-      body.innerHTML=`<div style="overflow-y:auto;height:100%;padding:28px 32px;font-family:Georgia,serif;font-size:13px;line-height:1.75;color:var(--gray-900);background:#fff">${result.value||'<p>Documento vacío</p>'}</div>`;
+      body.innerHTML=`<div style="overflow-y:auto;height:100%;background:#c8c8c8;padding:20px 12px">
+        <div style="max-width:680px;margin:0 auto;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.28);padding:72px 80px;min-height:960px;font-family:Calibri,Arial,sans-serif;font-size:13.5px;line-height:1.7;color:#111">
+          <style>
+            .dp h1{font-size:20px;font-weight:700;margin:22px 0 10px;color:#003399;border-bottom:2px solid #003399;padding-bottom:4px}
+            .dp h2{font-size:16px;font-weight:700;margin:18px 0 8px;color:#1a1a2e}
+            .dp h3{font-size:14px;font-weight:700;margin:14px 0 6px;color:#1a1a2e}
+            .dp h4,.dp h5,.dp h6{font-size:13px;font-weight:700;margin:10px 0 5px}
+            .dp p{margin:0 0 9px}
+            .dp strong,.dp b{font-weight:700}
+            .dp em,.dp i{font-style:italic}
+            .dp u{text-decoration:underline}
+            .dp ul,.dp ol{margin:0 0 9px;padding-left:22px}
+            .dp li{margin-bottom:3px}
+            .dp table{border-collapse:collapse;width:100%;margin:14px 0;font-size:12px}
+            .dp td,.dp th{border:1px solid #bbb;padding:6px 10px;vertical-align:top}
+            .dp th{background:#003399;color:#fff;font-weight:700;text-align:left}
+            .dp tr:nth-child(even) td{background:#f4f6ff}
+            .dp img{max-width:100%;height:auto;margin:8px 0}
+            .dp a{color:#003399}
+          </style>
+          <div class="dp">${result.value||'<p>Documento vacío</p>'}</div>
+        </div>
+      </div>`;
     } catch(e){ body.innerHTML=fallbackPreview(info.nombre,info.url); }
   } else if(info.mime?.includes('excel')||info.mime?.includes('spreadsheet')||info.mime?.includes('officedocument.spreadsheet')||info.nombre?.toLowerCase().endsWith('.xlsx')||info.nombre?.toLowerCase().endsWith('.xls')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando hoja de cálculo…</div></div>`;
@@ -1625,12 +1647,16 @@ async function previewDoc(docId) {
       const wb=XLSX.read(buf,{type:'array'});
       const sheetNames=wb.SheetNames;
       const tabs=sheetNames.length>1?`<div style="display:flex;gap:4px;padding:8px 12px;background:var(--gray-100);border-bottom:1px solid var(--border);flex-wrap:wrap;flex-shrink:0">${sheetNames.map((s,i)=>`<button onclick="this.closest('[data-xls]').querySelectorAll('[data-sheet]').forEach(el=>el.style.display='none');this.closest('[data-xls]').querySelectorAll('[data-sheet]')[${i}].style.display='';this.closest('[data-xls]').querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('on'));this.classList.add('on')" data-tab class="filter-btn${i===0?' on':''}" style="font-size:11px;padding:4px 10px">${esc(s)}</button>`).join('')}</div>`:'';
-      const sheets=sheetNames.map((s,i)=>`<div data-sheet style="${i>0?'display:none':'display:block'};overflow:auto;flex:1;padding:10px">${XLSX.utils.sheet_to_html(wb.Sheets[s])}</div>`).join('');
-      body.innerHTML=`<div data-xls style="display:flex;flex-direction:column;height:100%">${tabs}${sheets}</div>`;
-      body.querySelectorAll('table').forEach(t=>{
-        t.style.cssText='border-collapse:collapse;font-size:11px;font-family:var(--font)';
-        t.querySelectorAll('td,th').forEach(c=>{c.style.cssText='border:1px solid #dde0f0;padding:3px 8px;white-space:nowrap;min-width:60px'});
-      });
+      const sheets=sheetNames.map((s,i)=>`<div data-sheet style="${i>0?'display:none':'display:block'};overflow:auto;flex:1;padding:12px">${XLSX.utils.sheet_to_html(wb.Sheets[s])}</div>`).join('');
+      body.innerHTML=`<div data-xls style="display:flex;flex-direction:column;height:100%">${tabs}${sheets}
+        <style>
+          [data-xls] table{border-collapse:collapse;font-size:11.5px;font-family:var(--font);min-width:100%}
+          [data-xls] td,[data-xls] th{border:1px solid #d0d4e8;padding:4px 10px;white-space:nowrap;min-width:64px}
+          [data-xls] tr:first-child td,[data-xls] th{background:#003399;color:#fff;font-weight:700}
+          [data-xls] tr:nth-child(even) td{background:#f4f6ff}
+          [data-xls] tr:hover td{background:#e6ecff}
+        </style>
+      </div>`;
     } catch(e){ body.innerHTML=fallbackPreview(info.nombre,info.url); }
   } else {
     body.innerHTML=fallbackPreview(info.nombre,info.url);
@@ -2539,7 +2565,7 @@ async function previewActa(id) {
     try { const r=await fetch(sUrl);const bl=await r.blob();body.innerHTML=`<iframe src="${URL.createObjectURL(bl)}" style="width:100%;height:100%;border:none"></iframe>`; } catch(e){ body.innerHTML=fbActa; }
   } else if(mime.includes('word')||mime.includes('officedocument.wordprocessing')||a.archivo_nombre?.toLowerCase().endsWith('.docx')||a.archivo_nombre?.toLowerCase().endsWith('.doc')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando documento Word…</div></div>`;
-    try { const r=await fetch(sUrl);const buf=await r.arrayBuffer();const res=await mammoth.convertToHtml({arrayBuffer:buf});body.innerHTML=`<div style="overflow-y:auto;height:100%;padding:28px 32px;font-family:Georgia,serif;font-size:13px;line-height:1.75;color:var(--gray-900);background:#fff">${res.value||'<p>Documento vacío</p>'}</div>`; } catch(e){ body.innerHTML=fbActa; }
+    try { const r=await fetch(sUrl);const buf=await r.arrayBuffer();const res=await mammoth.convertToHtml({arrayBuffer:buf});body.innerHTML=`<div style="overflow-y:auto;height:100%;background:#c8c8c8;padding:20px 12px"><div style="max-width:680px;margin:0 auto;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.28);padding:72px 80px;min-height:960px;font-family:Calibri,Arial,sans-serif;font-size:13.5px;line-height:1.7;color:#111"><style>.dp2 h1{font-size:20px;font-weight:700;margin:22px 0 10px;color:#003399;border-bottom:2px solid #003399;padding-bottom:4px}.dp2 h2{font-size:16px;font-weight:700;margin:18px 0 8px;color:#1a1a2e}.dp2 h3{font-size:14px;font-weight:700;margin:14px 0 6px}.dp2 p{margin:0 0 9px}.dp2 strong,.dp2 b{font-weight:700}.dp2 ul,.dp2 ol{margin:0 0 9px;padding-left:22px}.dp2 li{margin-bottom:3px}.dp2 table{border-collapse:collapse;width:100%;margin:14px 0;font-size:12px}.dp2 td,.dp2 th{border:1px solid #bbb;padding:6px 10px}.dp2 th{background:#003399;color:#fff;font-weight:700}.dp2 tr:nth-child(even) td{background:#f4f6ff}.dp2 img{max-width:100%;height:auto}</style><div class="dp2">${res.value||'<p>Documento vacío</p>'}</div></div></div>`; } catch(e){ body.innerHTML=fbActa; }
   } else if(mime.includes('excel')||mime.includes('spreadsheet')||mime.includes('officedocument.spreadsheet')||a.archivo_nombre?.toLowerCase().endsWith('.xlsx')||a.archivo_nombre?.toLowerCase().endsWith('.xls')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando hoja de cálculo…</div></div>`;
     try { const r=await fetch(sUrl);const buf=await r.arrayBuffer();const wb=XLSX.read(buf,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];body.innerHTML=`<div style="overflow:auto;height:100%;padding:10px">${XLSX.utils.sheet_to_html(ws)}</div>`;body.querySelectorAll('table').forEach(t=>{t.style.cssText='border-collapse:collapse;font-size:11px;font-family:var(--font)';t.querySelectorAll('td,th').forEach(c=>{c.style.cssText='border:1px solid #dde0f0;padding:3px 8px;white-space:nowrap'});}); } catch(e){ body.innerHTML=fbActa; }
