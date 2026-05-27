@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.3/dist/docx-preview.min.js"></script>
 <style>
 :root{
   --navy:#003399;--navy-dark:#002277;--navy-light:#e6ecff;
@@ -1603,41 +1603,21 @@ async function previewDoc(docId) {
   if(info.mime?.startsWith('image/')) {
     body.innerHTML=`<img src="${info.url}" alt="${info.nombre}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
   } else if(info.mime==='application/pdf'||info.mime?.includes('pdf')) {
-    body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando PDF…</div></div>`;
+    body.innerHTML=`<iframe src="https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(info.url)}" style="width:100%;height:100%;border:none"></iframe>`;
+  } else if(info.mime?.includes('word')||info.mime?.includes('officedocument.wordprocessing')||info.nombre?.toLowerCase().endsWith('.docx')||info.nombre?.toLowerCase().endsWith('.doc')) {
+    body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando documento…</div></div>`;
     try {
       const resp=await fetch(info.url);
       const blob=await resp.blob();
-      body.innerHTML=`<iframe src="${URL.createObjectURL(blob)}" style="width:100%;height:100%;border:none"></iframe>`;
-    } catch(e){ body.innerHTML=fallbackPreview(info.nombre,info.url); }
-  } else if(info.mime?.includes('word')||info.mime?.includes('officedocument.wordprocessing')||info.nombre?.toLowerCase().endsWith('.docx')||info.nombre?.toLowerCase().endsWith('.doc')) {
-    body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando documento Word…</div></div>`;
-    try {
-      const resp=await fetch(info.url);
-      const buf=await resp.arrayBuffer();
-      const result=await mammoth.convertToHtml({arrayBuffer:buf});
-      body.innerHTML=`<div style="overflow-y:auto;height:100%;background:#c8c8c8;padding:20px 12px">
-        <div style="max-width:680px;margin:0 auto;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.28);padding:72px 80px;min-height:960px;font-family:Calibri,Arial,sans-serif;font-size:13.5px;line-height:1.7;color:#111">
-          <style>
-            .dp h1{font-size:20px;font-weight:700;margin:22px 0 10px;color:#003399;border-bottom:2px solid #003399;padding-bottom:4px}
-            .dp h2{font-size:16px;font-weight:700;margin:18px 0 8px;color:#1a1a2e}
-            .dp h3{font-size:14px;font-weight:700;margin:14px 0 6px;color:#1a1a2e}
-            .dp h4,.dp h5,.dp h6{font-size:13px;font-weight:700;margin:10px 0 5px}
-            .dp p{margin:0 0 9px}
-            .dp strong,.dp b{font-weight:700}
-            .dp em,.dp i{font-style:italic}
-            .dp u{text-decoration:underline}
-            .dp ul,.dp ol{margin:0 0 9px;padding-left:22px}
-            .dp li{margin-bottom:3px}
-            .dp table{border-collapse:collapse;width:100%;margin:14px 0;font-size:12px}
-            .dp td,.dp th{border:1px solid #bbb;padding:6px 10px;vertical-align:top}
-            .dp th{background:#003399;color:#fff;font-weight:700;text-align:left}
-            .dp tr:nth-child(even) td{background:#f4f6ff}
-            .dp img{max-width:100%;height:auto;margin:8px 0}
-            .dp a{color:#003399}
-          </style>
-          <div class="dp">${result.value||'<p>Documento vacío</p>'}</div>
-        </div>
-      </div>`;
+      const wrap=document.createElement('div');
+      wrap.style.cssText='width:100%;height:100%;overflow:auto;background:#525659;padding:16px;box-sizing:border-box';
+      body.innerHTML='';
+      body.appendChild(wrap);
+      await docx.renderAsync(blob,wrap,null,{
+        className:'docx',inWrapper:true,ignoreWidth:false,
+        ignoreHeight:false,breakPages:true,experimental:true,
+        trimXmlDeclaration:true,useBase64URL:true
+      });
     } catch(e){ body.innerHTML=fallbackPreview(info.nombre,info.url); }
   } else if(info.mime?.includes('excel')||info.mime?.includes('spreadsheet')||info.mime?.includes('officedocument.spreadsheet')||info.nombre?.toLowerCase().endsWith('.xlsx')||info.nombre?.toLowerCase().endsWith('.xls')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando hoja de cálculo…</div></div>`;
@@ -2562,10 +2542,10 @@ async function previewActa(id) {
     body.innerHTML = `<img src="${sUrl}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
   } else if(mime==='application/pdf'||mime.includes('pdf')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando PDF…</div></div>`;
-    try { const r=await fetch(sUrl);const bl=await r.blob();body.innerHTML=`<iframe src="${URL.createObjectURL(bl)}" style="width:100%;height:100%;border:none"></iframe>`; } catch(e){ body.innerHTML=fbActa; }
+    body.innerHTML=`<iframe src="https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(sUrl)}" style="width:100%;height:100%;border:none"></iframe>`;
   } else if(mime.includes('word')||mime.includes('officedocument.wordprocessing')||a.archivo_nombre?.toLowerCase().endsWith('.docx')||a.archivo_nombre?.toLowerCase().endsWith('.doc')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando documento Word…</div></div>`;
-    try { const r=await fetch(sUrl);const buf=await r.arrayBuffer();const res=await mammoth.convertToHtml({arrayBuffer:buf});body.innerHTML=`<div style="overflow-y:auto;height:100%;background:#c8c8c8;padding:20px 12px"><div style="max-width:680px;margin:0 auto;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.28);padding:72px 80px;min-height:960px;font-family:Calibri,Arial,sans-serif;font-size:13.5px;line-height:1.7;color:#111"><style>.dp2 h1{font-size:20px;font-weight:700;margin:22px 0 10px;color:#003399;border-bottom:2px solid #003399;padding-bottom:4px}.dp2 h2{font-size:16px;font-weight:700;margin:18px 0 8px;color:#1a1a2e}.dp2 h3{font-size:14px;font-weight:700;margin:14px 0 6px}.dp2 p{margin:0 0 9px}.dp2 strong,.dp2 b{font-weight:700}.dp2 ul,.dp2 ol{margin:0 0 9px;padding-left:22px}.dp2 li{margin-bottom:3px}.dp2 table{border-collapse:collapse;width:100%;margin:14px 0;font-size:12px}.dp2 td,.dp2 th{border:1px solid #bbb;padding:6px 10px}.dp2 th{background:#003399;color:#fff;font-weight:700}.dp2 tr:nth-child(even) td{background:#f4f6ff}.dp2 img{max-width:100%;height:auto}</style><div class="dp2">${res.value||'<p>Documento vacío</p>'}</div></div></div>`; } catch(e){ body.innerHTML=fbActa; }
+    try { const r=await fetch(sUrl);const bl=await r.blob();const wr=document.createElement('div');wr.style.cssText='width:100%;height:100%;overflow:auto;background:#525659;padding:16px;box-sizing:border-box';body.innerHTML='';body.appendChild(wr);await docx.renderAsync(bl,wr,null,{className:'docx',inWrapper:true,ignoreWidth:false,ignoreHeight:false,breakPages:true,experimental:true,trimXmlDeclaration:true,useBase64URL:true}); } catch(e){ body.innerHTML=fbActa; }
   } else if(mime.includes('excel')||mime.includes('spreadsheet')||mime.includes('officedocument.spreadsheet')||a.archivo_nombre?.toLowerCase().endsWith('.xlsx')||a.archivo_nombre?.toLowerCase().endsWith('.xls')) {
     body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando hoja de cálculo…</div></div>`;
     try { const r=await fetch(sUrl);const buf=await r.arrayBuffer();const wb=XLSX.read(buf,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];body.innerHTML=`<div style="overflow:auto;height:100%;padding:10px">${XLSX.utils.sheet_to_html(ws)}</div>`;body.querySelectorAll('table').forEach(t=>{t.style.cssText='border-collapse:collapse;font-size:11px;font-family:var(--font)';t.querySelectorAll('td,th').forEach(c=>{c.style.cssText='border:1px solid #dde0f0;padding:3px 8px;white-space:nowrap'});}); } catch(e){ body.innerHTML=fbActa; }
