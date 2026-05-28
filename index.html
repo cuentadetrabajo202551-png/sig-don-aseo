@@ -188,6 +188,13 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .add-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:18px;transition:background .12s}
 .add-btn:hover{background:var(--navy-dark)}
 
+/* BULK SELECT */
+.bulk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.doc-row.doc-sel{background:var(--navy-light)!important;border-radius:var(--radius-sm)}
+.doc-cb{width:15px;height:15px;accent-color:var(--navy);cursor:pointer;flex-shrink:0}
+.sel-all-row{display:flex;align-items:center;gap:8px;padding:6px 2px 10px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.sel-all-row label{font-size:12px;color:var(--gray-500);cursor:pointer;font-weight:600;user-select:none}
+
 /* LINK CARDS (Cartera / Nómina) */
 .link-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:4px}
 .link-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:10px;transition:box-shadow .15s,border-color .15s;position:relative}
@@ -593,7 +600,19 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         <div class="page-title">SST — Seguridad y Salud en el Trabajo</div>
         <div class="page-sub">Sistema de Gestión de Seguridad y Salud en el Trabajo</div>
         <div id="perm-sst"></div><div id="addbtn-sst"></div>
-        <div class="card"><div class="card-title">📁 Documentos SST</div><div id="list-sst"><div class="loading">Cargando...</div></div></div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div class="card-title" style="margin:0">📁 Documentos SST</div>
+            <div id="bulk-bar-sst" class="bulk-bar" style="display:none">
+              <span id="bulk-count-sst" style="font-size:12px;font-weight:700;color:var(--navy)"></span>
+              <button class="icon-btn green" onclick="bulkDownload('SST')">⬇ Descargar</button>
+              <button class="icon-btn amber" id="bulk-freeze-sst" onclick="bulkToggleOculto('SST')">🔒 Congelar</button>
+              <button class="icon-btn danger" id="bulk-del-sst" onclick="bulkDelete('SST')">🗑 Eliminar</button>
+              <button class="icon-btn" onclick="clearSel('SST')" title="Cancelar selección">✕</button>
+            </div>
+          </div>
+          <div id="list-sst"><div class="loading">Cargando...</div></div>
+        </div>
       </div>
 
       <!-- CALIDAD -->
@@ -601,7 +620,19 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         <div class="page-title">Calidad — ISO 9001</div>
         <div class="page-sub">Sistema de Gestión de la Calidad</div>
         <div id="perm-calidad"></div><div id="addbtn-calidad"></div>
-        <div class="card"><div class="card-title">📁 Documentos Calidad</div><div id="list-calidad"><div class="loading">Cargando...</div></div></div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div class="card-title" style="margin:0">📁 Documentos Calidad</div>
+            <div id="bulk-bar-calidad" class="bulk-bar" style="display:none">
+              <span id="bulk-count-calidad" style="font-size:12px;font-weight:700;color:var(--navy)"></span>
+              <button class="icon-btn green" onclick="bulkDownload('Calidad')">⬇ Descargar</button>
+              <button class="icon-btn amber" id="bulk-freeze-calidad" onclick="bulkToggleOculto('Calidad')">🔒 Congelar</button>
+              <button class="icon-btn danger" id="bulk-del-calidad" onclick="bulkDelete('Calidad')">🗑 Eliminar</button>
+              <button class="icon-btn" onclick="clearSel('Calidad')" title="Cancelar selección">✕</button>
+            </div>
+          </div>
+          <div id="list-calidad"><div class="loading">Cargando...</div></div>
+        </div>
       </div>
 
       <!-- AMBIENTAL -->
@@ -609,7 +640,19 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         <div class="page-title">Ambiental — ISO 14001</div>
         <div class="page-sub">Sistema de Gestión Ambiental</div>
         <div id="perm-ambiental"></div><div id="addbtn-ambiental"></div>
-        <div class="card"><div class="card-title">📁 Documentos Ambiental</div><div id="list-ambiental"><div class="loading">Cargando...</div></div></div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div class="card-title" style="margin:0">📁 Documentos Ambiental</div>
+            <div id="bulk-bar-ambiental" class="bulk-bar" style="display:none">
+              <span id="bulk-count-ambiental" style="font-size:12px;font-weight:700;color:var(--navy)"></span>
+              <button class="icon-btn green" onclick="bulkDownload('Ambiental')">⬇ Descargar</button>
+              <button class="icon-btn amber" id="bulk-freeze-ambiental" onclick="bulkToggleOculto('Ambiental')">🔒 Congelar</button>
+              <button class="icon-btn danger" id="bulk-del-ambiental" onclick="bulkDelete('Ambiental')">🗑 Eliminar</button>
+              <button class="icon-btn" onclick="clearSel('Ambiental')" title="Cancelar selección">✕</button>
+            </div>
+          </div>
+          <div id="list-ambiental"><div class="loading">Cargando...</div></div>
+        </div>
       </div>
 
       <!-- BUSCADOR -->
@@ -1184,6 +1227,7 @@ let allActas=[], allMiembros=[];
 let editActaId=null, editMiembroId=null;
 let allOrg=[], editOrgId=null, orgPhotoFile=null, currentOrgDetailId=null;
 let allEnlaces=[], editEnlaceId=null;
+const docSel={SST:new Set(),Calidad:new Set(),Ambiental:new Set()};
 
 
 // ── SANITIZACIÓN XSS ──────────────────────────────────────
@@ -1393,19 +1437,48 @@ function updateCounts() {
 }
 
 // ── DOC LIST ──────────────────────────────────────────────
+function sysListId(sys){return sys==='SST'?'sst':sys==='Calidad'?'calidad':'ambiental';}
+
+function updateBulkBar(sys) {
+  const id=sysListId(sys);
+  const bar=document.getElementById('bulk-bar-'+id);
+  if(!bar) return;
+  const n=docSel[sys].size;
+  if(n===0){bar.style.display='none';return;}
+  bar.style.display='flex';
+  document.getElementById('bulk-count-'+id).textContent=n+' seleccionado'+(n>1?'s':'');
+  const freezeBtn=document.getElementById('bulk-freeze-'+id);
+  const delBtn=document.getElementById('bulk-del-'+id);
+  if(freezeBtn) freezeBtn.style.display=canEdit()?'':'none';
+  if(delBtn) delBtn.style.display=canDelete()?'':'none';
+  // Actualizar etiqueta congelar/mostrar según estado
+  if(freezeBtn&&canEdit()){
+    const sel=[...docSel[sys]].map(id=>allDocs.find(d=>d.id===id)).filter(Boolean);
+    const todosOcultos=sel.length&&sel.every(d=>d.oculto);
+    freezeBtn.textContent=todosOcultos?'🔓 Mostrar':'🔒 Congelar';
+  }
+}
+
 function renderDocList(sys) {
-  const id=sys==='SST'?'sst':sys==='Calidad'?'calidad':'ambiental';
+  const id=sysListId(sys);
   const el=document.getElementById('list-'+id);
   const docs=allDocs.filter(d=>d.sistema===sys);
   if(!docs.length){el.innerHTML='<div class="empty">Sin documentos. Agrega el primero.</div>';return;}
-  el.innerHTML=docs.map(d=>{
+  const todosSelec=docs.length>0&&docs.every(d=>docSel[sys].has(d.id));
+  const selAllRow=`<div class="sel-all-row">
+    <input type="checkbox" class="doc-cb" id="selall-${id}" ${todosSelec?'checked':''} onchange="toggleSelectAll('${sys}',this.checked)">
+    <label for="selall-${id}">${todosSelec?'Deseleccionar todos':'Seleccionar todos'}</label>
+  </div>`;
+  el.innerHTML=selAllRow+docs.map(d=>{
     const versiones=d.versiones||[];
     const vActiva=versiones.find(v=>v.activa)||versiones[versiones.length-1];
     const nVer=versiones.length;
     const sinArchivo=!vActiva;
     const commentCount=d.commentCount||0;
     const oculto=d.oculto===true;
-    return `<div class="doc-row" style="${oculto?'opacity:0.6;background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(230,119,0,0.05) 10px,rgba(230,119,0,0.05) 20px)':''}">
+    const sel=docSel[sys].has(d.id);
+    return `<div class="doc-row${sel?' doc-sel':''}" style="${oculto?'opacity:0.6;background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(230,119,0,0.05) 10px,rgba(230,119,0,0.05) 20px)':''}">
+      <input type="checkbox" class="doc-cb" ${sel?'checked':''} onchange="toggleDocSel('${sys}','${d.id}',this.checked)">
       <span class="doc-code">${esc(d.codigo)}</span>
       <div class="doc-info">
         <div class="doc-name">${esc(d.nombre)} ${oculto?'<span style="font-size:11px;color:var(--amber);font-weight:700;margin-left:4px">🔒 Oculto</span>':''}</div>
@@ -1427,6 +1500,7 @@ function renderDocList(sys) {
       </div>
     </div>`;
   }).join('');
+  updateBulkBar(sys);
 }
 
 // ── DASHBOARD + CHARTS ────────────────────────────────────
@@ -2826,7 +2900,66 @@ function editFromDetail() {
   setTimeout(() => openEditOrg(currentOrgDetailId), 200);
 }
 
-// ── ENLACES RECURSOS (Cartera / Nómina) ──────────────────
+// ── SELECCIÓN MASIVA DE DOCUMENTOS ───────────────────────
+function toggleDocSel(sys,id,checked){
+  if(checked) docSel[sys].add(id); else docSel[sys].delete(id);
+  renderDocList(sys);
+}
+
+function toggleSelectAll(sys,checked){
+  const docs=allDocs.filter(d=>d.sistema===sys);
+  docs.forEach(d=>checked?docSel[sys].add(d.id):docSel[sys].delete(d.id));
+  renderDocList(sys);
+}
+
+function clearSel(sys){
+  docSel[sys].clear();
+  renderDocList(sys);
+}
+
+async function bulkDownload(sys){
+  const ids=[...docSel[sys]];
+  if(!ids.length) return;
+  showToast(`Preparando ${ids.length} descarga${ids.length>1?'s':''}…`);
+  for(const id of ids){
+    await downloadDoc(id);
+    await new Promise(r=>setTimeout(r,600));
+  }
+}
+
+async function bulkToggleOculto(sys){
+  const ids=[...docSel[sys]];
+  if(!ids.length) return;
+  const sel=ids.map(id=>allDocs.find(d=>d.id===id)).filter(Boolean);
+  const nuevoEstado=!sel.every(d=>d.oculto);
+  const txt=nuevoEstado?'congelar (ocultar)':'mostrar';
+  if(!confirm(`¿${nuevoEstado?'Ocultar':'Mostrar'} ${ids.length} documento${ids.length>1?'s':''}?`)) return;
+  for(const id of ids){
+    await sb.from('documentos').update({oculto:nuevoEstado,actualizado_en:new Date().toISOString()}).eq('id',id);
+  }
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'EDITAR',tabla:'documentos',detalle:`${nuevoEstado?'Ocultó':'Mostró'} ${ids.length} documentos de ${sys} en bloque`});
+  showToast(`${ids.length} documento${ids.length>1?'s':''} ${nuevoEstado?'ocultados':'visibles'} ✓`,'success');
+  docSel[sys].clear();
+  await loadAll();
+}
+
+async function bulkDelete(sys){
+  const ids=[...docSel[sys]];
+  if(!ids.length) return;
+  if(!confirm(`¿Eliminar ${ids.length} documento${ids.length>1?'s':''}?\nEsta acción no se puede deshacer.`)) return;
+  for(const id of ids){
+    const doc=allDocs.find(d=>d.id===id);
+    const versiones=doc?.versiones||[];
+    for(const v of versiones){ if(v.archivo_path) await sb.storage.from('documentos').remove([v.archivo_path]); }
+    await sb.from('documentos').delete().eq('id',id);
+    await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'documentos',registro_id:id,detalle:`Eliminó ${doc?.codigo} - ${doc?.nombre} (bloque)`});
+  }
+  showToast(`${ids.length} documento${ids.length>1?'s':''} eliminados ✓`,'success');
+  docSel[sys].clear();
+  await loadAll();
+}
+
+// ── ENLACES RECURSOS (Cartera / Nómina) ───────────────────
 function renderAddBtnEnlaces() {
   ['cartera','nomina'].forEach(sec=>{
     const el=document.getElementById('addbtn-'+sec);
