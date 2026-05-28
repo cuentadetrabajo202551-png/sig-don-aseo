@@ -531,6 +531,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-sec">General</div>
       <div class="nav-item active" onclick="showPage('dashboard',this)"><div class="nav-dot dot-all"></div>Panel principal</div>
       <div class="nav-sec">Sistemas</div>
+      <div class="nav-item" onclick="showPage('sig',this)"><div class="nav-dot" style="background:#a29bfe"></div>Maestro SIG<span class="nav-cnt" id="cnt-sig">—</span></div>
       <div class="nav-item" onclick="showPage('sst',this)"><div class="nav-dot dot-sst"></div>SST<span class="nav-cnt" id="cnt-sst">—</span></div>
       <div class="nav-item" onclick="showPage('calidad',this)"><div class="nav-dot dot-cal"></div>Calidad<span class="nav-cnt" id="cnt-cal">—</span></div>
       <div class="nav-item" onclick="showPage('ambiental',this)"><div class="nav-dot dot-amb"></div>Ambiental<span class="nav-cnt" id="cnt-amb">—</span></div>
@@ -592,6 +593,26 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
             <div class="chart-title">Por tipo</div>
             <div class="chart-wrap"><canvas id="chart-tipo"></canvas></div>
           </div>
+        </div>
+      </div>
+
+      <!-- MAESTRO SIG -->
+      <div class="page" id="page-sig">
+        <div class="page-title">Maestro SIG</div>
+        <div class="page-sub">Documentos maestros del Sistema Integrado de Gestión</div>
+        <div id="perm-sig"></div><div id="addbtn-sig"></div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <div class="card-title" style="margin:0">📋 Documentos Maestro SIG</div>
+            <div id="bulk-bar-sig" class="bulk-bar" style="display:none">
+              <span id="bulk-count-sig" style="font-size:12px;font-weight:700;color:var(--navy)"></span>
+              <button class="icon-btn green" onclick="bulkDownload('Maestro SIG')">⬇ Descargar</button>
+              <button class="icon-btn amber" id="bulk-freeze-sig" onclick="bulkToggleOculto('Maestro SIG')">🔒 Congelar</button>
+              <button class="icon-btn danger" id="bulk-del-sig" onclick="bulkDelete('Maestro SIG')">🗑 Eliminar</button>
+              <button class="icon-btn" onclick="clearSel('Maestro SIG')" title="Cancelar selección">✕</button>
+            </div>
+          </div>
+          <div id="list-sig"><div class="loading">Cargando...</div></div>
         </div>
       </div>
 
@@ -669,6 +690,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
             <select class="form-select" id="sf-sistema" onchange="renderSearch()">
               <option value="">Todos</option>
               <option value="SST">SST</option>
+              <option value="Maestro SIG">Maestro SIG</option>
               <option value="Calidad">Calidad</option>
               <option value="Ambiental">Ambiental</option>
             </select>
@@ -868,6 +890,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div>
         <label class="form-label">Sistema *</label>
         <select class="form-select" id="f-sistema" onchange="updateCodigo()">
+          <option value="Maestro SIG">Maestro SIG</option>
           <option value="SST">SST</option>
           <option value="Calidad">Calidad</option>
           <option value="Ambiental">Ambiental</option>
@@ -1227,7 +1250,7 @@ let allActas=[], allMiembros=[];
 let editActaId=null, editMiembroId=null;
 let allOrg=[], editOrgId=null, orgPhotoFile=null, currentOrgDetailId=null;
 let allEnlaces=[], editEnlaceId=null;
-const docSel={SST:new Set(),Calidad:new Set(),Ambiental:new Set()};
+const docSel={SST:new Set(),Calidad:new Set(),Ambiental:new Set(),'Maestro SIG':new Set()};
 
 
 // ── SANITIZACIÓN XSS ──────────────────────────────────────
@@ -1347,10 +1370,9 @@ function canDelete(){return currentPerfil&&currentPerfil.rol==='admin';}
 function applyPermissions() {
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=currentPerfil?.rol==='admin'?'':'none');
   document.querySelectorAll('.editor-up').forEach(el=>el.style.display=canEdit()?'':'none');
-  ['sst','calidad','ambiental'].forEach(sys=>{
-    const sysName=sys==='sst'?'SST':sys==='calidad'?'Calidad':'Ambiental';
-    document.getElementById('addbtn-'+sys).innerHTML=canEdit()?`<button class="add-btn" onclick="openDocModal('${sysName}')">+ Nuevo documento</button>`:'';
-    document.getElementById('perm-'+sys).innerHTML='';
+  [['sst','SST'],['calidad','Calidad'],['ambiental','Ambiental'],['sig','Maestro SIG']].forEach(([id,sysName])=>{
+    document.getElementById('addbtn-'+id).innerHTML=canEdit()?`<button class="add-btn" onclick="openDocModal('${sysName}')">+ Nuevo documento</button>`:'';
+    document.getElementById('perm-'+id).innerHTML='';
   });
   document.getElementById('addbtn-usuarios').innerHTML=currentPerfil?.rol==='admin'?'<button class="add-btn" onclick="openUserModal()">+ Nuevo usuario</button>':'';
   document.getElementById('addbtn-tareas').innerHTML=canEdit()?'<button class="add-btn" onclick="openTareaModal()">+ Nueva tarea</button>':'';
@@ -1418,7 +1440,7 @@ async function loadAll() {
 }
 
 function renderAll() {
-  renderDocList('SST');renderDocList('Calidad');renderDocList('Ambiental');
+  renderDocList('Maestro SIG');renderDocList('SST');renderDocList('Calidad');renderDocList('Ambiental');
   updateDashboard();updateCounts();
   setTimeout(renderCharts,200);
   renderEnlaces('cartera');renderEnlaces('nomina');
@@ -1427,17 +1449,17 @@ function renderAll() {
 
 // ── HELPERS ───────────────────────────────────────────────
 function sBadge(e){return e==='Vigente'?'b-ok':e==='Revisión'?'b-rev':'b-obs';}
-function sysBadge(s){return s==='SST'?'b-sst':s==='Calidad'?'b-cal':'b-amb';}
+function sysBadge(s){return s==='SST'?'b-sst':s==='Calidad'?'b-cal':s==='Ambiental'?'b-amb':'b-ver';}
 function fDate(str){if(!str)return'';return new Date(str).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});}
 function updateCounts() {
-  ['SST','Calidad','Ambiental'].forEach(sys=>{
-    const id=sys==='SST'?'sst':sys==='Calidad'?'cal':'amb';
-    document.getElementById('cnt-'+id).textContent=allDocs.filter(d=>d.sistema===sys).length;
+  [['SST','sst'],['Calidad','cal'],['Ambiental','amb'],['Maestro SIG','sig']].forEach(([sys,id])=>{
+    const el=document.getElementById('cnt-'+id);
+    if(el) el.textContent=allDocs.filter(d=>d.sistema===sys).length;
   });
 }
 
 // ── DOC LIST ──────────────────────────────────────────────
-function sysListId(sys){return sys==='SST'?'sst':sys==='Calidad'?'calidad':'ambiental';}
+function sysListId(sys){return sys==='SST'?'sst':sys==='Calidad'?'calidad':sys==='Ambiental'?'ambiental':'sig';}
 
 function updateBulkBar(sys) {
   const id=sysListId(sys);
@@ -1794,7 +1816,7 @@ function updateCodigo() {
   if(editDocId) return;
   const sistema=document.getElementById('f-sistema').value;
   const tipo=document.getElementById('f-tipo').value;
-  const prefS=sistema==='SST'?'SST':sistema==='Calidad'?'CAL':'AMB';
+  const prefS=sistema==='SST'?'SST':sistema==='Calidad'?'CAL':sistema==='Maestro SIG'?'SIG':'GA';
   const prefT={Procedimiento:'PRO',Formato:'FOR',Manual:'MAN',Instructivo:'INS',Política:'POL',Matriz:'MAT',Plan:'PLA',Programa:'PRG',Registro:'REG',Otro:'DOC'}[tipo]||'DOC';
   const existing=allDocs.filter(d=>d.sistema===sistema&&d.tipo===tipo).length;
   const codigo=`${prefS}-${prefT}-${String(existing+1).padStart(3,'0')}`;
@@ -1858,7 +1880,7 @@ async function saveDoc() {
     }
     if(file) {
       const tipoMap={Procedimiento:'procedimientos',Formato:'formatos',Manual:'manuales',Instructivo:'instructivos',Política:'politicas',Matriz:'matrices',Plan:'planes',Programa:'programas',Registro:'registros',Otro:'otros'};
-      const prefS=sistema==='SST'?'sst':sistema==='Calidad'?'calidad':'ambiental';
+      const prefS=sistema==='SST'?'sst':sistema==='Calidad'?'calidad':sistema==='Maestro SIG'?'sig':'ambiental';
       const prefT=tipoMap[tipo]||'documentos';
       const fileName=`${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
       const path=`${prefS}/${prefT}/${fileName}`;
