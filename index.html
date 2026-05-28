@@ -60,6 +60,7 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .chip-admin{background:#eeedfe;color:#3c3ab5}
 .chip-editor{background:var(--navy-light);color:var(--navy)}
 .chip-viewer{background:var(--green-light);color:var(--green-dark)}
+.chip-invitado{background:#f5f5f5;color:#888}
 .logout-btn{font-size:12px;color:var(--gray-500);background:none;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;cursor:pointer;font-family:var(--font);font-weight:600;transition:all .12s}
 .logout-btn:hover{color:var(--red);border-color:var(--red)}
 
@@ -974,6 +975,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <option value="admin">Administrador — crear, editar, eliminar, descargar</option>
       <option value="editor">Editor — crear, editar, descargar</option>
       <option value="viewer">Visualizador — solo ver y descargar</option>
+      <option value="invitado">Invitado — solo ver (sin descargar)</option>
     </select>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-user')">Cancelar</button>
@@ -998,6 +1000,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         <option value="admin">Administrador</option>
         <option value="editor">Editor</option>
         <option value="viewer">Visualizador</option>
+        <option value="invitado">Invitado</option>
       </select>
     </div>
     <div class="modal-actions">
@@ -1034,7 +1037,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
     </div>
   </div>
   <div class="side-panel-footer">
-    <button class="btn-primary" onclick="downloadFromSidePanel()" id="sp-download-btn">⬇ Descargar</button>
+    <button class="btn-primary" onclick="downloadFromSidePanel()" id="sp-download-btn" style="display:none">⬇ Descargar</button>
     <button class="btn-secondary" onclick="closeSidePanel()">Cerrar</button>
   </div>
 </div>
@@ -1350,7 +1353,7 @@ function updateTopbar() {
   document.getElementById('pd-name').textContent=currentPerfil.nombre;
   document.getElementById('pd-email').textContent=currentUser.email;
   const chip=document.getElementById('topbar-chip');
-  chip.textContent=currentPerfil.rol==='admin'?'Administrador':currentPerfil.rol==='editor'?'Editor':'Visualizador';
+  chip.textContent=currentPerfil.rol==='admin'?'Administrador':currentPerfil.rol==='editor'?'Editor':currentPerfil.rol==='invitado'?'Invitado':'Visualizador';
   chip.className='chip chip-'+currentPerfil.rol;
   const av=document.getElementById('topbar-avatar');
   const pdAv=document.getElementById('pd-avatar');
@@ -1367,6 +1370,7 @@ function updateTopbar() {
 // ── PERMISOS ──────────────────────────────────────────────
 function canEdit(){return currentPerfil&&(currentPerfil.rol==='admin'||currentPerfil.rol==='editor');}
 function canDelete(){return currentPerfil&&currentPerfil.rol==='admin';}
+function canDownload(){return currentPerfil&&currentPerfil.rol!=='invitado';}
 function applyPermissions() {
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=currentPerfil?.rol==='admin'?'':'none');
   document.querySelectorAll('.editor-up').forEach(el=>el.style.display=canEdit()?'':'none');
@@ -1375,6 +1379,8 @@ function applyPermissions() {
     document.getElementById('perm-'+id).innerHTML='';
   });
   document.getElementById('addbtn-usuarios').innerHTML=currentPerfil?.rol==='admin'?'<button class="add-btn" onclick="openUserModal()">+ Nuevo usuario</button>':'';
+  const spDl=document.getElementById('sp-download-btn');
+  if(spDl) spDl.style.display=canDownload()?'':'none';
   document.getElementById('addbtn-tareas').innerHTML=canEdit()?'<button class="add-btn" onclick="openTareaModal()">+ Nueva tarea</button>':'';
   document.getElementById('addbtn-org').innerHTML=canEdit()?'<button class="add-btn" style="margin-bottom:0" onclick="openOrgModal()">+ Agregar persona</button>':'';
   document.getElementById('perm-org').innerHTML='';
@@ -1407,7 +1413,7 @@ async function loadAll() {
   try {
     // Si es viewer, filtrar documentos ocultos. Admin y editor ven todo
     let docsQuery = sb.from('documentos').select('*,versiones(*)');
-    if(currentPerfil?.rol === 'viewer') {
+    if(currentPerfil?.rol === 'viewer' || currentPerfil?.rol === 'invitado') {
       docsQuery = docsQuery.eq('oculto', false);
     }
     docsQuery = docsQuery.order('sistema').order('codigo');
@@ -1469,8 +1475,10 @@ function updateBulkBar(sys) {
   if(n===0){bar.style.display='none';return;}
   bar.style.display='flex';
   document.getElementById('bulk-count-'+id).textContent=n+' seleccionado'+(n>1?'s':'');
+  const dlBtn=bar.querySelector('.icon-btn.green');
   const freezeBtn=document.getElementById('bulk-freeze-'+id);
   const delBtn=document.getElementById('bulk-del-'+id);
+  if(dlBtn) dlBtn.style.display=canDownload()?'':'none';
   if(freezeBtn) freezeBtn.style.display=canEdit()?'':'none';
   if(delBtn) delBtn.style.display=canDelete()?'':'none';
   // Actualizar etiqueta congelar/mostrar según estado
@@ -1512,8 +1520,7 @@ function renderDocList(sys) {
       <span class="badge ${sBadge(d.estado)}">${esc(d.estado)}</span>
       ${d.fecha_revision?`<span style="font-size:11px;color:var(--gray-500);flex-shrink:0">Rev: ${fDate(d.fecha_revision)}</span>`:''}
       <div class="doc-actions">
-        ${vActiva?`<button class="icon-btn green" onclick="previewDoc('${d.id}')">👁 Ver</button>
-           <button class="icon-btn green" onclick="downloadDoc('${d.id}')">⬇</button>`:'<span style="font-size:11px;color:var(--gray-300)">Sin archivo</span>'}
+        ${vActiva?('<button class="icon-btn green" onclick="previewDoc(\''+d.id+'\')">👁 Ver</button>'+(canDownload()?'<button class="icon-btn green" onclick="downloadDoc(\''+d.id+'\')">⬇</button>':'')):'<span style="font-size:11px;color:var(--gray-300)">Sin archivo</span>'}
         ${nVer>1?`<button class="icon-btn amber" onclick="showVersiones('${d.id}')">🕐</button>`:''}
         <span class="comment-btn-wrap"><button class="icon-btn" onclick="openComentarios('${d.id}')">💬</button>${commentCount>0?`<span class="comment-dot" title="${commentCount} comentario${commentCount>1?'s':''}"></span>`:''}</span>
         ${canEdit()?`<button class="icon-btn ${oculto?'amber':''}" onclick="toggleOcultoDoc('${d.id}')" title="${oculto?'Visible para visualizadores':'Ocultar a visualizadores'}">${oculto?'🔓':'🔒'}</button>`:''}
@@ -1618,7 +1625,7 @@ function renderSearch() {
         <span class="badge ${sysBadge(d.sistema)}">${esc(d.sistema)}</span>
         <span class="badge ${sBadge(d.estado)}">${esc(d.estado)}</span>
         <div class="doc-actions">
-          ${vActiva?`<button class="icon-btn green" onclick="previewDoc('${d.id}')">👁 Ver</button><button class="icon-btn green" onclick="downloadDoc('${d.id}')">⬇</button>`:''}
+          ${vActiva?('<button class="icon-btn green" onclick="previewDoc(\''+d.id+'\')">👁 Ver</button>'+(canDownload()?'<button class="icon-btn green" onclick="downloadDoc(\''+d.id+'\')">⬇</button>':'')):''}
           <span class="comment-btn-wrap"><button class="icon-btn" onclick="openComentarios('${d.id}')">💬</button>${cc>0?`<span class="comment-dot"></span>`:''}</span>
           ${canEdit()?`<button class="icon-btn ${ocultoS?'amber':''}" onclick="toggleOcultoDoc('${d.id}')" title="${ocultoS?'Visible':'Ocultar'}">${ocultoS?'🔓':'🔒'}</button>`:''}
           ${canEdit()?`<button class="icon-btn" onclick="openEditDoc('${d.id}')">✏</button>`:''}
@@ -1780,7 +1787,7 @@ async function showVersiones(docId) {
     <span class="ver-num ${v.activa?'ver-active':''}">v${v.numero_version}${v.activa?' ✓':''}</span>
     <div style="flex:1"><div style="font-weight:600">${esc(v.archivo_nombre)||'Sin archivo'}</div>
     <div style="font-size:11px;color:var(--gray-500)">${esc(v.notas)||''} · ${fDate(v.creado_en)} · ${v.archivo_size?Math.round(v.archivo_size/1024)+' KB':''}</div></div>
-    ${v.archivo_path?`<button class="icon-btn green" onclick="downloadVersion('${v.archivo_path}','${v.archivo_nombre}')">⬇ Descargar</button>`:''}
+    ${v.archivo_path&&canDownload()?`<button class="icon-btn green" onclick="downloadVersion('${v.archivo_path}','${v.archivo_nombre}')">⬇ Descargar</button>`:''}
   </div>`).join('')||'<div class="empty">Sin versiones</div>';
 }
 async function downloadVersion(path,nombre) {
@@ -1920,7 +1927,7 @@ function renderUsers() {
   el.innerHTML=allUsers.map((u,i)=>{
     const ini=u.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const c=colors[i%colors.length];
-    const rl=u.rol==='admin'?'Administrador':u.rol==='editor'?'Editor':'Visualizador';
+    const rl=u.rol==='admin'?'Administrador':u.rol==='editor'?'Editor':u.rol==='invitado'?'Invitado':'Visualizador';
     const av=u.foto_url?`<img src="${u.foto_url}" alt="">`:`<span style="color:${c};font-weight:700;font-size:17px">${ini}</span>`;
     return`<div class="user-card">
       <div class="u-av" style="background:${c}15;border-color:${c}40">${av}</div>
@@ -2444,8 +2451,7 @@ function renderComite(comite) {
       </div>
       ${!a.archivo_path?'<span class="no-file-badge">⚠️ Sin archivo</span>':''}
       <div class="doc-actions">
-        ${a.archivo_path?`<button class="icon-btn green" onclick="previewActa('${a.id}')">👁 Ver</button>
-          <button class="icon-btn green" onclick="downloadActa('${a.id}')">⬇</button>`:''}
+        ${a.archivo_path?('<button class="icon-btn green" onclick="previewActa(\''+a.id+'\')">👁 Ver</button>'+(canDownload()?'<button class="icon-btn green" onclick="downloadActa(\''+a.id+'\')">⬇</button>':'')):''}
         ${canEdit()?`<button class="icon-btn" onclick="openEditActa('${a.id}')">✏</button>`:''}
         ${canDelete()?`<button class="icon-btn danger" onclick="deleteActa('${a.id}')">🗑</button>`:''}
       </div>
