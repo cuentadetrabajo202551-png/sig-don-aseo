@@ -3003,21 +3003,16 @@ function renderAddBtnEnlaces() {
 function renderEnlaces(sec) {
   const grid=document.getElementById('grid-'+sec);
   if(!grid) return;
-  const items=allEnlaces.filter(e=>{
-    if(e.seccion!==sec) return false;
-    if(canDelete()) return true; // admin ve todo
-    const vp=e.visible_para;
-    if(!vp||vp.length===0) return true; // sin restricción = todos
-    return vp.includes(currentUser.id);
-  });
+  const items=allEnlaces.filter(e=>e.seccion===sec);
   if(!items.length){
     grid.innerHTML=`<div class="empty" style="grid-column:1/-1;padding:40px 0;text-align:center;color:var(--gray-500)">${canDelete()?'Sin tarjetas. Usa <b>+ Agregar tarjeta</b> para crear la primera.':'Sin tarjetas disponibles por el momento.'}</div>`;
     return;
   }
   grid.innerHTML=items.map(e=>{
     const vp=e.visible_para;
+    const tieneAcceso=canDelete()||!vp||vp.length===0||vp.includes(currentUser.id);
     const etiq=canDelete()&&vp&&vp.length?`<div style="font-size:10px;color:var(--gray-500);margin-top:2px">👁 ${vp.map(uid=>{const u=allUsers.find(x=>x.id===uid);return u?u.nombre.split(' ')[0]:'?';}).join(', ')}</div>`:'';
-    return `<div class="link-card">
+    return `<div class="link-card" style="${!tieneAcceso?'opacity:0.75':''}">
       ${canDelete()?`<div class="link-card-actions">
         <button class="icon-btn" onclick="openEditEnlace('${e.id}')" title="Editar">✏</button>
         <button class="icon-btn danger" onclick="deleteEnlace('${e.id}')" title="Eliminar">🗑</button>
@@ -3026,7 +3021,11 @@ function renderEnlaces(sec) {
       <div class="link-card-name">${esc(e.nombre)}</div>
       ${e.descripcion?`<div class="link-card-desc">${esc(e.descripcion)}</div>`:'<div class="link-card-desc"></div>'}
       ${etiq}
-      <a class="link-card-btn" href="${esc(e.url)}" target="_blank" rel="noopener">Abrir en OneDrive ↗</a>
+      ${tieneAcceso
+        ? `<a class="link-card-btn" href="${esc(e.url)}" target="_blank" rel="noopener">Abrir en OneDrive ↗</a>`
+        : `<button class="link-card-btn" disabled style="background:var(--gray-300);color:var(--gray-500);cursor:not-allowed;opacity:1">Abrir en OneDrive ↗</button>
+           <div style="font-size:11px;color:var(--gray-500);margin-top:6px;display:flex;align-items:center;gap:4px">🔒 No tienes acceso a esta tarjeta</div>`
+      }
     </div>`;
   }).join('');
 }
