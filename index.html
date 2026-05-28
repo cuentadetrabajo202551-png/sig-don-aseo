@@ -1974,7 +1974,7 @@ async function saveNewUser() {
     if(data.user) {
       await sb.from('perfiles').upsert({id:data.user.id,nombre,cargo:document.getElementById('nu-cargo').value.trim(),rol:document.getElementById('nu-rol').value,activo:true});
     }
-    showToast('Usuario creado ✓ — debe confirmar su correo','success');
+    showToast('Usuario creado correctamente ✓','success');
     closeModal('modal-user');
     await loadAll();renderUsers();
   } catch(e){showToast('Error: '+e.message,'error');}
