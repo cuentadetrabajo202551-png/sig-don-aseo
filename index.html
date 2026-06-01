@@ -3026,8 +3026,8 @@ function renderEnlaces(sec) {
       ${e.descripcion?`<div class="link-card-desc">${esc(e.descripcion)}</div>`:'<div class="link-card-desc"></div>'}
       ${etiq}
       ${tieneAcceso
-        ? `<a class="link-card-btn" href="${esc(e.url)}" target="_blank" rel="noopener">Abrir en OneDrive ↗</a>`
-        : `<button class="link-card-btn" disabled style="background:var(--gray-300);color:var(--gray-500);cursor:not-allowed;opacity:1">Abrir en OneDrive ↗</button>
+        ? `<a class="link-card-btn" href="${esc(e.url)}" target="_blank" rel="noopener">Acceder</a>`
+        : `<button class="link-card-btn" disabled style="background:var(--gray-300);color:var(--gray-500);cursor:not-allowed;opacity:1">Acceder</button>
            <div style="font-size:11px;color:var(--gray-500);margin-top:6px;display:flex;align-items:center;gap:4px">🔒 No tienes acceso a esta tarjeta</div>`
       }
     </div>`;
