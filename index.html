@@ -544,8 +544,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-item" onclick="showPage('copasst',this)"><div class="nav-dot" style="background:#ff8c42"></div>COPASST</div>
       <div class="nav-item" onclick="showPage('ccl',this)"><div class="nav-dot" style="background:#9b59b6"></div>CCL</div>
       <div class="nav-sec">Recursos</div>
-      <div class="nav-item" onclick="showPage('cartera',this)">💼&nbsp;Cartera</div>
-      <div class="nav-item" onclick="showPage('nomina',this)">💰&nbsp;Nómina</div>
+      <div class="nav-item" onclick="showPage('recursos',this)">📁&nbsp;Recursos</div>
       <div class="nav-sec">Herramientas</div>
       <div class="nav-item" onclick="showPage('buscar',this)">🔍&nbsp;Buscador</div>
       <div class="nav-item" onclick="showPage('pendientes',this)">⏰&nbsp;Pendientes</div>
@@ -842,28 +841,16 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       </div>
 
 
-      <!-- CARTERA -->
-      <div class="page" id="page-cartera">
+      <!-- RECURSOS -->
+      <div class="page" id="page-recursos">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
           <div>
-            <div class="page-title">Cartera</div>
-            <div class="page-sub">Acceso rápido a archivos de cartera en OneDrive</div>
+            <div class="page-title">Recursos</div>
+            <div class="page-sub">Acceso rápido a archivos compartidos en OneDrive</div>
           </div>
-          <div id="addbtn-cartera"></div>
+          <div id="addbtn-recursos"></div>
         </div>
-        <div class="link-cards-grid" id="grid-cartera"><div class="loading">Cargando...</div></div>
-      </div>
-
-      <!-- NÓMINA -->
-      <div class="page" id="page-nomina">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
-          <div>
-            <div class="page-title">Nómina</div>
-            <div class="page-sub">Acceso rápido a archivos de nómina en OneDrive</div>
-          </div>
-          <div id="addbtn-nomina"></div>
-        </div>
-        <div class="link-cards-grid" id="grid-nomina"><div class="loading">Cargando...</div></div>
+        <div class="link-cards-grid" id="grid-recursos"><div class="loading">Cargando...</div></div>
       </div>
 
       <!-- USUARIOS -->
@@ -1213,13 +1200,12 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 <div class="modal-overlay" id="modal-enlace">
   <div class="modal">
     <div class="modal-title" id="modal-enlace-title">Nueva tarjeta</div>
-    <input type="hidden" id="enlace-seccion">
     <label class="form-label">Ícono <span class="form-hint">(un emoji)</span></label>
     <input class="form-input" id="enlace-icono" maxlength="4" placeholder="📊" style="font-size:22px;width:70px;text-align:center">
     <label class="form-label">Nombre</label>
     <input class="form-input" id="enlace-nombre" maxlength="60" placeholder="Ej: Cartera Junio 2025">
     <label class="form-label">Descripción <span class="form-hint">(opcional)</span></label>
-    <input class="form-input" id="enlace-desc" maxlength="120" placeholder="Ej: Reporte mensual de cartera">
+    <input class="form-input" id="enlace-desc" maxlength="120" placeholder="Ej: Reporte mensual compartido">
     <label class="form-label">URL de OneDrive</label>
     <input class="form-input" id="enlace-url" type="url" placeholder="https://...">
     <label class="form-label">Visible para <span class="form-hint">(deja todo sin marcar = visible para todos)</span></label>
@@ -1430,7 +1416,7 @@ async function loadAll() {
       sb.from('actas_comites').select('*').order('fecha_reunion',{ascending:false}),
       sb.from('miembros_comites').select('*').order('comite').order('cargo_comite'),
       sb.from('organigrama').select('*').eq('activo',true).order('orden').order('nombre'),
-      sb.from('enlaces_recursos').select('*').order('seccion').order('orden')
+      sb.from('enlaces_recursos').select('*').order('orden')
     ]);
     allDocs=docsRes.data||[];
     allUsers=usersRes.data||[];
@@ -1453,7 +1439,7 @@ function renderAll() {
   renderDocList('Maestro SIG');renderDocList('SST');renderDocList('Calidad');renderDocList('Ambiental');
   updateDashboard();updateCounts();
   setTimeout(renderCharts,200);
-  renderEnlaces('cartera');renderEnlaces('nomina');
+  renderEnlaces();
   renderAddBtnEnlaces();
 }
 
@@ -2995,19 +2981,17 @@ async function bulkDelete(sys){
   await loadAll();
 }
 
-// ── ENLACES RECURSOS (Cartera / Nómina) ───────────────────
+// ── ENLACES RECURSOS ──────────────────────────────────────
 function renderAddBtnEnlaces() {
-  ['cartera','nomina'].forEach(sec=>{
-    const el=document.getElementById('addbtn-'+sec);
-    if(!el) return;
-    el.innerHTML=canDelete()?`<button class="add-btn" onclick="openEnlaceModal('${sec}')">+ Agregar tarjeta</button>`:'';
-  });
+  const el=document.getElementById('addbtn-recursos');
+  if(!el) return;
+  el.innerHTML=canDelete()?`<button class="add-btn" onclick="openEnlaceModal()">+ Agregar tarjeta</button>`:'';
 }
 
-function renderEnlaces(sec) {
-  const grid=document.getElementById('grid-'+sec);
+function renderEnlaces() {
+  const grid=document.getElementById('grid-recursos');
   if(!grid) return;
-  const items=allEnlaces.filter(e=>e.seccion===sec);
+  const items=allEnlaces;
   if(!items.length){
     grid.innerHTML=`<div class="empty" style="grid-column:1/-1;padding:40px 0;text-align:center;color:var(--gray-500)">${canDelete()?'Sin tarjetas. Usa <b>+ Agregar tarjeta</b> para crear la primera.':'Sin tarjetas disponibles por el momento.'}</div>`;
     return;
@@ -3046,10 +3030,9 @@ function buildVisibilidadChecks(selectedIds=[]) {
     </label>`).join('');
 }
 
-function openEnlaceModal(sec) {
+function openEnlaceModal() {
   editEnlaceId=null;
   document.getElementById('modal-enlace-title').textContent='Nueva tarjeta';
-  document.getElementById('enlace-seccion').value=sec;
   document.getElementById('enlace-icono').value='';
   document.getElementById('enlace-nombre').value='';
   document.getElementById('enlace-desc').value='';
@@ -3063,7 +3046,6 @@ function openEditEnlace(id) {
   if(!e) return;
   editEnlaceId=id;
   document.getElementById('modal-enlace-title').textContent='Editar tarjeta';
-  document.getElementById('enlace-seccion').value=e.seccion;
   document.getElementById('enlace-icono').value=e.icono||'';
   document.getElementById('enlace-nombre').value=e.nombre||'';
   document.getElementById('enlace-desc').value=e.descripcion||'';
@@ -3073,7 +3055,6 @@ function openEditEnlace(id) {
 }
 
 async function saveEnlace() {
-  const sec=document.getElementById('enlace-seccion').value;
   const nombre=document.getElementById('enlace-nombre').value.trim();
   const url=document.getElementById('enlace-url').value.trim();
   if(!nombre){showToast('El nombre es obligatorio','error');return;}
@@ -3081,13 +3062,13 @@ async function saveEnlace() {
   const checks=[...document.querySelectorAll('#enlace-visibilidad input[type=checkbox]:checked')];
   const visible_para=checks.map(c=>c.value);
   const data={
-    seccion:sec,
+    seccion:'recursos',
     icono:document.getElementById('enlace-icono').value.trim()||'📄',
     nombre,
     descripcion:document.getElementById('enlace-desc').value.trim()||null,
     url,
     visible_para: visible_para.length ? visible_para : null,
-    orden: editEnlaceId ? allEnlaces.find(x=>x.id===editEnlaceId)?.orden??99 : (allEnlaces.filter(e=>e.seccion===sec).length+1),
+    orden: editEnlaceId ? allEnlaces.find(x=>x.id===editEnlaceId)?.orden??99 : (allEnlaces.length+1),
     actualizado_en:new Date().toISOString()
   };
   let error;
@@ -3099,12 +3080,12 @@ async function saveEnlace() {
   }
   if(error){showToast('Error: '+error.message,'error');return;}
   const dest=visible_para.length?visible_para.map(uid=>{const u=allUsers.find(x=>x.id===uid);return u?u.nombre:'?';}).join(', '):'todos';
-  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editEnlaceId?'EDITAR':'CREAR',tabla:'enlaces_recursos',detalle:`${editEnlaceId?'Editó':'Creó'} tarjeta "${nombre}" en ${sec} — visible para: ${dest}`});
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editEnlaceId?'EDITAR':'CREAR',tabla:'enlaces_recursos',detalle:`${editEnlaceId?'Editó':'Creó'} tarjeta "${nombre}" — visible para: ${dest}`});
   closeModal('modal-enlace');
   showToast(editEnlaceId?'Tarjeta actualizada':'Tarjeta creada');
-  const {data:fresh}=await sb.from('enlaces_recursos').select('*').order('seccion').order('orden');
+  const {data:fresh}=await sb.from('enlaces_recursos').select('*').order('orden');
   allEnlaces=fresh||[];
-  renderEnlaces('cartera');renderEnlaces('nomina');
+  renderEnlaces();
 }
 
 async function deleteEnlace(id) {
@@ -3112,10 +3093,10 @@ async function deleteEnlace(id) {
   if(!e||!confirm(`¿Eliminar la tarjeta "${e.nombre}"?`)) return;
   const {error}=await sb.from('enlaces_recursos').delete().eq('id',id);
   if(error){showToast('Error: '+error.message,'error');return;}
-  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'enlaces_recursos',detalle:`Eliminó tarjeta "${e.nombre}" de ${e.seccion}`});
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'enlaces_recursos',detalle:`Eliminó tarjeta "${e.nombre}"`});
   showToast('Tarjeta eliminada');
   allEnlaces=allEnlaces.filter(x=>x.id!==id);
-  renderEnlaces('cartera');renderEnlaces('nomina');
+  renderEnlaces();
 }
 
 // ── UTILS ─────────────────────────────────────────────────
