@@ -200,6 +200,39 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .sel-all-row{display:flex;align-items:center;gap:8px;padding:6px 2px 10px;border-bottom:1px solid var(--border);margin-bottom:4px}
 .sel-all-row label{font-size:12px;color:var(--gray-500);cursor:pointer;font-weight:600;user-select:none}
 
+/* CICLO PHVA */
+#phva-panel{z-index:498}
+#phva-overlay{z-index:497}
+.phva-fase{margin-bottom:26px}
+.phva-fase-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 16px;border-radius:var(--radius);color:#fff;font-weight:800}
+.phva-fase-head .fase-letra{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.phva-fase-head .fase-nombre{font-size:15px;letter-spacing:.02em}
+.phva-fase-head .fase-sub{font-size:11px;font-weight:600;opacity:.85}
+.phva-fase-head .fase-cnt{margin-left:auto;font-size:12px;font-weight:700;background:rgba(255,255,255,.22);padding:3px 12px;border-radius:20px}
+.fase-P{background:linear-gradient(100deg,#0055cc,#003399)}
+.fase-H{background:linear-gradient(100deg,#1db954,#159040)}
+.fase-V{background:linear-gradient(100deg,#e8a000,#c47700)}
+.fase-A{background:linear-gradient(100deg,#a259d6,#7d3bb5)}
+.phva-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.phva-folder{display:flex;align-items:center;gap:11px;background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;transition:all .13s;position:relative}
+.phva-folder:hover{border-color:var(--navy);box-shadow:var(--shadow);transform:translateY(-1px)}
+.phva-folder.fp-P:hover{border-color:#0055cc}.phva-folder.fp-H:hover{border-color:#1db954}.phva-folder.fp-V:hover{border-color:#e8a000}.phva-folder.fp-A:hover{border-color:#a259d6}
+.phva-folder-ico{font-size:26px;line-height:1;flex-shrink:0}
+.phva-folder-info{flex:1;min-width:0}
+.phva-folder-num{font-size:10px;font-weight:800;color:var(--gray-500);letter-spacing:.04em}
+.phva-folder-name{font-size:13px;font-weight:700;color:var(--gray-900);line-height:1.3}
+.phva-folder-cnt{font-size:10px;color:var(--gray-500);margin-top:2px}
+.phva-folder-acts{display:flex;gap:3px;flex-shrink:0;opacity:0;transition:opacity .12s}
+.phva-folder:hover .phva-folder-acts{opacity:1}
+.phva-file-row{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid var(--gray-100);font-size:13px}
+.phva-file-row:last-child{border-bottom:none}
+.phva-file-ico{font-size:22px;flex-shrink:0}
+.phva-file-info{flex:1;min-width:0}
+.phva-file-name{font-weight:600;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phva-file-meta{font-size:11px;color:var(--gray-500);margin-top:1px}
+.phva-file-acts{display:flex;gap:5px;flex-shrink:0}
+@media(max-width:640px){.phva-grid{grid-template-columns:1fr}}
+
 /* LINK CARDS (Cartera / Nómina) */
 .link-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:4px}
 .link-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:10px;transition:box-shadow .15s,border-color .15s;position:relative}
@@ -540,6 +573,8 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-item" onclick="showPage('sst',this)"><div class="nav-dot dot-sst"></div>SST<span class="nav-cnt" id="cnt-sst">—</span></div>
       <div class="nav-item" onclick="showPage('calidad',this)"><div class="nav-dot dot-cal"></div>Calidad<span class="nav-cnt" id="cnt-cal">—</span></div>
       <div class="nav-item" onclick="showPage('ambiental',this)"><div class="nav-dot dot-amb"></div>Ambiental<span class="nav-cnt" id="cnt-amb">—</span></div>
+      <div class="nav-sec">Ciclo PHVA</div>
+      <div class="nav-item" onclick="showPage('phva',this)">🔄&nbsp;Ciclo PHVA<span class="nav-cnt" id="cnt-phva">—</span></div>
       <div class="nav-sec">Comités</div>
       <div class="nav-item" onclick="showPage('copasst',this)"><div class="nav-dot" style="background:#ff8c42"></div>COPASST</div>
       <div class="nav-item" onclick="showPage('ccl',this)"><div class="nav-dot" style="background:#9b59b6"></div>CCL</div>
@@ -851,6 +886,18 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <div id="addbtn-recursos"></div>
         </div>
         <div class="link-cards-grid" id="grid-recursos"><div class="loading">Cargando...</div></div>
+      </div>
+
+      <!-- CICLO PHVA -->
+      <div class="page" id="page-phva">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+          <div>
+            <div class="page-title">Ciclo PHVA</div>
+            <div class="page-sub">Estándares mínimos del SG-SST organizados por Planear · Hacer · Verificar · Actuar</div>
+          </div>
+          <div id="addbtn-phva"></div>
+        </div>
+        <div id="phva-container"><div class="loading">Cargando...</div></div>
       </div>
 
       <!-- USUARIOS -->
@@ -1217,6 +1264,39 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
   </div>
 </div>
 
+<!-- MODAL CARPETA PHVA -->
+<div class="modal-overlay" id="modal-carpeta">
+  <div class="modal">
+    <div class="modal-title" id="modal-carpeta-title">Nueva carpeta</div>
+    <label class="form-label">Fase del ciclo *</label>
+    <select class="form-select" id="carpeta-fase">
+      <option value="P">P — Planear</option>
+      <option value="H">H — Hacer</option>
+      <option value="V">V — Verificar</option>
+      <option value="A">A — Actuar</option>
+    </select>
+    <label class="form-label">Nombre de la carpeta *</label>
+    <input class="form-input" id="carpeta-nombre" maxlength="120" placeholder="Ej. Responsable del SG-SST">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-carpeta')">Cancelar</button>
+      <button class="btn-primary" onclick="saveCarpeta()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL LATERAL PHVA -->
+<div class="side-overlay" id="phva-overlay" onclick="closePhvaPanel()"></div>
+<div class="side-panel" id="phva-panel">
+  <div class="side-panel-header">
+    <div class="side-panel-title" id="phva-panel-title">Carpeta</div>
+    <button class="side-panel-close" onclick="closePhvaPanel()">✕</button>
+  </div>
+  <div class="side-panel-meta" id="phva-panel-meta"></div>
+  <div class="side-panel-body" id="phva-panel-body" style="overflow-y:auto"></div>
+  <div class="side-panel-footer" id="phva-panel-footer"></div>
+</div>
+<input type="file" id="phva-file-input" style="display:none" onchange="onPhvaFileChosen(this)">
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1243,6 +1323,7 @@ let allActas=[], allMiembros=[];
 let editActaId=null, editMiembroId=null;
 let allOrg=[], editOrgId=null, orgPhotoFile=null, currentOrgDetailId=null;
 let allEnlaces=[], editEnlaceId=null;
+let allPhvaCarpetas=[], allPhvaArchivos=[], editCarpetaId=null, currentCarpetaId=null;
 const docSel={SST:new Set(),Calidad:new Set(),Ambiental:new Set(),'Maestro SIG':new Set()};
 
 
@@ -1380,6 +1461,7 @@ function applyPermissions() {
     document.getElementById('addbtn-miembro-'+c).innerHTML=canEdit()?`<button class="add-btn" style="margin-bottom:0" onclick="openMiembroModal('${comite}')">+ Miembro</button>`:'';
     document.getElementById('addbtn-acta-'+c).innerHTML=canEdit()?`<button class="add-btn" style="margin-bottom:0" onclick="openActaModal('${comite}')">+ Acta</button>`:'';
   });
+  document.getElementById('addbtn-phva').innerHTML=canEdit()?'<button class="add-btn" style="margin-bottom:0" onclick="openCarpetaModal()">+ Nueva carpeta</button>':'';
 }
 
 // ── NAVIGATION ────────────────────────────────────────────
@@ -1389,6 +1471,7 @@ function showPage(id,el) {
   document.getElementById('page-'+id).classList.add('active');
   if(el) el.classList.add('active');
   closeSidePanel();
+  if(typeof closePhvaPanel==='function') closePhvaPanel();
   if(id==='buscar') renderSearch();
   if(id==='pendientes') renderPendientes();
   if(id==='usuarios') renderUsers();
@@ -1396,6 +1479,7 @@ function showPage(id,el) {
   if(id==='tareas') renderTareas();
   if(id==='copasst'||id==='ccl') renderComite(id.toUpperCase());
   if(id==='organigrama') renderOrganigrama();
+  if(id==='phva') renderPhva();
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────
@@ -1408,7 +1492,7 @@ async function loadAll() {
     }
     docsQuery = docsQuery.order('sistema').order('codigo');
 
-    const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes,orgRes,enlacesRes]=await Promise.all([
+    const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes,orgRes,enlacesRes,phvaCarpRes,phvaArchRes]=await Promise.all([
       docsQuery,
       sb.from('perfiles').select('*').eq('activo',true).order('creado_en',{ascending:true}),
       sb.from('tareas').select('*').order('creado_en',{ascending:false}),
@@ -1416,7 +1500,9 @@ async function loadAll() {
       sb.from('actas_comites').select('*').order('fecha_reunion',{ascending:false}),
       sb.from('miembros_comites').select('*').order('comite').order('cargo_comite'),
       sb.from('organigrama').select('*').eq('activo',true).order('orden').order('nombre'),
-      sb.from('enlaces_recursos').select('*').order('orden')
+      sb.from('enlaces_recursos').select('*').order('orden'),
+      sb.from('phva_carpetas').select('*').order('numero'),
+      sb.from('phva_archivos').select('id,carpeta_id,nombre')
     ]);
     allDocs=docsRes.data||[];
     allUsers=usersRes.data||[];
@@ -1425,6 +1511,8 @@ async function loadAll() {
     allMiembros=miembrosRes.data||[];
     allOrg=orgRes.data||[];
     allEnlaces=enlacesRes.data||[];
+    allPhvaCarpetas=phvaCarpRes.data||[];
+    allPhvaArchivos=phvaArchRes.data||[];
     // Contar comentarios por documento
     const comCounts={};
     (comRes.data||[]).forEach(c=>{comCounts[c.documento_id]=(comCounts[c.documento_id]||0)+1;});
@@ -1441,6 +1529,7 @@ function renderAll() {
   setTimeout(renderCharts,200);
   renderEnlaces();
   renderAddBtnEnlaces();
+  renderPhva();
 }
 
 // ── HELPERS ───────────────────────────────────────────────
@@ -1452,6 +1541,8 @@ function updateCounts() {
     const el=document.getElementById('cnt-'+id);
     if(el) el.textContent=allDocs.filter(d=>d.sistema===sys).length;
   });
+  const phvaCnt=document.getElementById('cnt-phva');
+  if(phvaCnt) phvaCnt.textContent=allPhvaCarpetas.length;
 }
 
 // ── DOC LIST ──────────────────────────────────────────────
@@ -1687,10 +1778,16 @@ async function previewDoc(docId) {
   if(doc?.tipo) meta.push(doc.tipo);
   document.getElementById('sp-meta').textContent=meta.join(' · ');
   const body=document.getElementById('sp-body');
-  body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando...</div></div>`;
   document.getElementById('side-panel').classList.add('open');
   document.getElementById('side-overlay').classList.add('open');
   document.querySelector('.layout').classList.add('panel-open');
+  await renderFilePreview(body,info);
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'VER',tabla:'documentos',registro_id:docId,detalle:`Visualizó ${doc?.codigo} - ${doc?.nombre}`});
+}
+
+// Renderiza la vista previa de un archivo {url, nombre, mime} dentro de un contenedor
+async function renderFilePreview(body, info) {
+  body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando...</div></div>`;
   const fallbackPreview=(nombre,url)=>`<div class="preview-unavail" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;padding:24px;text-align:center">
     <div style="font-size:48px">📄</div>
     <div style="font-weight:700;font-size:14px;color:var(--gray-900)">${esc(nombre)}</div>
@@ -1743,7 +1840,6 @@ async function previewDoc(docId) {
   } else {
     body.innerHTML=fallbackPreview(info.nombre,info.url);
   }
-  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'VER',tabla:'documentos',registro_id:docId,detalle:`Visualizó ${doc?.codigo} - ${doc?.nombre}`});
 }
 
 function closeSidePanel() {
@@ -2979,6 +3075,236 @@ async function bulkDelete(sys){
   showToast(`${ids.length} documento${ids.length>1?'s':''} eliminados ✓`,'success');
   docSel[sys].clear();
   await loadAll();
+}
+
+// ── CICLO PHVA ────────────────────────────────────────────
+const PHVA_FASES=[
+  {letra:'P',nombre:'Planear',sub:'Política, organización y planificación'},
+  {letra:'H',nombre:'Hacer',sub:'Aplicación y ejecución del SG-SST'},
+  {letra:'V',nombre:'Verificar',sub:'Auditoría y revisión por la dirección'},
+  {letra:'A',nombre:'Actuar',sub:'Mejoramiento continuo'}
+];
+
+function phvaFileIcon(nombre){
+  const ext=(nombre||'').toLowerCase().split('.').pop();
+  if(['xlsx','xls','csv'].includes(ext)) return '📊';
+  if(['doc','docx'].includes(ext)) return '📝';
+  if(ext==='pdf') return '📕';
+  if(['png','jpg','jpeg','webp','gif'].includes(ext)) return '🖼️';
+  return '📄';
+}
+
+function renderPhva() {
+  const cont=document.getElementById('phva-container');
+  if(!cont) return;
+  if(!allPhvaCarpetas.length){
+    cont.innerHTML=`<div class="empty" style="padding:50px 0;text-align:center;color:var(--gray-500)">${canEdit()?'Aún no hay carpetas. Usa <b>+ Nueva carpeta</b> para crear la primera.':'No hay carpetas disponibles por el momento.'}</div>`;
+    return;
+  }
+  // Conteo de archivos por carpeta
+  const cnt={};
+  allPhvaArchivos.forEach(a=>{cnt[a.carpeta_id]=(cnt[a.carpeta_id]||0)+1;});
+  cont.innerHTML=PHVA_FASES.map(f=>{
+    const carpetas=allPhvaCarpetas.filter(c=>c.fase===f.letra);
+    if(!carpetas.length) return '';
+    return `<div class="phva-fase">
+      <div class="phva-fase-head fase-${f.letra}">
+        <div class="fase-letra">${f.letra}</div>
+        <div><div class="fase-nombre">${f.nombre}</div><div class="fase-sub">${f.sub}</div></div>
+        <span class="fase-cnt">${carpetas.length} carpeta${carpetas.length>1?'s':''}</span>
+      </div>
+      <div class="phva-grid">
+        ${carpetas.map(c=>{
+          const n=cnt[c.id]||0;
+          return `<div class="phva-folder fp-${f.letra}" onclick="openCarpeta('${c.id}')">
+            <div class="phva-folder-ico">${n>0?'📂':'📁'}</div>
+            <div class="phva-folder-info">
+              <div class="phva-folder-num">${String(c.numero).padStart(2,'0')}</div>
+              <div class="phva-folder-name">${esc(c.nombre)}</div>
+              <div class="phva-folder-cnt">${n} archivo${n!==1?'s':''}</div>
+            </div>
+            ${canEdit()?`<div class="phva-folder-acts">
+              <button class="icon-btn" onclick="event.stopPropagation();openEditCarpeta('${c.id}')" title="Renombrar">✏</button>
+              ${canDelete()?`<button class="icon-btn danger" onclick="event.stopPropagation();deleteCarpeta('${c.id}')" title="Eliminar">🗑</button>`:''}
+            </div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openCarpeta(id) {
+  const c=allPhvaCarpetas.find(x=>x.id===id);
+  if(!c) return;
+  currentCarpetaId=id;
+  const fase=PHVA_FASES.find(f=>f.letra===c.fase);
+  document.getElementById('phva-panel-title').textContent=`${String(c.numero).padStart(2,'0')}. ${c.nombre}`;
+  document.getElementById('phva-panel-meta').innerHTML=`<span>${c.fase} · ${fase?.nombre||''}</span>`;
+  document.getElementById('phva-panel-footer').innerHTML=canEdit()
+    ? `<button class="btn-primary" style="flex:1" onclick="document.getElementById('phva-file-input').click()">⬆ Subir archivo</button>`
+    : '';
+  document.getElementById('phva-panel').classList.add('open');
+  document.getElementById('phva-overlay').classList.add('open');
+  await loadCarpetaArchivos(id);
+}
+
+async function loadCarpetaArchivos(id) {
+  const body=document.getElementById('phva-panel-body');
+  body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando archivos…</div></div>`;
+  const {data}=await sb.from('phva_archivos').select('*').eq('carpeta_id',id).order('creado_en',{ascending:false});
+  const archivos=data||[];
+  if(!archivos.length){
+    body.innerHTML=`<div class="side-panel-loading" style="height:auto;padding:50px 20px"><div style="font-size:42px">📁</div><div>Esta carpeta está vacía.</div>${canEdit()?'<div style="font-size:12px;color:var(--gray-400)">Usa el botón de abajo para subir el primer archivo.</div>':''}</div>`;
+    return;
+  }
+  body.innerHTML=archivos.map(a=>`
+    <div class="phva-file-row">
+      <div class="phva-file-ico">${phvaFileIcon(a.nombre)}</div>
+      <div class="phva-file-info">
+        <div class="phva-file-name">${esc(a.nombre)}</div>
+        <div class="phva-file-meta">${a.archivo_size?Math.round(a.archivo_size/1024)+' KB':''} · ${fDate(a.creado_en)}</div>
+      </div>
+      <div class="phva-file-acts">
+        <button class="icon-btn green" onclick="previewPhvaArchivo('${a.id}')">👁 Ver</button>
+        ${canDownload()?`<button class="icon-btn green" onclick="downloadPhvaArchivo('${a.id}')">⬇</button>`:''}
+        ${canDelete()?`<button class="icon-btn danger" onclick="deletePhvaArchivo('${a.id}')">🗑</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function closePhvaPanel() {
+  document.getElementById('phva-panel').classList.remove('open');
+  document.getElementById('phva-overlay').classList.remove('open');
+  currentCarpetaId=null;
+}
+
+async function phvaSignedUrl(path) {
+  const {data}=await sb.storage.from('phva').createSignedUrl(path,3600);
+  return data?.signedUrl;
+}
+
+async function previewPhvaArchivo(id) {
+  const {data:a}=await sb.from('phva_archivos').select('*').eq('id',id).single();
+  if(!a){showToast('Archivo no encontrado','error');return;}
+  const url=await phvaSignedUrl(a.archivo_path);
+  if(!url){showToast('Error generando enlace','error');return;}
+  previewUrl={url,nombre:a.nombre,mime:a.archivo_mime};
+  document.getElementById('sp-title').textContent=a.nombre;
+  document.getElementById('sp-meta').textContent='Ciclo PHVA';
+  const dl=document.getElementById('sp-download-btn');
+  if(dl) dl.style.display=canDownload()?'':'none';
+  document.getElementById('side-panel').classList.add('open');
+  document.getElementById('side-overlay').classList.add('open');
+  document.querySelector('.layout').classList.add('panel-open');
+  await renderFilePreview(document.getElementById('sp-body'),{url,nombre:a.nombre,mime:a.archivo_mime});
+}
+
+async function downloadPhvaArchivo(id) {
+  const {data:a}=await sb.from('phva_archivos').select('*').eq('id',id).single();
+  if(!a) return;
+  const url=await phvaSignedUrl(a.archivo_path);
+  if(!url){showToast('Error generando enlace','error');return;}
+  const el=document.createElement('a');el.href=url;el.download=a.nombre;el.target='_blank';el.click();
+}
+
+async function onPhvaFileChosen(input) {
+  const file=input.files[0];
+  if(!file||!currentCarpetaId) return;
+  input.value='';
+  const c=allPhvaCarpetas.find(x=>x.id===currentCarpetaId);
+  showToast('⏳ Subiendo archivo…');
+  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path=`${c.fase}/${currentCarpetaId}/${Date.now()}_${safeName}`;
+  const {error:upErr}=await sb.storage.from('phva').upload(path,file,{contentType:file.type});
+  if(upErr){showToast('Error al subir: '+upErr.message,'error');return;}
+  const {error}=await sb.from('phva_archivos').insert({
+    carpeta_id:currentCarpetaId,nombre:file.name,archivo_path:path,
+    archivo_mime:file.type,archivo_size:file.size,subido_por:currentUser.id,
+    creado_en:new Date().toISOString()
+  });
+  if(error){showToast('Error: '+error.message,'error');return;}
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'CREAR',tabla:'phva_archivos',detalle:`Subió "${file.name}" a carpeta PHVA ${c.numero}. ${c.nombre}`});
+  showToast('Archivo subido ✓','success');
+  await loadCarpetaArchivos(currentCarpetaId);
+  const {data}=await sb.from('phva_archivos').select('id,carpeta_id,nombre');
+  allPhvaArchivos=data||[];
+  renderPhva();
+}
+
+async function deletePhvaArchivo(id) {
+  const {data:a}=await sb.from('phva_archivos').select('*').eq('id',id).single();
+  if(!a||!confirm(`¿Eliminar el archivo "${a.nombre}"?`)) return;
+  if(a.archivo_path) await sb.storage.from('phva').remove([a.archivo_path]);
+  await sb.from('phva_archivos').delete().eq('id',id);
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'phva_archivos',detalle:`Eliminó "${a.nombre}" de una carpeta PHVA`});
+  showToast('Archivo eliminado');
+  await loadCarpetaArchivos(currentCarpetaId);
+  const {data}=await sb.from('phva_archivos').select('id,carpeta_id,nombre');
+  allPhvaArchivos=data||[];
+  renderPhva();
+}
+
+function openCarpetaModal() {
+  editCarpetaId=null;
+  document.getElementById('modal-carpeta-title').textContent='Nueva carpeta';
+  document.getElementById('carpeta-fase').value='P';
+  document.getElementById('carpeta-nombre').value='';
+  document.getElementById('modal-carpeta').classList.add('open');
+}
+
+function openEditCarpeta(id) {
+  const c=allPhvaCarpetas.find(x=>x.id===id);
+  if(!c) return;
+  editCarpetaId=id;
+  document.getElementById('modal-carpeta-title').textContent='Editar carpeta';
+  document.getElementById('carpeta-fase').value=c.fase;
+  document.getElementById('carpeta-nombre').value=c.nombre;
+  document.getElementById('modal-carpeta').classList.add('open');
+}
+
+async function saveCarpeta() {
+  const fase=document.getElementById('carpeta-fase').value;
+  const nombre=document.getElementById('carpeta-nombre').value.trim();
+  if(!nombre){showToast('El nombre es obligatorio','error');return;}
+  let error;
+  if(editCarpetaId){
+    ({error}=await sb.from('phva_carpetas').update({fase,nombre}).eq('id',editCarpetaId));
+  } else {
+    const maxNum=allPhvaCarpetas.reduce((m,c)=>Math.max(m,c.numero||0),0);
+    ({error}=await sb.from('phva_carpetas').insert({fase,nombre,numero:maxNum+1,creado_en:new Date().toISOString()}));
+  }
+  if(error){showToast('Error: '+error.message,'error');return;}
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editCarpetaId?'EDITAR':'CREAR',tabla:'phva_carpetas',detalle:`${editCarpetaId?'Editó':'Creó'} carpeta PHVA "${nombre}"`});
+  closeModal('modal-carpeta');
+  showToast(editCarpetaId?'Carpeta actualizada ✓':'Carpeta creada ✓','success');
+  const {data}=await sb.from('phva_carpetas').select('*').order('numero');
+  allPhvaCarpetas=data||[];
+  renderPhva();updateCounts();
+}
+
+async function deleteCarpeta(id) {
+  const c=allPhvaCarpetas.find(x=>x.id===id);
+  if(!c) return;
+  const nArch=allPhvaArchivos.filter(a=>a.carpeta_id===id).length;
+  const msg=nArch>0
+    ? `La carpeta "${c.nombre}" contiene ${nArch} archivo${nArch>1?'s':''}. ¿Eliminar la carpeta y todo su contenido?`
+    : `¿Eliminar la carpeta "${c.nombre}"?`;
+  if(!confirm(msg)) return;
+  // Eliminar archivos del storage
+  const {data:archivos}=await sb.from('phva_archivos').select('archivo_path').eq('carpeta_id',id);
+  const paths=(archivos||[]).map(a=>a.archivo_path).filter(Boolean);
+  if(paths.length) await sb.storage.from('phva').remove(paths);
+  await sb.from('phva_archivos').delete().eq('carpeta_id',id);
+  await sb.from('phva_carpetas').delete().eq('id',id);
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'phva_carpetas',detalle:`Eliminó carpeta PHVA "${c.nombre}"`});
+  showToast('Carpeta eliminada');
+  const [{data:carp},{data:arch}]=await Promise.all([
+    sb.from('phva_carpetas').select('*').order('numero'),
+    sb.from('phva_archivos').select('id,carpeta_id,nombre')
+  ]);
+  allPhvaCarpetas=carp||[];allPhvaArchivos=arch||[];
+  renderPhva();updateCounts();
 }
 
 // ── ENLACES RECURSOS ──────────────────────────────────────
