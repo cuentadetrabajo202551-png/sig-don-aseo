@@ -217,6 +217,8 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .phva-folder{display:flex;align-items:center;gap:11px;background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;cursor:pointer;transition:all .13s;position:relative}
 .phva-folder:hover{border-color:var(--navy);box-shadow:var(--shadow);transform:translateY(-1px)}
 .phva-folder.fp-P:hover{border-color:#0055cc}.phva-folder.fp-H:hover{border-color:#1db954}.phva-folder.fp-V:hover{border-color:#e8a000}.phva-folder.fp-A:hover{border-color:#a259d6}
+.phva-folder.folder-drop{border-color:var(--navy);background:var(--navy-light);box-shadow:0 0 0 3px rgba(0,51,153,.18);transform:scale(1.02)}
+.phva-folder.folder-drop *{pointer-events:none}
 .phva-folder-ico{font-size:26px;line-height:1;flex-shrink:0}
 .phva-folder-info{flex:1;min-width:0}
 .phva-folder-num{font-size:10px;font-weight:800;color:var(--gray-500);letter-spacing:.04em}
@@ -231,6 +233,9 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .phva-file-name{font-weight:600;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .phva-file-meta{font-size:11px;color:var(--gray-500);margin-top:1px}
 .phva-file-acts{display:flex;gap:5px;flex-shrink:0}
+#phva-panel-body.drop-active{outline:3px dashed var(--navy);outline-offset:-10px;background:var(--navy-light)}
+.phva-drop-hint{display:none;position:absolute;inset:0;z-index:5;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(0,51,153,.06);pointer-events:none;color:var(--navy);font-weight:800;font-size:15px}
+#phva-panel-body.drop-active .phva-drop-hint{display:flex}
 @media(max-width:640px){.phva-grid{grid-template-columns:1fr}}
 
 /* LINK CARDS (Cartera / Nómina) */
@@ -1268,13 +1273,16 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 <div class="modal-overlay" id="modal-carpeta">
   <div class="modal">
     <div class="modal-title" id="modal-carpeta-title">Nueva carpeta</div>
-    <label class="form-label">Fase del ciclo *</label>
-    <select class="form-select" id="carpeta-fase">
-      <option value="P">P — Planear</option>
-      <option value="H">H — Hacer</option>
-      <option value="V">V — Verificar</option>
-      <option value="A">A — Actuar</option>
-    </select>
+    <div id="carpeta-fase-wrap">
+      <label class="form-label">Fase del ciclo *</label>
+      <select class="form-select" id="carpeta-fase">
+        <option value="P">P — Planear</option>
+        <option value="H">H — Hacer</option>
+        <option value="V">V — Verificar</option>
+        <option value="A">A — Actuar</option>
+      </select>
+    </div>
+    <div id="carpeta-parent-hint" style="display:none;font-size:12px;color:var(--gray-500);background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;margin-top:4px"></div>
     <label class="form-label">Nombre de la carpeta *</label>
     <input class="form-input" id="carpeta-nombre" maxlength="120" placeholder="Ej. Responsable del SG-SST">
     <div class="modal-actions">
@@ -1292,10 +1300,13 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
     <button class="side-panel-close" onclick="closePhvaPanel()">✕</button>
   </div>
   <div class="side-panel-meta" id="phva-panel-meta"></div>
-  <div class="side-panel-body" id="phva-panel-body" style="overflow-y:auto"></div>
+  <div class="side-panel-body" id="phva-panel-body" style="overflow-y:auto;position:relative" ondragover="onPhvaDragOver(event)" ondragleave="onPhvaDragLeave(event)" ondrop="onPhvaDrop(event)">
+    <div class="phva-drop-hint"><div style="font-size:38px">⬇️</div><div>Suelta para subir aquí</div></div>
+    <div id="phva-content"></div>
+  </div>
   <div class="side-panel-footer" id="phva-panel-footer"></div>
 </div>
-<input type="file" id="phva-file-input" style="display:none" onchange="onPhvaFileChosen(this)">
+<input type="file" id="phva-file-input" multiple style="display:none" onchange="onPhvaFileChosen(this)">
 
 <div class="toast" id="toast"></div>
 
@@ -1324,6 +1335,7 @@ let editActaId=null, editMiembroId=null;
 let allOrg=[], editOrgId=null, orgPhotoFile=null, currentOrgDetailId=null;
 let allEnlaces=[], editEnlaceId=null;
 let allPhvaCarpetas=[], allPhvaArchivos=[], editCarpetaId=null, currentCarpetaId=null;
+let phvaPath=[], carpetaParentId=null;
 const docSel={SST:new Set(),Calidad:new Set(),Ambiental:new Set(),'Maestro SIG':new Set()};
 
 
@@ -3101,11 +3113,11 @@ function renderPhva() {
     cont.innerHTML=`<div class="empty" style="padding:50px 0;text-align:center;color:var(--gray-500)">${canEdit()?'Aún no hay carpetas. Usa <b>+ Nueva carpeta</b> para crear la primera.':'No hay carpetas disponibles por el momento.'}</div>`;
     return;
   }
-  // Conteo de archivos por carpeta
-  const cnt={};
-  allPhvaArchivos.forEach(a=>{cnt[a.carpeta_id]=(cnt[a.carpeta_id]||0)+1;});
+  // Conteo de elementos directos por carpeta (archivos + subcarpetas)
+  const cntArch={}; allPhvaArchivos.forEach(a=>{cntArch[a.carpeta_id]=(cntArch[a.carpeta_id]||0)+1;});
+  const cntSub={}; allPhvaCarpetas.forEach(c=>{if(c.parent_id)cntSub[c.parent_id]=(cntSub[c.parent_id]||0)+1;});
   cont.innerHTML=PHVA_FASES.map(f=>{
-    const carpetas=allPhvaCarpetas.filter(c=>c.fase===f.letra);
+    const carpetas=allPhvaCarpetas.filter(c=>c.fase===f.letra && !c.parent_id);
     if(!carpetas.length) return '';
     return `<div class="phva-fase">
       <div class="phva-fase-head fase-${f.letra}">
@@ -3115,13 +3127,13 @@ function renderPhva() {
       </div>
       <div class="phva-grid">
         ${carpetas.map(c=>{
-          const n=cnt[c.id]||0;
-          return `<div class="phva-folder fp-${f.letra}" onclick="openCarpeta('${c.id}')">
+          const n=(cntArch[c.id]||0)+(cntSub[c.id]||0);
+          return `<div class="phva-folder fp-${f.letra}" onclick="openCarpeta('${c.id}')" ondragover="onFolderDragOver(event)" ondragleave="onFolderDragLeave(event)" ondrop="onFolderDrop(event,'${c.id}')">
             <div class="phva-folder-ico">${n>0?'📂':'📁'}</div>
             <div class="phva-folder-info">
-              <div class="phva-folder-num">${String(c.numero).padStart(2,'0')}</div>
+              <div class="phva-folder-num">${c.numero?String(c.numero).padStart(2,'0'):''}</div>
               <div class="phva-folder-name">${esc(c.nombre)}</div>
-              <div class="phva-folder-cnt">${n} archivo${n!==1?'s':''}</div>
+              <div class="phva-folder-cnt">${n} elemento${n!==1?'s':''}</div>
             </div>
             ${canEdit()?`<div class="phva-folder-acts">
               <button class="icon-btn" onclick="event.stopPropagation();openEditCarpeta('${c.id}')" title="Renombrar">✏</button>
@@ -3134,31 +3146,74 @@ function renderPhva() {
   }).join('');
 }
 
+function phvaCurrent(){ return phvaPath[phvaPath.length-1]; }
+
 async function openCarpeta(id) {
   const c=allPhvaCarpetas.find(x=>x.id===id);
   if(!c) return;
-  currentCarpetaId=id;
-  const fase=PHVA_FASES.find(f=>f.letra===c.fase);
-  document.getElementById('phva-panel-title').textContent=`${String(c.numero).padStart(2,'0')}. ${c.nombre}`;
-  document.getElementById('phva-panel-meta').innerHTML=`<span>${c.fase} · ${fase?.nombre||''}</span>`;
-  document.getElementById('phva-panel-footer').innerHTML=canEdit()
-    ? `<button class="btn-primary" style="flex:1" onclick="document.getElementById('phva-file-input').click()">⬆ Subir archivo</button>`
-    : '';
+  phvaPath=[c];
   document.getElementById('phva-panel').classList.add('open');
   document.getElementById('phva-overlay').classList.add('open');
-  await loadCarpetaArchivos(id);
+  await renderPhvaPanel();
 }
 
-async function loadCarpetaArchivos(id) {
-  const body=document.getElementById('phva-panel-body');
-  body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando archivos…</div></div>`;
+async function enterCarpeta(id) {
+  const c=allPhvaCarpetas.find(x=>x.id===id);
+  if(!c) return;
+  phvaPath.push(c);
+  await renderPhvaPanel();
+}
+
+async function phvaNavTo(index) {
+  phvaPath=phvaPath.slice(0,index+1);
+  await renderPhvaPanel();
+}
+
+async function renderPhvaPanel() {
+  const c=phvaCurrent();
+  if(!c) return;
+  currentCarpetaId=c.id;
+  document.getElementById('phva-panel-title').textContent=c.numero?`${String(c.numero).padStart(2,'0')}. ${c.nombre}`:c.nombre;
+  const crumbs=phvaPath.map((p,i)=>i===phvaPath.length-1
+    ? `<span style="font-weight:700;color:var(--navy)">${esc(p.nombre)}</span>`
+    : `<span onclick="phvaNavTo(${i})" style="cursor:pointer;color:var(--gray-500);text-decoration:underline">${esc(p.nombre)}</span>`
+  ).join(' <span style="color:var(--gray-300)">›</span> ');
+  document.getElementById('phva-panel-meta').innerHTML=`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.5">📂&nbsp;${crumbs}</div>`;
+  document.getElementById('phva-panel-footer').innerHTML=canEdit()
+    ? `<button class="btn-secondary" style="flex:1" onclick="openSubcarpetaModal()">📁 Subcarpeta</button>
+       <button class="btn-primary" style="flex:1" onclick="document.getElementById('phva-file-input').click()">⬆ Subir archivo</button>`
+    : '';
+  await loadCarpetaContenido(c.id);
+}
+
+async function loadCarpetaContenido(id) {
+  const body=document.getElementById('phva-content');
+  body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando…</div></div>`;
+  const subcarpetas=allPhvaCarpetas.filter(c=>c.parent_id===id);
   const {data}=await sb.from('phva_archivos').select('*').eq('carpeta_id',id).order('creado_en',{ascending:false});
   const archivos=data||[];
-  if(!archivos.length){
-    body.innerHTML=`<div class="side-panel-loading" style="height:auto;padding:50px 20px"><div style="font-size:42px">📁</div><div>Esta carpeta está vacía.</div>${canEdit()?'<div style="font-size:12px;color:var(--gray-400)">Usa el botón de abajo para subir el primer archivo.</div>':''}</div>`;
+  if(!subcarpetas.length && !archivos.length){
+    body.innerHTML=`<div class="side-panel-loading" style="height:auto;padding:50px 20px"><div style="font-size:42px">📁</div><div>Esta carpeta está vacía.</div>${canEdit()?'<div style="font-size:12px;color:var(--gray-400);text-align:center">Arrastra aquí archivos o carpetas,<br>o usa los botones de abajo.</div>':''}</div>`;
     return;
   }
-  body.innerHTML=archivos.map(a=>`
+  const cntArch={}; allPhvaArchivos.forEach(a=>{cntArch[a.carpeta_id]=(cntArch[a.carpeta_id]||0)+1;});
+  const cntSub={}; allPhvaCarpetas.forEach(c=>{if(c.parent_id)cntSub[c.parent_id]=(cntSub[c.parent_id]||0)+1;});
+  const subHtml=subcarpetas.map(s=>{
+    const items=(cntArch[s.id]||0)+(cntSub[s.id]||0);
+    return `<div class="phva-file-row" style="cursor:pointer" onclick="enterCarpeta('${s.id}')">
+      <div class="phva-file-ico">${items>0?'📂':'📁'}</div>
+      <div class="phva-file-info">
+        <div class="phva-file-name">${esc(s.nombre)}</div>
+        <div class="phva-file-meta">${items} elemento${items!==1?'s':''}</div>
+      </div>
+      <div class="phva-file-acts" onclick="event.stopPropagation()">
+        ${canEdit()?`<button class="icon-btn" onclick="openEditCarpeta('${s.id}')" title="Renombrar">✏</button>`:''}
+        ${canDelete()?`<button class="icon-btn danger" onclick="deleteCarpeta('${s.id}')" title="Eliminar">🗑</button>`:''}
+        <span style="color:var(--gray-300);font-size:17px;font-weight:700">›</span>
+      </div>
+    </div>`;
+  }).join('');
+  const archHtml=archivos.map(a=>`
     <div class="phva-file-row">
       <div class="phva-file-ico">${phvaFileIcon(a.nombre)}</div>
       <div class="phva-file-info">
@@ -3171,12 +3226,13 @@ async function loadCarpetaArchivos(id) {
         ${canDelete()?`<button class="icon-btn danger" onclick="deletePhvaArchivo('${a.id}')">🗑</button>`:''}
       </div>
     </div>`).join('');
+  body.innerHTML=subHtml+archHtml;
 }
 
 function closePhvaPanel() {
   document.getElementById('phva-panel').classList.remove('open');
   document.getElementById('phva-overlay').classList.remove('open');
-  currentCarpetaId=null;
+  currentCarpetaId=null; phvaPath=[];
 }
 
 async function phvaSignedUrl(path) {
@@ -3208,28 +3264,128 @@ async function downloadPhvaArchivo(id) {
   const el=document.createElement('a');el.href=url;el.download=a.nombre;el.target='_blank';el.click();
 }
 
-async function onPhvaFileChosen(input) {
-  const file=input.files[0];
-  if(!file||!currentCarpetaId) return;
-  input.value='';
-  const c=allPhvaCarpetas.find(x=>x.id===currentCarpetaId);
-  showToast('⏳ Subiendo archivo…');
+// Sube un solo archivo a una carpeta (sin refrescar UI)
+async function uploadPhvaFile(file, carpetaId) {
+  const c=allPhvaCarpetas.find(x=>x.id===carpetaId);
   const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const path=`${c.fase}/${currentCarpetaId}/${Date.now()}_${safeName}`;
+  const path=`${c?.fase||'P'}/${carpetaId}/${Date.now()}_${Math.random().toString(36).slice(2,7)}_${safeName}`;
   const {error:upErr}=await sb.storage.from('phva').upload(path,file,{contentType:file.type});
-  if(upErr){showToast('Error al subir: '+upErr.message,'error');return;}
+  if(upErr) throw upErr;
   const {error}=await sb.from('phva_archivos').insert({
-    carpeta_id:currentCarpetaId,nombre:file.name,archivo_path:path,
+    carpeta_id:carpetaId,nombre:file.name,archivo_path:path,
     archivo_mime:file.type,archivo_size:file.size,subido_por:currentUser.id,
     creado_en:new Date().toISOString()
   });
-  if(error){showToast('Error: '+error.message,'error');return;}
-  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'CREAR',tabla:'phva_archivos',detalle:`Subió "${file.name}" a carpeta PHVA ${c.numero}. ${c.nombre}`});
-  showToast('Archivo subido ✓','success');
-  await loadCarpetaArchivos(currentCarpetaId);
-  const {data}=await sb.from('phva_archivos').select('id,carpeta_id,nombre');
-  allPhvaArchivos=data||[];
-  renderPhva();
+  if(error) throw error;
+}
+
+// Crea una subcarpeta y devuelve su id (para drag de carpetas)
+async function crearSubcarpetaSilenciosa(nombre, parentId) {
+  const padre=allPhvaCarpetas.find(x=>x.id===parentId);
+  const {data,error}=await sb.from('phva_carpetas').insert({fase:padre?.fase||'P',nombre,parent_id:parentId,creado_en:new Date().toISOString()}).select().single();
+  if(error) throw error;
+  allPhvaCarpetas.push(data);
+  return data.id;
+}
+
+// Subida por botón (uno o varios archivos)
+async function onPhvaFileChosen(input) {
+  const files=[...input.files];
+  if(!files.length||!currentCarpetaId) return;
+  input.value='';
+  showToast(`⏳ Subiendo ${files.length} archivo${files.length>1?'s':''}…`);
+  const stats={archivos:0,carpetas:0};
+  for(const f of files){ try{await uploadPhvaFile(f,currentCarpetaId);stats.archivos++;}catch(err){console.warn(err);} }
+  await finalizarSubida(stats);
+}
+
+// ── DRAG & DROP ───────────────────────────────────────────
+function onPhvaDragOver(e){
+  e.preventDefault();
+  if(canEdit()&&currentCarpetaId) e.currentTarget.classList.add('drop-active');
+}
+function onPhvaDragLeave(e){
+  if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-active');
+}
+
+// Helpers para leer la estructura de carpetas arrastradas (FileSystem API)
+function entryToFile(entry){ return new Promise((res,rej)=>entry.file(res,rej)); }
+function readAllEntries(reader){
+  return new Promise((res,rej)=>{
+    let all=[];
+    const next=()=>reader.readEntries(ents=>{ if(!ents.length) res(all); else { all=all.concat(ents); next(); } }, rej);
+    next();
+  });
+}
+// Procesa recursivamente un archivo o carpeta hacia destinoId
+async function procesarEntry(entry, destinoId, stats){
+  if(entry.isFile){
+    const file=await entryToFile(entry);
+    try{ await uploadPhvaFile(file,destinoId); stats.archivos++; }catch(err){ console.warn('Archivo',entry.name,err); }
+  } else if(entry.isDirectory){
+    let nuevaId;
+    try{ nuevaId=await crearSubcarpetaSilenciosa(entry.name,destinoId); stats.carpetas++; }catch(err){ console.warn('Carpeta',entry.name,err); return; }
+    const ents=await readAllEntries(entry.createReader());
+    for(const e of ents){ await procesarEntry(e,nuevaId,stats); }
+  }
+}
+
+async function onPhvaDrop(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drop-active');
+  if(!currentCarpetaId) return;
+  await procesarDropEvent(e,currentCarpetaId);
+}
+
+// Drop directo sobre una tarjeta de carpeta del grid principal
+function onFolderDragOver(e){ e.preventDefault(); if(canEdit()) e.currentTarget.classList.add('folder-drop'); }
+function onFolderDragLeave(e){ if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('folder-drop'); }
+async function onFolderDrop(e,id){
+  e.preventDefault(); e.stopPropagation();
+  e.currentTarget.classList.remove('folder-drop');
+  await procesarDropEvent(e,id);
+}
+
+// Lógica común de procesamiento de un drop hacia una carpeta destino
+async function procesarDropEvent(e,destino){
+  if(!canEdit()){ showToast('No tienes permiso para subir archivos','error'); return; }
+  // Capturar entries ANTES de cualquier await (dataTransfer se vacía después)
+  const items=[...(e.dataTransfer.items||[])];
+  const entries=items.map(i=>i.webkitGetAsEntry?i.webkitGetAsEntry():null).filter(Boolean);
+  const stats={archivos:0,carpetas:0};
+  if(entries.length){
+    showToast('⏳ Subiendo… no cierres la página');
+    try{ for(const entry of entries){ await procesarEntry(entry,destino,stats); } }
+    catch(err){ showToast('Error: '+err.message,'error'); }
+  } else {
+    // Navegador sin soporte de carpetas: archivos sueltos
+    const files=[...(e.dataTransfer.files||[])];
+    if(!files.length) return;
+    showToast(`⏳ Subiendo ${files.length} archivo${files.length>1?'s':''}…`);
+    for(const f of files){ try{await uploadPhvaFile(f,destino);stats.archivos++;}catch(err){console.warn(err);} }
+  }
+  await finalizarSubida(stats);
+}
+
+// Refresca caches y UI tras una subida (botón o drag)
+async function finalizarSubida(stats){
+  const [{data:carp},{data:arch}]=await Promise.all([
+    sb.from('phva_carpetas').select('*').order('numero'),
+    sb.from('phva_archivos').select('id,carpeta_id,nombre')
+  ]);
+  allPhvaCarpetas=carp||[]; allPhvaArchivos=arch||[];
+  phvaPath=phvaPath.map(p=>allPhvaCarpetas.find(c=>c.id===p.id)||p);
+  if(phvaPath.length) await renderPhvaPanel();
+  renderPhva(); updateCounts();
+  const partes=[];
+  if(stats.archivos) partes.push(`${stats.archivos} archivo${stats.archivos>1?'s':''}`);
+  if(stats.carpetas) partes.push(`${stats.carpetas} carpeta${stats.carpetas>1?'s':''}`);
+  if(partes.length){
+    showToast(`✓ Subido: ${partes.join(' y ')}`,'success');
+    await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'CREAR',tabla:'phva_archivos',detalle:`Subió ${partes.join(' y ')} a una carpeta PHVA`});
+  } else {
+    showToast('No se pudo subir el contenido','error');
+  }
 }
 
 async function deletePhvaArchivo(id) {
@@ -3239,16 +3395,31 @@ async function deletePhvaArchivo(id) {
   await sb.from('phva_archivos').delete().eq('id',id);
   await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'phva_archivos',detalle:`Eliminó "${a.nombre}" de una carpeta PHVA`});
   showToast('Archivo eliminado');
-  await loadCarpetaArchivos(currentCarpetaId);
   const {data}=await sb.from('phva_archivos').select('id,carpeta_id,nombre');
   allPhvaArchivos=data||[];
+  await loadCarpetaContenido(currentCarpetaId);
   renderPhva();
 }
 
 function openCarpetaModal() {
-  editCarpetaId=null;
+  editCarpetaId=null; carpetaParentId=null;
   document.getElementById('modal-carpeta-title').textContent='Nueva carpeta';
+  document.getElementById('carpeta-fase-wrap').style.display='';
+  document.getElementById('carpeta-parent-hint').style.display='none';
   document.getElementById('carpeta-fase').value='P';
+  document.getElementById('carpeta-nombre').value='';
+  document.getElementById('modal-carpeta').classList.add('open');
+}
+
+function openSubcarpetaModal() {
+  const padre=phvaCurrent();
+  if(!padre) return;
+  editCarpetaId=null; carpetaParentId=padre.id;
+  document.getElementById('modal-carpeta-title').textContent='Nueva subcarpeta';
+  document.getElementById('carpeta-fase-wrap').style.display='none';
+  const hint=document.getElementById('carpeta-parent-hint');
+  hint.style.display='';
+  hint.innerHTML=`📂 Se creará dentro de <b>${esc(padre.nombre)}</b>`;
   document.getElementById('carpeta-nombre').value='';
   document.getElementById('modal-carpeta').classList.add('open');
 }
@@ -3256,46 +3427,70 @@ function openCarpetaModal() {
 function openEditCarpeta(id) {
   const c=allPhvaCarpetas.find(x=>x.id===id);
   if(!c) return;
-  editCarpetaId=id;
-  document.getElementById('modal-carpeta-title').textContent='Editar carpeta';
+  editCarpetaId=id; carpetaParentId=c.parent_id||null;
+  document.getElementById('modal-carpeta-title').textContent='Renombrar carpeta';
+  // Solo las carpetas raíz muestran selector de fase
+  document.getElementById('carpeta-fase-wrap').style.display=c.parent_id?'none':'';
+  document.getElementById('carpeta-parent-hint').style.display='none';
   document.getElementById('carpeta-fase').value=c.fase;
   document.getElementById('carpeta-nombre').value=c.nombre;
   document.getElementById('modal-carpeta').classList.add('open');
 }
 
 async function saveCarpeta() {
-  const fase=document.getElementById('carpeta-fase').value;
   const nombre=document.getElementById('carpeta-nombre').value.trim();
   if(!nombre){showToast('El nombre es obligatorio','error');return;}
   let error;
   if(editCarpetaId){
-    ({error}=await sb.from('phva_carpetas').update({fase,nombre}).eq('id',editCarpetaId));
+    const upd={nombre};
+    const c=allPhvaCarpetas.find(x=>x.id===editCarpetaId);
+    if(!c?.parent_id) upd.fase=document.getElementById('carpeta-fase').value; // solo raíz cambia fase
+    ({error}=await sb.from('phva_carpetas').update(upd).eq('id',editCarpetaId));
+  } else if(carpetaParentId){
+    // Subcarpeta: hereda la fase del padre, sin número
+    const padre=allPhvaCarpetas.find(x=>x.id===carpetaParentId);
+    ({error}=await sb.from('phva_carpetas').insert({fase:padre?.fase||'P',nombre,parent_id:carpetaParentId,creado_en:new Date().toISOString()}));
   } else {
+    // Carpeta raíz nueva
+    const fase=document.getElementById('carpeta-fase').value;
     const maxNum=allPhvaCarpetas.reduce((m,c)=>Math.max(m,c.numero||0),0);
     ({error}=await sb.from('phva_carpetas').insert({fase,nombre,numero:maxNum+1,creado_en:new Date().toISOString()}));
   }
   if(error){showToast('Error: '+error.message,'error');return;}
-  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editCarpetaId?'EDITAR':'CREAR',tabla:'phva_carpetas',detalle:`${editCarpetaId?'Editó':'Creó'} carpeta PHVA "${nombre}"`});
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editCarpetaId?'EDITAR':'CREAR',tabla:'phva_carpetas',detalle:`${editCarpetaId?'Renombró':carpetaParentId?'Creó subcarpeta':'Creó carpeta'} PHVA "${nombre}"`});
   closeModal('modal-carpeta');
   showToast(editCarpetaId?'Carpeta actualizada ✓':'Carpeta creada ✓','success');
   const {data}=await sb.from('phva_carpetas').select('*').order('numero');
   allPhvaCarpetas=data||[];
+  // Sincronizar nombres en el breadcrump si quedó abierto
+  phvaPath=phvaPath.map(p=>allPhvaCarpetas.find(c=>c.id===p.id)||p);
+  if(phvaPath.length) await renderPhvaPanel();
   renderPhva();updateCounts();
+}
+
+// Devuelve el id de la carpeta y de todas sus descendientes (recursivo)
+function phvaDescendientes(id){
+  let ids=[id];
+  allPhvaCarpetas.filter(c=>c.parent_id===id).forEach(h=>{ids=ids.concat(phvaDescendientes(h.id));});
+  return ids;
 }
 
 async function deleteCarpeta(id) {
   const c=allPhvaCarpetas.find(x=>x.id===id);
   if(!c) return;
-  const nArch=allPhvaArchivos.filter(a=>a.carpeta_id===id).length;
-  const msg=nArch>0
-    ? `La carpeta "${c.nombre}" contiene ${nArch} archivo${nArch>1?'s':''}. ¿Eliminar la carpeta y todo su contenido?`
-    : `¿Eliminar la carpeta "${c.nombre}"?`;
+  const ids=phvaDescendientes(id);
+  const nSub=ids.length-1;
+  const nArch=allPhvaArchivos.filter(a=>ids.includes(a.carpeta_id)).length;
+  let detalle='';
+  if(nSub>0) detalle+=`${nSub} subcarpeta${nSub>1?'s':''}`;
+  if(nArch>0) detalle+=(detalle?' y ':'')+`${nArch} archivo${nArch>1?'s':''}`;
+  const msg=detalle?`La carpeta "${c.nombre}" contiene ${detalle}. ¿Eliminar todo?`:`¿Eliminar la carpeta "${c.nombre}"?`;
   if(!confirm(msg)) return;
-  // Eliminar archivos del storage
-  const {data:archivos}=await sb.from('phva_archivos').select('archivo_path').eq('carpeta_id',id);
+  // Borrar archivos de storage de toda la rama
+  const {data:archivos}=await sb.from('phva_archivos').select('archivo_path').in('carpeta_id',ids);
   const paths=(archivos||[]).map(a=>a.archivo_path).filter(Boolean);
   if(paths.length) await sb.storage.from('phva').remove(paths);
-  await sb.from('phva_archivos').delete().eq('carpeta_id',id);
+  // Borrar la carpeta — el cascade de BD elimina subcarpetas y archivos
   await sb.from('phva_carpetas').delete().eq('id',id);
   await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'phva_carpetas',detalle:`Eliminó carpeta PHVA "${c.nombre}"`});
   showToast('Carpeta eliminada');
@@ -3304,6 +3499,12 @@ async function deleteCarpeta(id) {
     sb.from('phva_archivos').select('id,carpeta_id,nombre')
   ]);
   allPhvaCarpetas=carp||[];allPhvaArchivos=arch||[];
+  // Ajustar el panel si la carpeta borrada estaba en la ruta abierta
+  if(phvaPath.length){
+    phvaPath=phvaPath.filter(p=>allPhvaCarpetas.some(x=>x.id===p.id));
+    if(!phvaPath.length) closePhvaPanel();
+    else await renderPhvaPanel();
+  }
   renderPhva();updateCounts();
 }
 
@@ -3435,6 +3636,10 @@ function showToast(msg,type=''){
 document.querySelectorAll('.modal-overlay').forEach(o=>
   o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');})
 );
+
+// Evita que el navegador abra un archivo si se suelta fuera de una zona válida
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('drop',e=>e.preventDefault());
 </script>
 </body>
 </html>
