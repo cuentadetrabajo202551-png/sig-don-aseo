@@ -1141,9 +1141,14 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
   <div class="modal">
     <div class="modal-title" id="modal-acta-title">Nueva acta</div>
     <input type="hidden" id="a-comite">
+    <label class="form-label">Tipo de acta *</label>
+    <select class="form-select" id="a-tipo" onchange="onActaTipoChange()">
+      <option value="reunion">📄 Acta de reunión</option>
+      <option value="conformacion">📋 Acta de conformación / constitución</option>
+    </select>
     <div class="form-row">
       <div><label class="form-label">N° de acta</label><input class="form-input" id="a-numero" placeholder="Ej. 001-2026"></div>
-      <div><label class="form-label">Fecha de reunión *</label><input class="form-input" id="a-fecha" type="date"></div>
+      <div><label class="form-label" id="a-fecha-label">Fecha de reunión *</label><input class="form-input" id="a-fecha" type="date"></div>
     </div>
     <label class="form-label">Título / Tema *</label>
     <input class="form-input" id="a-titulo" placeholder="Ej. Reunión ordinaria mensual">
@@ -1173,16 +1178,29 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div><label class="form-label">Documento de identidad</label><input class="form-input" id="m-documento" placeholder="C.C. 1.000.000.000"></div>
       <div><label class="form-label">Cargo en la empresa</label><input class="form-input" id="m-cargo-empresa" placeholder="Ej. Supervisora"></div>
     </div>
-    <label class="form-label">Cargo en el comité *</label>
-    <select class="form-select" id="m-cargo-comite">
-      <option>Presidente</option><option>Vicepresidente</option><option>Secretario</option>
-      <option>Miembro principal</option><option>Miembro suplente</option>
-    </select>
-    <label class="form-label">Representa a</label>
-    <select class="form-select" id="m-representa">
-      <option value="empleador">Empleador</option>
-      <option value="trabajadores">Trabajadores</option>
-      <option value="ambos">Ambos</option>
+    <div class="form-row">
+      <div>
+        <label class="form-label">Tipo de integrante *</label>
+        <select class="form-select" id="m-cargo-comite">
+          <option>Miembro principal</option>
+          <option>Miembro suplente</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Representa a *</label>
+        <select class="form-select" id="m-representa">
+          <option value="empleador">Empleador</option>
+          <option value="trabajadores">Trabajadores</option>
+          <option value="ambos">Ambos</option>
+        </select>
+      </div>
+    </div>
+    <label class="form-label">Dignidad en el comité <span class="form-hint">(opcional — se suma a lo anterior)</span></label>
+    <select class="form-select" id="m-dignidad">
+      <option value="">— Sin dignidad —</option>
+      <option>Presidente</option>
+      <option>Vicepresidente</option>
+      <option>Secretario</option>
     </select>
     <div class="form-row">
       <div><label class="form-label">Fecha de elección</label><input class="form-input" id="m-fecha-eleccion" type="date"></div>
@@ -2518,13 +2536,17 @@ function renderComite(comite) {
   } else {
     mEl.innerHTML = miembros.map(m => {
       const repLabel = m.representa==='empleador'?'🏢 Empleador':m.representa==='trabajadores'?'👷 Trabajadores':'⚖️ Ambos';
+      const esSuplente = m.cargo_comite==='Miembro suplente';
+      const tipoBadge = `<span class="badge ${esSuplente?'b-obs':'b-ok'}">${esc(m.cargo_comite)}</span>`;
+      const digBadge = m.dignidad?`<span class="badge" style="background:#fff4d6;color:#9a6b00">⭐ ${esc(m.dignidad)}</span>`:'';
       const vencido = m.fecha_fin_periodo && new Date(m.fecha_fin_periodo) < new Date();
       return `<div class="doc-row">
         <div style="flex:1">
           <div class="doc-name">${esc(m.nombre)}</div>
           <div class="doc-meta">${esc(m.cargo_empresa)||'—'}${m.documento?' · '+esc(m.documento):''}</div>
         </div>
-        <span class="badge b-ver">${esc(m.cargo_comite)}</span>
+        ${digBadge}
+        ${tipoBadge}
         <span style="font-size:11px;color:var(--gray-500)">${repLabel}</span>
         ${m.fecha_fin_periodo?`<span style="font-size:11px;color:${vencido?'var(--red)':'var(--gray-500)'};font-weight:${vencido?'700':'400'}">Hasta: ${fDate(m.fecha_fin_periodo)}${vencido?' ⚠️':''}</span>`:''}
         <div class="doc-actions">
@@ -2535,16 +2557,23 @@ function renderComite(comite) {
     }).join('');
   }
 
-  // Render actas
-  const actas = allActas.filter(a => a.comite===comite);
+  // Render actas — conformación primero, luego reuniones por fecha
+  const actas = allActas.filter(a => a.comite===comite)
+    .sort((x,y)=>{
+      const cx=x.tipo==='conformacion'?0:1, cy=y.tipo==='conformacion'?0:1;
+      if(cx!==cy) return cx-cy;
+      return new Date(y.fecha_reunion)-new Date(x.fecha_reunion);
+    });
   const aEl = document.getElementById('list-actas-'+sufijo);
   if(!actas.length) {
     aEl.innerHTML = '<div class="empty">No hay actas registradas aún.</div>';
   } else {
-    aEl.innerHTML = actas.map(a => `<div class="doc-row">
+    aEl.innerHTML = actas.map(a => {
+      const esConf = a.tipo==='conformacion';
+      return `<div class="doc-row"${esConf?' style="background:#fff8e8;border-radius:var(--radius-sm)"':''}>
       ${a.numero?`<span class="doc-code">${esc(a.numero)}</span>`:''}
       <div class="doc-info">
-        <div class="doc-name">${esc(a.titulo)}</div>
+        <div class="doc-name">${esConf?'<span class="badge" style="background:#ffe7a8;color:#9a6b00;margin-right:6px">📋 Conformación</span>':''}${esc(a.titulo)}</div>
         <div class="doc-meta">${fDate(a.fecha_reunion)}${a.resumen?' · '+esc(a.resumen.slice(0,60))+'...':''}</div>
       </div>
       ${!a.archivo_path?'<span class="no-file-badge">⚠️ Sin archivo</span>':''}
@@ -2553,7 +2582,8 @@ function renderComite(comite) {
         ${canEdit()?`<button class="icon-btn" onclick="openEditActa('${a.id}')">✏</button>`:''}
         ${canDelete()?`<button class="icon-btn danger" onclick="deleteActa('${a.id}')">🗑</button>`:''}
       </div>
-    </div>`).join('');
+    </div>`;
+    }).join('');
   }
 }
 
@@ -2565,6 +2595,7 @@ function openMiembroModal(comite) {
   ['m-nombre','m-documento','m-cargo-empresa','m-fecha-eleccion','m-inicio-periodo','m-fin-periodo','m-notas'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('m-cargo-comite').value = 'Miembro principal';
   document.getElementById('m-representa').value = 'trabajadores';
+  document.getElementById('m-dignidad').value = '';
   document.getElementById('modal-miembro').classList.add('open');
 }
 
@@ -2576,8 +2607,9 @@ function openEditMiembro(id) {
   document.getElementById('m-nombre').value = m.nombre;
   document.getElementById('m-documento').value = m.documento||'';
   document.getElementById('m-cargo-empresa').value = m.cargo_empresa||'';
-  document.getElementById('m-cargo-comite').value = m.cargo_comite;
+  document.getElementById('m-cargo-comite').value = (m.cargo_comite==='Miembro suplente')?'Miembro suplente':'Miembro principal';
   document.getElementById('m-representa').value = m.representa||'trabajadores';
+  document.getElementById('m-dignidad').value = m.dignidad||'';
   document.getElementById('m-fecha-eleccion').value = m.fecha_eleccion||'';
   document.getElementById('m-inicio-periodo').value = m.fecha_inicio_periodo||'';
   document.getElementById('m-fin-periodo').value = m.fecha_fin_periodo||'';
@@ -2597,6 +2629,7 @@ async function saveMiembro() {
       documento: document.getElementById('m-documento').value.trim()||null,
       cargo_empresa: document.getElementById('m-cargo-empresa').value.trim()||null,
       cargo_comite: document.getElementById('m-cargo-comite').value,
+      dignidad: document.getElementById('m-dignidad').value||null,
       representa: document.getElementById('m-representa').value,
       fecha_eleccion: document.getElementById('m-fecha-eleccion').value||null,
       fecha_inicio_periodo: document.getElementById('m-inicio-periodo').value||null,
@@ -2649,7 +2682,9 @@ function openActaModal(comite) {
   ['a-numero','a-titulo','a-resumen','a-fecha'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('a-file-name').textContent = '';
   document.getElementById('a-file').value = '';
+  document.getElementById('a-tipo').value = 'reunion';
   document.getElementById('a-fecha').value = new Date().toISOString().slice(0,10);
+  onActaTipoChange();
   document.getElementById('modal-acta').classList.add('open');
 }
 
@@ -2658,13 +2693,21 @@ function openEditActa(id) {
   editActaId = id;
   document.getElementById('modal-acta-title').textContent = 'Editar acta';
   document.getElementById('a-comite').value = a.comite;
+  document.getElementById('a-tipo').value = a.tipo||'reunion';
   document.getElementById('a-numero').value = a.numero||'';
   document.getElementById('a-titulo').value = a.titulo;
   document.getElementById('a-resumen').value = a.resumen||'';
   document.getElementById('a-fecha').value = a.fecha_reunion||'';
   document.getElementById('a-file-name').textContent = a.archivo_nombre||'';
   document.getElementById('a-file').value = '';
+  onActaTipoChange();
   document.getElementById('modal-acta').classList.add('open');
+}
+
+function onActaTipoChange() {
+  const esConf = document.getElementById('a-tipo').value==='conformacion';
+  document.getElementById('a-fecha-label').textContent = esConf?'Fecha del acta *':'Fecha de reunión *';
+  document.getElementById('a-titulo').placeholder = esConf?'Ej. Acta de conformación del comité':'Ej. Reunión ordinaria mensual';
 }
 
 function onActaFileChosen(input) {
@@ -2683,6 +2726,7 @@ async function saveActa() {
 
     const data = {
       comite,
+      tipo: document.getElementById('a-tipo').value,
       numero: document.getElementById('a-numero').value.trim()||null,
       titulo,
       fecha_reunion: fecha,
