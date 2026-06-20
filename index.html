@@ -201,8 +201,8 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .sel-all-row label{font-size:12px;color:var(--gray-500);cursor:pointer;font-weight:600;user-select:none}
 
 /* CICLO PHVA */
-#phva-panel{z-index:498}
-#phva-overlay{z-index:497}
+#phva-panel,#doc-panel{z-index:498}
+#phva-overlay,#doc-overlay{z-index:497}
 .phva-fase{margin-bottom:26px}
 .phva-fase-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 16px;border-radius:var(--radius);color:#fff;font-weight:800}
 .phva-fase-head .fase-letra{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
@@ -233,9 +233,9 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .phva-file-name{font-weight:600;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .phva-file-meta{font-size:11px;color:var(--gray-500);margin-top:1px}
 .phva-file-acts{display:flex;gap:5px;flex-shrink:0}
-#phva-panel-body.drop-active{outline:3px dashed var(--navy);outline-offset:-10px;background:var(--navy-light)}
+#phva-panel-body.drop-active,#doc-panel-body.drop-active{outline:3px dashed var(--navy);outline-offset:-10px;background:var(--navy-light)}
 .phva-drop-hint{display:none;position:absolute;inset:0;z-index:5;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(0,51,153,.06);pointer-events:none;color:var(--navy);font-weight:800;font-size:15px}
-#phva-panel-body.drop-active .phva-drop-hint{display:flex}
+#phva-panel-body.drop-active .phva-drop-hint,#doc-panel-body.drop-active .phva-drop-hint{display:flex}
 @media(max-width:640px){.phva-grid{grid-template-columns:1fr}}
 
 /* LINK CARDS (Cartera / Nómina) */
@@ -585,6 +585,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-item" onclick="showPage('ccl',this)"><div class="nav-dot" style="background:#9b59b6"></div>CCL</div>
       <div class="nav-sec">Recursos</div>
       <div class="nav-item" onclick="showPage('recursos',this)">📁&nbsp;Recursos</div>
+      <div class="nav-item" onclick="showPage('documentacion',this)">📚&nbsp;Documentación</div>
       <div class="nav-sec">Herramientas</div>
       <div class="nav-item" onclick="showPage('buscar',this)">🔍&nbsp;Buscador</div>
       <div class="nav-item" onclick="showPage('pendientes',this)">⏰&nbsp;Pendientes</div>
@@ -891,6 +892,18 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <div id="addbtn-recursos"></div>
         </div>
         <div class="link-cards-grid" id="grid-recursos"><div class="loading">Cargando...</div></div>
+      </div>
+
+      <!-- DOCUMENTACIÓN -->
+      <div class="page" id="page-documentacion">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+          <div>
+            <div class="page-title">Documentación</div>
+            <div class="page-sub">Carpetas de documentos por responsable — haz clic para ver su contenido</div>
+          </div>
+          <div id="addbtn-documentacion"></div>
+        </div>
+        <div class="link-cards-grid" id="grid-documentacion"><div class="loading">Cargando...</div></div>
       </div>
 
       <!-- CICLO PHVA -->
@@ -1326,6 +1339,43 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 </div>
 <input type="file" id="phva-file-input" multiple style="display:none" onchange="onPhvaFileChosen(this)">
 
+<!-- MODAL CARPETA DOCUMENTACIÓN -->
+<div class="modal-overlay" id="modal-doccarpeta">
+  <div class="modal">
+    <div class="modal-title" id="modal-doccarpeta-title">Nueva carpeta</div>
+    <label class="form-label">Ícono <span class="form-hint">(un emoji)</span></label>
+    <input class="form-input" id="dc-icono" maxlength="4" placeholder="📁" style="font-size:22px;width:70px;text-align:center">
+    <label class="form-label">Nombre *</label>
+    <input class="form-input" id="dc-nombre" maxlength="80" placeholder="Ej. Documentos financieros">
+    <label class="form-label">Descripción <span class="form-hint">(opcional)</span></label>
+    <input class="form-input" id="dc-desc" maxlength="120" placeholder="Ej. Estados financieros y contabilidad">
+    <label class="form-label">Responsable <span class="form-hint">(único que puede subir/editar/eliminar; los demás solo ven)</span></label>
+    <select class="form-select" id="dc-responsable">
+      <option value="">— Solo administradores —</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-doccarpeta')">Cancelar</button>
+      <button class="btn-primary" onclick="saveDocCarpeta()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL LATERAL DOCUMENTACIÓN -->
+<div class="side-overlay" id="doc-overlay" onclick="closeDocPanel()"></div>
+<div class="side-panel" id="doc-panel">
+  <div class="side-panel-header">
+    <div class="side-panel-title" id="doc-panel-title">Carpeta</div>
+    <button class="side-panel-close" onclick="closeDocPanel()">✕</button>
+  </div>
+  <div class="side-panel-meta" id="doc-panel-meta"></div>
+  <div class="side-panel-body" id="doc-panel-body" style="overflow-y:auto;position:relative" ondragover="onDocDragOver(event)" ondragleave="onDocDragLeave(event)" ondrop="onDocDrop(event)">
+    <div class="phva-drop-hint" id="doc-drop-hint"><div style="font-size:38px">⬇️</div><div>Suelta para subir aquí</div></div>
+    <div id="doc-content"></div>
+  </div>
+  <div class="side-panel-footer" id="doc-panel-footer"></div>
+</div>
+<input type="file" id="doc-file-input" multiple style="display:none" onchange="onDocFileChosen(this)">
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1354,6 +1404,7 @@ let allOrg=[], editOrgId=null, orgPhotoFile=null, currentOrgDetailId=null;
 let allEnlaces=[], editEnlaceId=null;
 let allPhvaCarpetas=[], allPhvaArchivos=[], editCarpetaId=null, currentCarpetaId=null;
 let phvaPath=[], carpetaParentId=null;
+let allDocCarpetas=[], allDocArchivos=[], editDocCarpetaId=null, currentDocCarpetaId=null;
 const docSel={SST:new Set(),Calidad:new Set(),Ambiental:new Set(),'Maestro SIG':new Set()};
 
 
@@ -1502,6 +1553,7 @@ function showPage(id,el) {
   if(el) el.classList.add('active');
   closeSidePanel();
   if(typeof closePhvaPanel==='function') closePhvaPanel();
+  if(typeof closeDocPanel==='function') closeDocPanel();
   if(id==='buscar') renderSearch();
   if(id==='pendientes') renderPendientes();
   if(id==='usuarios') renderUsers();
@@ -1510,6 +1562,7 @@ function showPage(id,el) {
   if(id==='copasst'||id==='ccl') renderComite(id.toUpperCase());
   if(id==='organigrama') renderOrganigrama();
   if(id==='phva') renderPhva();
+  if(id==='documentacion'){ if(typeof closeDocPanel==='function') closeDocPanel(); renderDocumentacion(); }
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────
@@ -1522,7 +1575,7 @@ async function loadAll() {
     }
     docsQuery = docsQuery.order('sistema').order('codigo');
 
-    const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes,orgRes,enlacesRes,phvaCarpRes,phvaArchRes]=await Promise.all([
+    const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes,orgRes,enlacesRes,phvaCarpRes,phvaArchRes,docCarpRes,docArchRes]=await Promise.all([
       docsQuery,
       sb.from('perfiles').select('*').eq('activo',true).order('creado_en',{ascending:true}),
       sb.from('tareas').select('*').order('creado_en',{ascending:false}),
@@ -1532,7 +1585,9 @@ async function loadAll() {
       sb.from('organigrama').select('*').eq('activo',true).order('orden').order('nombre'),
       sb.from('enlaces_recursos').select('*').order('orden'),
       sb.from('phva_carpetas').select('*').order('numero'),
-      sb.from('phva_archivos').select('id,carpeta_id,nombre')
+      sb.from('phva_archivos').select('id,carpeta_id,nombre'),
+      sb.from('doc_carpetas').select('*').order('orden'),
+      sb.from('doc_archivos').select('id,carpeta_id,nombre')
     ]);
     allDocs=docsRes.data||[];
     allUsers=usersRes.data||[];
@@ -1543,6 +1598,8 @@ async function loadAll() {
     allEnlaces=enlacesRes.data||[];
     allPhvaCarpetas=phvaCarpRes.data||[];
     allPhvaArchivos=phvaArchRes.data||[];
+    allDocCarpetas=docCarpRes.data||[];
+    allDocArchivos=docArchRes.data||[];
     // Contar comentarios por documento
     const comCounts={};
     (comRes.data||[]).forEach(c=>{comCounts[c.documento_id]=(comCounts[c.documento_id]||0)+1;});
@@ -1560,6 +1617,7 @@ function renderAll() {
   renderEnlaces();
   renderAddBtnEnlaces();
   renderPhva();
+  renderDocumentacion();
 }
 
 // ── HELPERS ───────────────────────────────────────────────
@@ -3550,6 +3608,284 @@ async function deleteCarpeta(id) {
     else await renderPhvaPanel();
   }
   renderPhva();updateCounts();
+}
+
+// ── DOCUMENTACIÓN (carpetas por responsable) ──────────────
+// Puede gestionar archivos: el admin o el responsable de la carpeta
+function canManageDoc(carpeta){
+  return currentPerfil?.rol==='admin' || (carpeta && carpeta.responsable_id===currentUser.id);
+}
+
+function renderDocumentacion() {
+  const grid=document.getElementById('grid-documentacion');
+  if(!grid) return;
+  const addBtn=document.getElementById('addbtn-documentacion');
+  if(addBtn) addBtn.innerHTML=currentPerfil?.rol==='admin'?'<button class="add-btn" style="margin-bottom:0" onclick="openDocCarpetaModal()">+ Nueva carpeta</button>':'';
+  if(!allDocCarpetas.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1;padding:40px 0;text-align:center;color:var(--gray-500)">${currentPerfil?.rol==='admin'?'Sin carpetas. Usa <b>+ Nueva carpeta</b> para crear la primera.':'No hay carpetas disponibles por el momento.'}</div>`;
+    return;
+  }
+  const cnt={}; allDocArchivos.forEach(a=>{cnt[a.carpeta_id]=(cnt[a.carpeta_id]||0)+1;});
+  grid.innerHTML=allDocCarpetas.map(c=>{
+    const resp=allUsers.find(u=>u.id===c.responsable_id);
+    const respLabel=resp?`👤 ${esc(resp.nombre.split(' ')[0])}`:'🔐 Solo admin';
+    const n=cnt[c.id]||0;
+    const gestiona=canManageDoc(c);
+    return `<div class="link-card" style="cursor:pointer" onclick="openDocCarpeta('${c.id}')">
+      ${currentPerfil?.rol==='admin'?`<div class="link-card-actions" onclick="event.stopPropagation()">
+        <button class="icon-btn" onclick="openEditDocCarpeta('${c.id}')" title="Editar">✏</button>
+        <button class="icon-btn danger" onclick="deleteDocCarpeta('${c.id}')" title="Eliminar">🗑</button>
+      </div>`:''}
+      <div class="link-card-icon">${esc(c.icono)||'📁'}</div>
+      <div class="link-card-name">${esc(c.nombre)}</div>
+      ${c.descripcion?`<div class="link-card-desc">${esc(c.descripcion)}</div>`:'<div class="link-card-desc"></div>'}
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--gray-500);margin-top:2px">
+        <span>${respLabel}</span><span>·</span><span>${n} archivo${n!==1?'s':''}</span>${gestiona?'<span class="badge b-ok" style="margin-left:auto">Puedes gestionar</span>':''}
+      </div>
+      <button class="link-card-btn" onclick="event.stopPropagation();openDocCarpeta('${c.id}')">Abrir carpeta →</button>
+    </div>`;
+  }).join('');
+}
+
+async function openDocCarpeta(id) {
+  const c=allDocCarpetas.find(x=>x.id===id);
+  if(!c) return;
+  currentDocCarpetaId=id;
+  const resp=allUsers.find(u=>u.id===c.responsable_id);
+  document.getElementById('doc-panel-title').textContent=`${c.icono||'📁'} ${c.nombre}`;
+  document.getElementById('doc-panel-meta').innerHTML=`<span>${resp?'Responsable: '+esc(resp.nombre):'Gestión: solo administradores'}</span>`;
+  document.getElementById('doc-panel-footer').innerHTML=canManageDoc(c)
+    ? `<button class="btn-primary" style="flex:1" onclick="document.getElementById('doc-file-input').click()">⬆ Subir archivo</button>`
+    : '';
+  document.getElementById('doc-panel').classList.add('open');
+  document.getElementById('doc-overlay').classList.add('open');
+  await loadDocContenido(id);
+}
+
+async function loadDocContenido(id) {
+  const body=document.getElementById('doc-content');
+  body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando…</div></div>`;
+  const carpeta=allDocCarpetas.find(c=>c.id===id);
+  const {data}=await sb.from('doc_archivos').select('*').eq('carpeta_id',id).order('creado_en',{ascending:false});
+  const archivos=data||[];
+  if(!archivos.length){
+    body.innerHTML=`<div class="side-panel-loading" style="height:auto;padding:50px 20px"><div style="font-size:42px">📂</div><div>Esta carpeta está vacía.</div>${canManageDoc(carpeta)?'<div style="font-size:12px;color:var(--gray-400);text-align:center">Arrastra aquí archivos o usa el botón de abajo.</div>':''}</div>`;
+    return;
+  }
+  body.innerHTML=archivos.map(a=>`
+    <div class="phva-file-row">
+      <div class="phva-file-ico">${phvaFileIcon(a.nombre)}</div>
+      <div class="phva-file-info">
+        <div class="phva-file-name">${esc(a.nombre)}</div>
+        <div class="phva-file-meta">${a.archivo_size?Math.round(a.archivo_size/1024)+' KB':''} · ${fDate(a.creado_en)}</div>
+      </div>
+      <div class="phva-file-acts">
+        <button class="icon-btn green" onclick="previewDocArchivo('${a.id}')">👁 Ver</button>
+        ${canDownload()?`<button class="icon-btn green" onclick="downloadDocArchivo('${a.id}')">⬇</button>`:''}
+        ${canManageDoc(carpeta)?`<button class="icon-btn danger" onclick="deleteDocArchivo('${a.id}')">🗑</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function closeDocPanel() {
+  document.getElementById('doc-panel').classList.remove('open');
+  document.getElementById('doc-overlay').classList.remove('open');
+  currentDocCarpetaId=null;
+}
+
+async function docSignedUrl(path){
+  const {data}=await sb.storage.from('documentacion').createSignedUrl(path,3600);
+  return data?.signedUrl;
+}
+
+async function previewDocArchivo(id){
+  const {data:a}=await sb.from('doc_archivos').select('*').eq('id',id).single();
+  if(!a){showToast('Archivo no encontrado','error');return;}
+  const url=await docSignedUrl(a.archivo_path);
+  if(!url){showToast('Error generando enlace','error');return;}
+  previewUrl={url,nombre:a.nombre,mime:a.archivo_mime};
+  document.getElementById('sp-title').textContent=a.nombre;
+  document.getElementById('sp-meta').textContent='Documentación';
+  const dl=document.getElementById('sp-download-btn');
+  if(dl) dl.style.display=canDownload()?'':'none';
+  document.getElementById('side-panel').classList.add('open');
+  document.getElementById('side-overlay').classList.add('open');
+  document.querySelector('.layout').classList.add('panel-open');
+  await renderFilePreview(document.getElementById('sp-body'),{url,nombre:a.nombre,mime:a.archivo_mime});
+}
+
+async function downloadDocArchivo(id){
+  const {data:a}=await sb.from('doc_archivos').select('*').eq('id',id).single();
+  if(!a) return;
+  const url=await docSignedUrl(a.archivo_path);
+  if(!url){showToast('Error generando enlace','error');return;}
+  const el=document.createElement('a');el.href=url;el.download=a.nombre;el.target='_blank';el.click();
+}
+
+async function uploadDocFile(file, carpetaId){
+  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path=`${carpetaId}/${Date.now()}_${Math.random().toString(36).slice(2,7)}_${safeName}`;
+  const {error:upErr}=await sb.storage.from('documentacion').upload(path,file,{contentType:file.type});
+  if(upErr) throw upErr;
+  const {error}=await sb.from('doc_archivos').insert({
+    carpeta_id:carpetaId,nombre:file.name,archivo_path:path,
+    archivo_mime:file.type,archivo_size:file.size,subido_por:currentUser.id,creado_en:new Date().toISOString()
+  });
+  if(error) throw error;
+}
+
+async function onDocFileChosen(input){
+  const files=[...input.files];
+  if(!files.length||!currentDocCarpetaId) return;
+  input.value='';
+  const carpeta=allDocCarpetas.find(c=>c.id===currentDocCarpetaId);
+  if(!canManageDoc(carpeta)){showToast('No tienes permiso en esta carpeta','error');return;}
+  showToast(`⏳ Subiendo ${files.length} archivo${files.length>1?'s':''}…`);
+  let ok=0;
+  for(const f of files){ try{await uploadDocFile(f,currentDocCarpetaId);ok++;}catch(err){console.warn(err);} }
+  await finalizarSubidaDoc(ok);
+}
+
+function onDocDragOver(e){
+  e.preventDefault();
+  const carpeta=allDocCarpetas.find(c=>c.id===currentDocCarpetaId);
+  if(canManageDoc(carpeta)) e.currentTarget.classList.add('drop-active');
+}
+function onDocDragLeave(e){ if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-active'); }
+
+async function onDocDrop(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drop-active');
+  if(!currentDocCarpetaId) return;
+  const carpeta=allDocCarpetas.find(c=>c.id===currentDocCarpetaId);
+  if(!canManageDoc(carpeta)){showToast('No tienes permiso en esta carpeta','error');return;}
+  // Recolectar archivos (aplanando carpetas) antes de cualquier await
+  const items=[...(e.dataTransfer.items||[])];
+  const entries=items.map(i=>i.webkitGetAsEntry?i.webkitGetAsEntry():null).filter(Boolean);
+  const destino=currentDocCarpetaId;
+  let ok=0;
+  if(entries.length){
+    showToast('⏳ Subiendo… no cierres la página');
+    const files=[];
+    for(const en of entries){ await colectarArchivosEntry(en,files); }
+    for(const f of files){ try{await uploadDocFile(f,destino);ok++;}catch(err){console.warn(err);} }
+  } else {
+    const files=[...(e.dataTransfer.files||[])];
+    if(!files.length) return;
+    showToast(`⏳ Subiendo ${files.length} archivo${files.length>1?'s':''}…`);
+    for(const f of files){ try{await uploadDocFile(f,destino);ok++;}catch(err){console.warn(err);} }
+  }
+  await finalizarSubidaDoc(ok);
+}
+
+// Recolecta archivos de un entry (aplana subcarpetas)
+async function colectarArchivosEntry(entry, files){
+  if(entry.isFile){ files.push(await entryToFile(entry)); }
+  else if(entry.isDirectory){ const ents=await readAllEntries(entry.createReader()); for(const e of ents) await colectarArchivosEntry(e,files); }
+}
+
+async function finalizarSubidaDoc(ok){
+  const {data}=await sb.from('doc_archivos').select('id,carpeta_id,nombre');
+  allDocArchivos=data||[];
+  await loadDocContenido(currentDocCarpetaId);
+  renderDocumentacion();
+  if(ok>0){
+    showToast(`✓ ${ok} archivo${ok>1?'s':''} subido${ok>1?'s':''}`,'success');
+    await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'CREAR',tabla:'doc_archivos',detalle:`Subió ${ok} archivo(s) a documentación`});
+  } else { showToast('No se pudo subir el contenido','error'); }
+}
+
+async function deleteDocArchivo(id){
+  const {data:a}=await sb.from('doc_archivos').select('*').eq('id',id).single();
+  if(!a) return;
+  const carpeta=allDocCarpetas.find(c=>c.id===a.carpeta_id);
+  if(!canManageDoc(carpeta)){showToast('No tienes permiso en esta carpeta','error');return;}
+  if(!confirm(`¿Eliminar el archivo "${a.nombre}"?`)) return;
+  if(a.archivo_path) await sb.storage.from('documentacion').remove([a.archivo_path]);
+  await sb.from('doc_archivos').delete().eq('id',id);
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'doc_archivos',detalle:`Eliminó "${a.nombre}" de documentación`});
+  showToast('Archivo eliminado');
+  const {data}=await sb.from('doc_archivos').select('id,carpeta_id,nombre');
+  allDocArchivos=data||[];
+  await loadDocContenido(currentDocCarpetaId);
+  renderDocumentacion();
+}
+
+function populateDocResponsableSelect(selectedId=''){
+  const sel=document.getElementById('dc-responsable');
+  sel.innerHTML='<option value="">— Solo administradores —</option>'+
+    allUsers.map(u=>`<option value="${u.id}"${u.id===selectedId?' selected':''}>${esc(u.nombre)} (${u.rol})</option>`).join('');
+}
+
+function openDocCarpetaModal(){
+  editDocCarpetaId=null;
+  document.getElementById('modal-doccarpeta-title').textContent='Nueva carpeta';
+  document.getElementById('dc-icono').value='';
+  document.getElementById('dc-nombre').value='';
+  document.getElementById('dc-desc').value='';
+  populateDocResponsableSelect('');
+  document.getElementById('modal-doccarpeta').classList.add('open');
+}
+
+function openEditDocCarpeta(id){
+  const c=allDocCarpetas.find(x=>x.id===id);
+  if(!c) return;
+  editDocCarpetaId=id;
+  document.getElementById('modal-doccarpeta-title').textContent='Editar carpeta';
+  document.getElementById('dc-icono').value=c.icono||'';
+  document.getElementById('dc-nombre').value=c.nombre||'';
+  document.getElementById('dc-desc').value=c.descripcion||'';
+  populateDocResponsableSelect(c.responsable_id||'');
+  document.getElementById('modal-doccarpeta').classList.add('open');
+}
+
+async function saveDocCarpeta(){
+  const nombre=document.getElementById('dc-nombre').value.trim();
+  if(!nombre){showToast('El nombre es obligatorio','error');return;}
+  const data={
+    icono:document.getElementById('dc-icono').value.trim()||'📁',
+    nombre,
+    descripcion:document.getElementById('dc-desc').value.trim()||null,
+    responsable_id:document.getElementById('dc-responsable').value||null,
+    actualizado_en:new Date().toISOString()
+  };
+  let error;
+  if(editDocCarpetaId){
+    ({error}=await sb.from('doc_carpetas').update(data).eq('id',editDocCarpetaId));
+  } else {
+    data.creado_en=new Date().toISOString();
+    data.orden=allDocCarpetas.length+1;
+    ({error}=await sb.from('doc_carpetas').insert(data));
+  }
+  if(error){showToast('Error: '+error.message,'error');return;}
+  const resp=allUsers.find(u=>u.id===data.responsable_id);
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editDocCarpetaId?'EDITAR':'CREAR',tabla:'doc_carpetas',detalle:`${editDocCarpetaId?'Editó':'Creó'} carpeta de documentación "${nombre}" — responsable: ${resp?resp.nombre:'solo admin'}`});
+  closeModal('modal-doccarpeta');
+  showToast(editDocCarpetaId?'Carpeta actualizada ✓':'Carpeta creada ✓','success');
+  const {data:fresh}=await sb.from('doc_carpetas').select('*').order('orden');
+  allDocCarpetas=fresh||[];
+  renderDocumentacion();
+}
+
+async function deleteDocCarpeta(id){
+  const c=allDocCarpetas.find(x=>x.id===id);
+  if(!c) return;
+  const n=allDocArchivos.filter(a=>a.carpeta_id===id).length;
+  const msg=n>0?`La carpeta "${c.nombre}" contiene ${n} archivo${n>1?'s':''}. ¿Eliminar la carpeta y todo su contenido?`:`¿Eliminar la carpeta "${c.nombre}"?`;
+  if(!confirm(msg)) return;
+  const {data:archivos}=await sb.from('doc_archivos').select('archivo_path').eq('carpeta_id',id);
+  const paths=(archivos||[]).map(a=>a.archivo_path).filter(Boolean);
+  if(paths.length) await sb.storage.from('documentacion').remove(paths);
+  await sb.from('doc_carpetas').delete().eq('id',id);
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'doc_carpetas',detalle:`Eliminó carpeta de documentación "${c.nombre}"`});
+  showToast('Carpeta eliminada');
+  const [{data:carp},{data:arch}]=await Promise.all([
+    sb.from('doc_carpetas').select('*').order('orden'),
+    sb.from('doc_archivos').select('id,carpeta_id,nombre')
+  ]);
+  allDocCarpetas=carp||[]; allDocArchivos=arch||[];
+  if(currentDocCarpetaId===id) closeDocPanel();
+  renderDocumentacion();
 }
 
 // ── ENLACES RECURSOS ──────────────────────────────────────
