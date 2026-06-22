@@ -1347,12 +1347,15 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
     <input class="form-input" id="dc-icono" maxlength="4" placeholder="📁" style="font-size:22px;width:70px;text-align:center">
     <label class="form-label">Nombre *</label>
     <input class="form-input" id="dc-nombre" maxlength="80" placeholder="Ej. Documentos financieros">
-    <label class="form-label">Descripción <span class="form-hint">(opcional)</span></label>
-    <input class="form-input" id="dc-desc" maxlength="120" placeholder="Ej. Estados financieros y contabilidad">
-    <label class="form-label">Responsable <span class="form-hint">(único que puede subir/editar/eliminar; los demás solo ven)</span></label>
-    <select class="form-select" id="dc-responsable">
-      <option value="">— Solo administradores —</option>
-    </select>
+    <div id="dc-extra-wrap">
+      <label class="form-label">Descripción <span class="form-hint">(opcional)</span></label>
+      <input class="form-input" id="dc-desc" maxlength="120" placeholder="Ej. Estados financieros y contabilidad">
+      <label class="form-label">Responsable <span class="form-hint">(único que puede subir/editar/eliminar; los demás solo ven)</span></label>
+      <select class="form-select" id="dc-responsable">
+        <option value="">— Solo administradores —</option>
+      </select>
+    </div>
+    <div id="dc-parent-hint" style="display:none;font-size:12px;color:var(--gray-500);background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;margin-top:4px"></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-doccarpeta')">Cancelar</button>
       <button class="btn-primary" onclick="saveDocCarpeta()">Guardar</button>
@@ -1405,6 +1408,7 @@ let allEnlaces=[], editEnlaceId=null;
 let allPhvaCarpetas=[], allPhvaArchivos=[], editCarpetaId=null, currentCarpetaId=null;
 let phvaPath=[], carpetaParentId=null;
 let allDocCarpetas=[], allDocArchivos=[], editDocCarpetaId=null, currentDocCarpetaId=null;
+let docPath=[], docCarpetaParentId=null;
 const docSel={SST:new Set(),Calidad:new Set(),Ambiental:new Set(),'Maestro SIG':new Set()};
 
 
@@ -3625,11 +3629,13 @@ function renderDocumentacion() {
     grid.innerHTML=`<div class="empty" style="grid-column:1/-1;padding:40px 0;text-align:center;color:var(--gray-500)">${currentPerfil?.rol==='admin'?'Sin carpetas. Usa <b>+ Nueva carpeta</b> para crear la primera.':'No hay carpetas disponibles por el momento.'}</div>`;
     return;
   }
-  const cnt={}; allDocArchivos.forEach(a=>{cnt[a.carpeta_id]=(cnt[a.carpeta_id]||0)+1;});
-  grid.innerHTML=allDocCarpetas.map(c=>{
+  const cntArch={}; allDocArchivos.forEach(a=>{cntArch[a.carpeta_id]=(cntArch[a.carpeta_id]||0)+1;});
+  const cntSub={}; allDocCarpetas.forEach(c=>{if(c.parent_id)cntSub[c.parent_id]=(cntSub[c.parent_id]||0)+1;});
+  const raices=allDocCarpetas.filter(c=>!c.parent_id);
+  grid.innerHTML=raices.map(c=>{
     const resp=allUsers.find(u=>u.id===c.responsable_id);
     const respLabel=resp?`👤 ${esc(resp.nombre.split(' ')[0])}`:'🔐 Solo admin';
-    const n=cnt[c.id]||0;
+    const n=(cntArch[c.id]||0)+(cntSub[c.id]||0);
     const gestiona=canManageDoc(c);
     return `<div class="link-card" style="cursor:pointer" onclick="openDocCarpeta('${c.id}')">
       ${currentPerfil?.rol==='admin'?`<div class="link-card-actions" onclick="event.stopPropagation()">
@@ -3640,39 +3646,86 @@ function renderDocumentacion() {
       <div class="link-card-name">${esc(c.nombre)}</div>
       ${c.descripcion?`<div class="link-card-desc">${esc(c.descripcion)}</div>`:'<div class="link-card-desc"></div>'}
       <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--gray-500);margin-top:2px">
-        <span>${respLabel}</span><span>·</span><span>${n} archivo${n!==1?'s':''}</span>${gestiona?'<span class="badge b-ok" style="margin-left:auto">Puedes gestionar</span>':''}
+        <span>${respLabel}</span><span>·</span><span>${n} elemento${n!==1?'s':''}</span>${gestiona?'<span class="badge b-ok" style="margin-left:auto">Puedes gestionar</span>':''}
       </div>
       <button class="link-card-btn" onclick="event.stopPropagation();openDocCarpeta('${c.id}')">Abrir carpeta →</button>
     </div>`;
   }).join('');
 }
 
+function docCurrent(){ return docPath[docPath.length-1]; }
+// Carpeta raíz de la rama actual (la que tiene el responsable)
+function docRaiz(){ return docPath[0]; }
+
 async function openDocCarpeta(id) {
   const c=allDocCarpetas.find(x=>x.id===id);
   if(!c) return;
-  currentDocCarpetaId=id;
-  const resp=allUsers.find(u=>u.id===c.responsable_id);
-  document.getElementById('doc-panel-title').textContent=`${c.icono||'📁'} ${c.nombre}`;
-  document.getElementById('doc-panel-meta').innerHTML=`<span>${resp?'Responsable: '+esc(resp.nombre):'Gestión: solo administradores'}</span>`;
-  document.getElementById('doc-panel-footer').innerHTML=canManageDoc(c)
-    ? `<button class="btn-primary" style="flex:1" onclick="document.getElementById('doc-file-input').click()">⬆ Subir archivo</button>`
-    : '';
+  docPath=[c];
   document.getElementById('doc-panel').classList.add('open');
   document.getElementById('doc-overlay').classList.add('open');
-  await loadDocContenido(id);
+  await renderDocPanel();
+}
+
+async function enterDocCarpeta(id) {
+  const c=allDocCarpetas.find(x=>x.id===id);
+  if(!c) return;
+  docPath.push(c);
+  await renderDocPanel();
+}
+
+async function docNavTo(index) {
+  docPath=docPath.slice(0,index+1);
+  await renderDocPanel();
+}
+
+async function renderDocPanel() {
+  const c=docCurrent();
+  if(!c) return;
+  currentDocCarpetaId=c.id;
+  const raiz=docRaiz();
+  const resp=allUsers.find(u=>u.id===raiz.responsable_id);
+  document.getElementById('doc-panel-title').textContent=`${c.icono||'📁'} ${c.nombre}`;
+  const crumbs=docPath.map((p,i)=>i===docPath.length-1
+    ? `<span style="font-weight:700;color:var(--navy)">${esc(p.nombre)}</span>`
+    : `<span onclick="docNavTo(${i})" style="cursor:pointer;color:var(--gray-500);text-decoration:underline">${esc(p.nombre)}</span>`
+  ).join(' <span style="color:var(--gray-300)">›</span> ');
+  document.getElementById('doc-panel-meta').innerHTML=`<div style="display:flex;flex-direction:column;gap:3px"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.5">📂&nbsp;${crumbs}</div><div style="font-size:10px">${resp?'Responsable: '+esc(resp.nombre):'Gestión: solo administradores'}</div></div>`;
+  document.getElementById('doc-panel-footer').innerHTML=canManageDoc(raiz)
+    ? `<button class="btn-secondary" style="flex:1" onclick="openDocSubcarpetaModal()">📁 Subcarpeta</button>
+       <button class="btn-primary" style="flex:1" onclick="document.getElementById('doc-file-input').click()">⬆ Subir archivo</button>`
+    : '';
+  await loadDocContenido(c.id);
 }
 
 async function loadDocContenido(id) {
   const body=document.getElementById('doc-content');
   body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando…</div></div>`;
-  const carpeta=allDocCarpetas.find(c=>c.id===id);
+  const puedeGestionar=canManageDoc(docRaiz());
+  const subcarpetas=allDocCarpetas.filter(c=>c.parent_id===id);
   const {data}=await sb.from('doc_archivos').select('*').eq('carpeta_id',id).order('creado_en',{ascending:false});
   const archivos=data||[];
-  if(!archivos.length){
-    body.innerHTML=`<div class="side-panel-loading" style="height:auto;padding:50px 20px"><div style="font-size:42px">📂</div><div>Esta carpeta está vacía.</div>${canManageDoc(carpeta)?'<div style="font-size:12px;color:var(--gray-400);text-align:center">Arrastra aquí archivos o usa el botón de abajo.</div>':''}</div>`;
+  if(!subcarpetas.length && !archivos.length){
+    body.innerHTML=`<div class="side-panel-loading" style="height:auto;padding:50px 20px"><div style="font-size:42px">📂</div><div>Esta carpeta está vacía.</div>${puedeGestionar?'<div style="font-size:12px;color:var(--gray-400);text-align:center">Arrastra aquí archivos o carpetas,<br>o usa los botones de abajo.</div>':''}</div>`;
     return;
   }
-  body.innerHTML=archivos.map(a=>`
+  const cntArch={}; allDocArchivos.forEach(a=>{cntArch[a.carpeta_id]=(cntArch[a.carpeta_id]||0)+1;});
+  const cntSub={}; allDocCarpetas.forEach(c=>{if(c.parent_id)cntSub[c.parent_id]=(cntSub[c.parent_id]||0)+1;});
+  const subHtml=subcarpetas.map(s=>{
+    const items=(cntArch[s.id]||0)+(cntSub[s.id]||0);
+    return `<div class="phva-file-row" style="cursor:pointer" onclick="enterDocCarpeta('${s.id}')">
+      <div class="phva-file-ico">${items>0?'📂':'📁'}</div>
+      <div class="phva-file-info">
+        <div class="phva-file-name">${esc(s.nombre)}</div>
+        <div class="phva-file-meta">${items} elemento${items!==1?'s':''}</div>
+      </div>
+      <div class="phva-file-acts" onclick="event.stopPropagation()">
+        ${puedeGestionar?`<button class="icon-btn" onclick="openEditDocCarpeta('${s.id}')" title="Renombrar">✏</button>`:''}
+        ${puedeGestionar?`<button class="icon-btn danger" onclick="deleteDocCarpeta('${s.id}')" title="Eliminar">🗑</button>`:''}
+        <span style="color:var(--gray-300);font-size:17px;font-weight:700">›</span>
+      </div>
+    </div>`;
+  }).join('');
+  const archHtml=archivos.map(a=>`
     <div class="phva-file-row">
       <div class="phva-file-ico">${phvaFileIcon(a.nombre)}</div>
       <div class="phva-file-info">
@@ -3682,15 +3735,16 @@ async function loadDocContenido(id) {
       <div class="phva-file-acts">
         <button class="icon-btn green" onclick="previewDocArchivo('${a.id}')">👁 Ver</button>
         ${canDownload()?`<button class="icon-btn green" onclick="downloadDocArchivo('${a.id}')">⬇</button>`:''}
-        ${canManageDoc(carpeta)?`<button class="icon-btn danger" onclick="deleteDocArchivo('${a.id}')">🗑</button>`:''}
+        ${puedeGestionar?`<button class="icon-btn danger" onclick="deleteDocArchivo('${a.id}')">🗑</button>`:''}
       </div>
     </div>`).join('');
+  body.innerHTML=subHtml+archHtml;
 }
 
 function closeDocPanel() {
   document.getElementById('doc-panel').classList.remove('open');
   document.getElementById('doc-overlay').classList.remove('open');
-  currentDocCarpetaId=null;
+  currentDocCarpetaId=null; docPath=[];
 }
 
 async function docSignedUrl(path){
@@ -3738,18 +3792,16 @@ async function onDocFileChosen(input){
   const files=[...input.files];
   if(!files.length||!currentDocCarpetaId) return;
   input.value='';
-  const carpeta=allDocCarpetas.find(c=>c.id===currentDocCarpetaId);
-  if(!canManageDoc(carpeta)){showToast('No tienes permiso en esta carpeta','error');return;}
+  if(!canManageDoc(docRaiz())){showToast('No tienes permiso en esta carpeta','error');return;}
   showToast(`⏳ Subiendo ${files.length} archivo${files.length>1?'s':''}…`);
-  let ok=0;
-  for(const f of files){ try{await uploadDocFile(f,currentDocCarpetaId);ok++;}catch(err){console.warn(err);} }
-  await finalizarSubidaDoc(ok);
+  const stats={archivos:0,carpetas:0};
+  for(const f of files){ try{await uploadDocFile(f,currentDocCarpetaId);stats.archivos++;}catch(err){console.warn(err);} }
+  await finalizarSubidaDoc(stats);
 }
 
 function onDocDragOver(e){
   e.preventDefault();
-  const carpeta=allDocCarpetas.find(c=>c.id===currentDocCarpetaId);
-  if(canManageDoc(carpeta)) e.currentTarget.classList.add('drop-active');
+  if(canManageDoc(docRaiz())) e.currentTarget.classList.add('drop-active');
 }
 function onDocDragLeave(e){ if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drop-active'); }
 
@@ -3757,41 +3809,65 @@ async function onDocDrop(e){
   e.preventDefault();
   e.currentTarget.classList.remove('drop-active');
   if(!currentDocCarpetaId) return;
-  const carpeta=allDocCarpetas.find(c=>c.id===currentDocCarpetaId);
-  if(!canManageDoc(carpeta)){showToast('No tienes permiso en esta carpeta','error');return;}
-  // Recolectar archivos (aplanando carpetas) antes de cualquier await
+  if(!canManageDoc(docRaiz())){showToast('No tienes permiso en esta carpeta','error');return;}
+  // Capturar entries ANTES de cualquier await (dataTransfer se vacía después)
   const items=[...(e.dataTransfer.items||[])];
   const entries=items.map(i=>i.webkitGetAsEntry?i.webkitGetAsEntry():null).filter(Boolean);
   const destino=currentDocCarpetaId;
-  let ok=0;
+  const stats={archivos:0,carpetas:0};
   if(entries.length){
     showToast('⏳ Subiendo… no cierres la página');
-    const files=[];
-    for(const en of entries){ await colectarArchivosEntry(en,files); }
-    for(const f of files){ try{await uploadDocFile(f,destino);ok++;}catch(err){console.warn(err);} }
+    try{ for(const en of entries){ await procesarDocEntry(en,destino,stats); } }catch(err){ showToast('Error: '+err.message,'error'); }
   } else {
     const files=[...(e.dataTransfer.files||[])];
     if(!files.length) return;
     showToast(`⏳ Subiendo ${files.length} archivo${files.length>1?'s':''}…`);
-    for(const f of files){ try{await uploadDocFile(f,destino);ok++;}catch(err){console.warn(err);} }
+    for(const f of files){ try{await uploadDocFile(f,destino);stats.archivos++;}catch(err){console.warn(err);} }
   }
-  await finalizarSubidaDoc(ok);
+  await finalizarSubidaDoc(stats);
 }
 
-// Recolecta archivos de un entry (aplana subcarpetas)
-async function colectarArchivosEntry(entry, files){
-  if(entry.isFile){ files.push(await entryToFile(entry)); }
-  else if(entry.isDirectory){ const ents=await readAllEntries(entry.createReader()); for(const e of ents) await colectarArchivosEntry(e,files); }
+// Crea una subcarpeta de documentación heredando responsable del padre
+async function crearDocSubcarpetaSilenciosa(nombre, parentId){
+  const padre=allDocCarpetas.find(x=>x.id===parentId);
+  const {data,error}=await sb.from('doc_carpetas').insert({
+    nombre, parent_id:parentId, icono:'📁',
+    responsable_id: padre?.responsable_id||null, orden:0,
+    creado_en:new Date().toISOString()
+  }).select().single();
+  if(error) throw error;
+  allDocCarpetas.push(data);
+  return data.id;
 }
 
-async function finalizarSubidaDoc(ok){
-  const {data}=await sb.from('doc_archivos').select('id,carpeta_id,nombre');
-  allDocArchivos=data||[];
-  await loadDocContenido(currentDocCarpetaId);
+// Procesa recursivamente un archivo o carpeta arrastrada hacia destinoId
+async function procesarDocEntry(entry, destinoId, stats){
+  if(entry.isFile){
+    const file=await entryToFile(entry);
+    try{ await uploadDocFile(file,destinoId); stats.archivos++; }catch(err){ console.warn(err); }
+  } else if(entry.isDirectory){
+    let nuevaId;
+    try{ nuevaId=await crearDocSubcarpetaSilenciosa(entry.name,destinoId); stats.carpetas++; }catch(err){ console.warn(err); return; }
+    const ents=await readAllEntries(entry.createReader());
+    for(const e of ents){ await procesarDocEntry(e,nuevaId,stats); }
+  }
+}
+
+async function finalizarSubidaDoc(stats){
+  const [{data:carp},{data:arch}]=await Promise.all([
+    sb.from('doc_carpetas').select('*').order('orden'),
+    sb.from('doc_archivos').select('id,carpeta_id,nombre')
+  ]);
+  allDocCarpetas=carp||[]; allDocArchivos=arch||[];
+  docPath=docPath.map(p=>allDocCarpetas.find(c=>c.id===p.id)||p);
+  if(docPath.length) await renderDocPanel();
   renderDocumentacion();
-  if(ok>0){
-    showToast(`✓ ${ok} archivo${ok>1?'s':''} subido${ok>1?'s':''}`,'success');
-    await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'CREAR',tabla:'doc_archivos',detalle:`Subió ${ok} archivo(s) a documentación`});
+  const partes=[];
+  if(stats.archivos) partes.push(`${stats.archivos} archivo${stats.archivos>1?'s':''}`);
+  if(stats.carpetas) partes.push(`${stats.carpetas} carpeta${stats.carpetas>1?'s':''}`);
+  if(partes.length){
+    showToast(`✓ Subido: ${partes.join(' y ')}`,'success');
+    await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'CREAR',tabla:'doc_archivos',detalle:`Subió ${partes.join(' y ')} a documentación`});
   } else { showToast('No se pudo subir el contenido','error'); }
 }
 
@@ -3818,8 +3894,10 @@ function populateDocResponsableSelect(selectedId=''){
 }
 
 function openDocCarpetaModal(){
-  editDocCarpetaId=null;
+  editDocCarpetaId=null; docCarpetaParentId=null;
   document.getElementById('modal-doccarpeta-title').textContent='Nueva carpeta';
+  document.getElementById('dc-extra-wrap').style.display='';
+  document.getElementById('dc-parent-hint').style.display='none';
   document.getElementById('dc-icono').value='';
   document.getElementById('dc-nombre').value='';
   document.getElementById('dc-desc').value='';
@@ -3827,11 +3905,28 @@ function openDocCarpetaModal(){
   document.getElementById('modal-doccarpeta').classList.add('open');
 }
 
+function openDocSubcarpetaModal(){
+  const padre=docCurrent();
+  if(!padre) return;
+  editDocCarpetaId=null; docCarpetaParentId=padre.id;
+  document.getElementById('modal-doccarpeta-title').textContent='Nueva subcarpeta';
+  document.getElementById('dc-extra-wrap').style.display='none';
+  const hint=document.getElementById('dc-parent-hint');
+  hint.style.display='';
+  hint.innerHTML=`📂 Se creará dentro de <b>${esc(padre.nombre)}</b>`;
+  document.getElementById('dc-icono').value='';
+  document.getElementById('dc-nombre').value='';
+  document.getElementById('modal-doccarpeta').classList.add('open');
+}
+
 function openEditDocCarpeta(id){
   const c=allDocCarpetas.find(x=>x.id===id);
   if(!c) return;
-  editDocCarpetaId=id;
+  editDocCarpetaId=id; docCarpetaParentId=c.parent_id||null;
   document.getElementById('modal-doccarpeta-title').textContent='Editar carpeta';
+  // Solo las carpetas raíz muestran descripción + responsable
+  document.getElementById('dc-extra-wrap').style.display=c.parent_id?'none':'';
+  document.getElementById('dc-parent-hint').style.display='none';
   document.getElementById('dc-icono').value=c.icono||'';
   document.getElementById('dc-nombre').value=c.nombre||'';
   document.getElementById('dc-desc').value=c.descripcion||'';
@@ -3842,41 +3937,65 @@ function openEditDocCarpeta(id){
 async function saveDocCarpeta(){
   const nombre=document.getElementById('dc-nombre').value.trim();
   if(!nombre){showToast('El nombre es obligatorio','error');return;}
-  const data={
-    icono:document.getElementById('dc-icono').value.trim()||'📁',
-    nombre,
-    descripcion:document.getElementById('dc-desc').value.trim()||null,
-    responsable_id:document.getElementById('dc-responsable').value||null,
-    actualizado_en:new Date().toISOString()
-  };
+  const icono=document.getElementById('dc-icono').value.trim()||'📁';
   let error;
   if(editDocCarpetaId){
-    ({error}=await sb.from('doc_carpetas').update(data).eq('id',editDocCarpetaId));
+    const c=allDocCarpetas.find(x=>x.id===editDocCarpetaId);
+    const upd={icono,nombre,actualizado_en:new Date().toISOString()};
+    if(!c?.parent_id){ // raíz: también descripción y responsable
+      upd.descripcion=document.getElementById('dc-desc').value.trim()||null;
+      upd.responsable_id=document.getElementById('dc-responsable').value||null;
+    }
+    ({error}=await sb.from('doc_carpetas').update(upd).eq('id',editDocCarpetaId));
+  } else if(docCarpetaParentId){
+    // Subcarpeta: hereda responsable del padre
+    const padre=allDocCarpetas.find(x=>x.id===docCarpetaParentId);
+    ({error}=await sb.from('doc_carpetas').insert({
+      icono,nombre,parent_id:docCarpetaParentId,
+      responsable_id:padre?.responsable_id||null,orden:0,creado_en:new Date().toISOString()
+    }));
   } else {
-    data.creado_en=new Date().toISOString();
-    data.orden=allDocCarpetas.length+1;
-    ({error}=await sb.from('doc_carpetas').insert(data));
+    // Carpeta raíz nueva
+    ({error}=await sb.from('doc_carpetas').insert({
+      icono,nombre,
+      descripcion:document.getElementById('dc-desc').value.trim()||null,
+      responsable_id:document.getElementById('dc-responsable').value||null,
+      orden:allDocCarpetas.filter(c=>!c.parent_id).length+1,creado_en:new Date().toISOString()
+    }));
   }
   if(error){showToast('Error: '+error.message,'error');return;}
-  const resp=allUsers.find(u=>u.id===data.responsable_id);
-  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editDocCarpetaId?'EDITAR':'CREAR',tabla:'doc_carpetas',detalle:`${editDocCarpetaId?'Editó':'Creó'} carpeta de documentación "${nombre}" — responsable: ${resp?resp.nombre:'solo admin'}`});
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editDocCarpetaId?'EDITAR':'CREAR',tabla:'doc_carpetas',detalle:`${editDocCarpetaId?'Editó':docCarpetaParentId?'Creó subcarpeta':'Creó carpeta'} de documentación "${nombre}"`});
   closeModal('modal-doccarpeta');
   showToast(editDocCarpetaId?'Carpeta actualizada ✓':'Carpeta creada ✓','success');
   const {data:fresh}=await sb.from('doc_carpetas').select('*').order('orden');
   allDocCarpetas=fresh||[];
+  docPath=docPath.map(p=>allDocCarpetas.find(c=>c.id===p.id)||p);
+  if(docPath.length) await renderDocPanel();
   renderDocumentacion();
+}
+
+// Devuelve el id de la carpeta y todas sus descendientes
+function docDescendientes(id){
+  let ids=[id];
+  allDocCarpetas.filter(c=>c.parent_id===id).forEach(h=>{ids=ids.concat(docDescendientes(h.id));});
+  return ids;
 }
 
 async function deleteDocCarpeta(id){
   const c=allDocCarpetas.find(x=>x.id===id);
   if(!c) return;
-  const n=allDocArchivos.filter(a=>a.carpeta_id===id).length;
-  const msg=n>0?`La carpeta "${c.nombre}" contiene ${n} archivo${n>1?'s':''}. ¿Eliminar la carpeta y todo su contenido?`:`¿Eliminar la carpeta "${c.nombre}"?`;
+  const ids=docDescendientes(id);
+  const nSub=ids.length-1;
+  const nArch=allDocArchivos.filter(a=>ids.includes(a.carpeta_id)).length;
+  let det='';
+  if(nSub>0) det+=`${nSub} subcarpeta${nSub>1?'s':''}`;
+  if(nArch>0) det+=(det?' y ':'')+`${nArch} archivo${nArch>1?'s':''}`;
+  const msg=det?`La carpeta "${c.nombre}" contiene ${det}. ¿Eliminar todo?`:`¿Eliminar la carpeta "${c.nombre}"?`;
   if(!confirm(msg)) return;
-  const {data:archivos}=await sb.from('doc_archivos').select('archivo_path').eq('carpeta_id',id);
+  const {data:archivos}=await sb.from('doc_archivos').select('archivo_path').in('carpeta_id',ids);
   const paths=(archivos||[]).map(a=>a.archivo_path).filter(Boolean);
   if(paths.length) await sb.storage.from('documentacion').remove(paths);
-  await sb.from('doc_carpetas').delete().eq('id',id);
+  await sb.from('doc_carpetas').delete().eq('id',id); // cascade borra subcarpetas y archivos en BD
   await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'doc_carpetas',detalle:`Eliminó carpeta de documentación "${c.nombre}"`});
   showToast('Carpeta eliminada');
   const [{data:carp},{data:arch}]=await Promise.all([
@@ -3884,7 +4003,11 @@ async function deleteDocCarpeta(id){
     sb.from('doc_archivos').select('id,carpeta_id,nombre')
   ]);
   allDocCarpetas=carp||[]; allDocArchivos=arch||[];
-  if(currentDocCarpetaId===id) closeDocPanel();
+  if(docPath.length){
+    docPath=docPath.filter(p=>allDocCarpetas.some(x=>x.id===p.id));
+    if(!docPath.length) closeDocPanel();
+    else await renderDocPanel();
+  }
   renderDocumentacion();
 }
 
