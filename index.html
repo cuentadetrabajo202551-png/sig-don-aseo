@@ -3309,7 +3309,7 @@ async function loadCarpetaContenido(id) {
     return `<div class="phva-file-row" style="cursor:pointer" onclick="enterCarpeta('${s.id}')">
       <div class="phva-file-ico">${items>0?'📂':'📁'}</div>
       <div class="phva-file-info">
-        <div class="phva-file-name">${esc(s.nombre)}</div>
+        <div class="phva-file-name" title="${esc(s.nombre)}">${esc(s.nombre)}</div>
         <div class="phva-file-meta">${items} elemento${items!==1?'s':''}</div>
       </div>
       <div class="phva-file-acts" onclick="event.stopPropagation()">
@@ -3323,7 +3323,7 @@ async function loadCarpetaContenido(id) {
     <div class="phva-file-row">
       <div class="phva-file-ico">${phvaFileIcon(a.nombre)}</div>
       <div class="phva-file-info">
-        <div class="phva-file-name">${esc(a.nombre)}</div>
+        <div class="phva-file-name" title="${esc(a.nombre)}">${esc(a.nombre)}</div>
         <div class="phva-file-meta">${a.archivo_size?Math.round(a.archivo_size/1024)+' KB':''} · ${fDate(a.creado_en)}</div>
       </div>
       <div class="phva-file-acts">
@@ -3715,7 +3715,7 @@ async function loadDocContenido(id) {
     return `<div class="phva-file-row" style="cursor:pointer" onclick="enterDocCarpeta('${s.id}')">
       <div class="phva-file-ico">${items>0?'📂':'📁'}</div>
       <div class="phva-file-info">
-        <div class="phva-file-name">${esc(s.nombre)}</div>
+        <div class="phva-file-name" title="${esc(s.nombre)}">${esc(s.nombre)}</div>
         <div class="phva-file-meta">${items} elemento${items!==1?'s':''}</div>
       </div>
       <div class="phva-file-acts" onclick="event.stopPropagation()">
@@ -3729,7 +3729,7 @@ async function loadDocContenido(id) {
     <div class="phva-file-row">
       <div class="phva-file-ico">${phvaFileIcon(a.nombre)}</div>
       <div class="phva-file-info">
-        <div class="phva-file-name">${esc(a.nombre)}</div>
+        <div class="phva-file-name" title="${esc(a.nombre)}">${esc(a.nombre)}</div>
         <div class="phva-file-meta">${a.archivo_size?Math.round(a.archivo_size/1024)+' KB':''} · ${fDate(a.creado_en)}</div>
       </div>
       <div class="phva-file-acts">
