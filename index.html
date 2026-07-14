@@ -1438,6 +1438,13 @@ async function doLogin() {
     if(error) throw error;
     currentUser=data.user;
     await loadPerfil();
+    if(!currentPerfil || currentPerfil.acceso_sig===false){
+      await sb.auth.signOut();
+      currentUser=null; currentPerfil=null;
+      errEl.textContent='No tienes acceso a este panel. Contacta al administrador.';
+      errEl.style.display='block';
+      return;
+    }
     enterApp();
   } catch(e) {
     errEl.textContent=e.message==='Invalid login credentials'?'Correo o contraseña incorrectos':e.message;
@@ -1476,7 +1483,11 @@ function enterApp() {
 window.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
   const {data:{session}}=await sb.auth.getSession();
-  if(session){currentUser=session.user;await loadPerfil();if(currentPerfil)enterApp();}
+  if(session){
+    currentUser=session.user;await loadPerfil();
+    if(currentPerfil && currentPerfil.acceso_sig!==false) enterApp();
+    else { await sb.auth.signOut(); currentUser=null; currentPerfil=null; }
+  }
 });
 
 // ── DARK MODE ─────────────────────────────────────────────
@@ -2107,15 +2118,20 @@ function renderUsers() {
     const c=colors[i%colors.length];
     const rl=u.rol==='admin'?'Administrador':u.rol==='editor'?'Editor':u.rol==='invitado'?'Invitado':'Visualizador';
     const av=u.foto_url?`<img src="${u.foto_url}" alt="">`:`<span style="color:${c};font-weight:700;font-size:17px">${ini}</span>`;
-    return`<div class="user-card">
+    const sinAcceso=u.acceso_sig===false;
+    return`<div class="user-card"${sinAcceso?' style="opacity:.6"':''}>
       <div class="u-av" style="background:${c}15;border-color:${c}40">${av}</div>
       <div style="flex:1;min-width:0">
         <div class="u-name">${esc(u.nombre)}</div>
         <div class="u-cargo">${esc(u.cargo)||'—'}</div>
-        <span class="chip chip-${u.rol}" style="margin-top:5px;display:inline-block">${rl}</span>
+        <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          <span class="chip chip-${u.rol}">${rl}</span>
+          ${sinAcceso?'<span class="chip" style="background:#ffe9e9;color:#c0392b">🔒 Sin acceso</span>':''}
+        </div>
       </div>
       <div class="u-actions">
         ${(currentPerfil?.rol==='admin'||currentPerfil?.id===u.id)?`<button class="text-btn" onclick="openEditProfile('${u.id}')">✏ Editar</button>`:''}
+        ${(currentPerfil?.rol==='admin'&&currentPerfil?.id!==u.id)?`<button class="text-btn" style="color:${sinAcceso?'var(--green-dark)':'var(--amber)'}" onclick="toggleAccesoSig('${u.id}')">${sinAcceso?'🔓 Dar acceso':'🔒 Bloquear'}</button>`:''}
         ${(currentPerfil?.rol==='admin'&&currentPerfil?.id!==u.id)?`<button class="icon-btn danger" style="margin-top:4px" onclick="deleteUser('${u.id}')">🗑</button>`:''}
       </div>
     </div>`;
@@ -2174,6 +2190,26 @@ async function deleteUser(id) {
     showToast('Usuario desactivado','success');
     await loadAll();renderUsers();
   } catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function toggleAccesoSig(id) {
+  if(currentPerfil?.rol!=='admin') return;
+  if(id===currentUser.id){ showToast('No puedes bloquearte a ti mismo','error'); return; }
+  const u=allUsers.find(x=>x.id===id); if(!u) return;
+  const tieneAcceso = u.acceso_sig!==false;
+  const nuevo = !tieneAcceso; // nuevo valor de acceso_sig
+  const msg = nuevo
+    ? `¿Dar acceso a este panel a ${u.nombre}?`
+    : `¿Bloquear el acceso a este panel de ${u.nombre}?\nNo podrá iniciar sesión aquí, pero conservará su cuenta para otros paneles.`;
+  if(!confirm(msg)) return;
+  try {
+    const {error}=await sb.from('perfiles').update({acceso_sig:nuevo}).eq('id',id);
+    if(error) throw error;
+    u.acceso_sig=nuevo;
+    await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'EDITAR',tabla:'perfiles',registro_id:id,detalle:`${nuevo?'Habilitó el acceso al panel de':'Bloqueó el acceso al panel de'} ${u.nombre}`});
+    showToast(nuevo?'Acceso habilitado ✓':'Acceso bloqueado','success');
+    renderUsers();
+  } catch(e){ showToast('Error: '+e.message,'error'); }
 }
 
 function openEditProfile(uid) {
