@@ -40,6 +40,27 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .login-btn{width:100%;padding:12px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;letter-spacing:.02em}
 .login-btn:hover{background:var(--navy-dark)}
 .login-btn:disabled{background:var(--gray-300);cursor:not-allowed}
+
+/* HUB / SELECTOR DE MÓDULOS */
+#hub-screen{position:fixed;inset:0;z-index:9998;display:none;flex-direction:column;background:linear-gradient(135deg,var(--navy-dark) 0%,var(--navy) 55%,#0055cc 100%);overflow-y:auto}
+#hub-screen.visible{display:flex}
+.hub-top{display:flex;align-items:center;justify-content:space-between;padding:18px 26px;flex-wrap:wrap;gap:10px}
+.hub-top img{height:40px;object-fit:contain}
+.hub-top-right{display:flex;align-items:center;gap:14px;color:#fff}
+.hub-user{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
+.hub-logout{font-size:12px;color:#fff;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:var(--radius-sm);padding:7px 16px;cursor:pointer;font-family:var(--font);font-weight:600;transition:background .12s}
+.hub-logout:hover{background:rgba(255,255,255,.28)}
+.hub-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 24px 60px;text-align:center}
+.hub-title{color:#fff;font-size:26px;font-weight:800;margin-bottom:6px;letter-spacing:-.02em}
+.hub-sub{color:rgba(255,255,255,.75);font-size:14px;margin-bottom:38px}
+.hub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,260px));gap:22px;justify-content:center;width:100%;max-width:900px}
+.hub-card{background:#fff;border-radius:18px;padding:30px 24px;cursor:pointer;transition:transform .16s,box-shadow .16s;display:flex;flex-direction:column;align-items:center;gap:12px;text-decoration:none;box-shadow:0 12px 40px rgba(0,0,20,.28);border:none}
+.hub-card:hover{transform:translateY(-6px);box-shadow:0 20px 54px rgba(0,0,20,.4)}
+.hub-card-ico{font-size:52px;line-height:1}
+.hub-card-name{font-size:18px;font-weight:800;color:var(--gray-900)}
+.hub-card-desc{font-size:12.5px;color:var(--gray-500);line-height:1.4}
+.hub-card-go{margin-top:6px;font-size:12px;font-weight:700;color:var(--navy);background:var(--navy-light);padding:7px 18px;border-radius:20px}
+.hub-empty{color:rgba(255,255,255,.8);font-size:14px;background:rgba(255,255,255,.1);padding:24px 30px;border-radius:14px}
 .login-err{font-size:12px;color:var(--red);padding:9px 13px;background:var(--red-light);border-radius:var(--radius-sm);margin-bottom:12px;display:none;font-weight:600}
 
 /* APP */
@@ -531,6 +552,22 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
   </div>
 </div>
 
+<!-- HUB / SELECTOR DE MÓDULOS -->
+<div id="hub-screen">
+  <div class="hub-top">
+    <img id="hub-logo" src="" alt="Don Aseo">
+    <div class="hub-top-right">
+      <span class="hub-user">Hola, <b id="hub-username">—</b></span>
+      <button class="hub-logout" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </div>
+  <div class="hub-body">
+    <div class="hub-title">¿A qué módulo deseas ingresar?</div>
+    <div class="hub-sub">Selecciona una opción para continuar</div>
+    <div class="hub-grid" id="hub-grid"><div class="hub-empty">Cargando módulos…</div></div>
+  </div>
+</div>
+
 <!-- APP -->
 <div id="app">
   <div class="topbar">
@@ -561,6 +598,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
             </div>
           </div>
           <div class="pd-item" onclick="openOwnProfile()">👤 &nbsp;Mi perfil</div>
+          <div class="pd-item" onclick="backToHub()">⊞ &nbsp;Cambiar de módulo</div>
           <div class="pd-item" onclick="toggleDark()">🌙 &nbsp;Modo oscuro</div>
           <hr class="pd-sep">
           <div class="pd-item" style="color:var(--red)" onclick="doLogout()">⬅ &nbsp;Cerrar sesión</div>
@@ -595,6 +633,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-sec">Administración</div>
       <div class="nav-item" onclick="showPage('usuarios',this)">👥&nbsp;Usuarios</div>
       <div class="nav-item editor-up" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
+      <div class="nav-item admin-only" onclick="showPage('config',this)">⚙️&nbsp;Configuración</div>
     </div>
 
     <div class="main">
@@ -933,6 +972,21 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         <div class="card">
           <div id="list-auditoria"><div class="loading">Cargando...</div></div>
         </div>
+      </div>
+
+      <!-- CONFIGURACIÓN -->
+      <div class="page" id="page-config">
+        <div class="page-title">Configuración</div>
+        <div class="page-sub">Tarjetas del portal de acceso — lo que ven los usuarios al iniciar sesión</div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">🚪 Portal de acceso</div>
+          <p style="font-size:13px;color:var(--gray-500);line-height:1.6">La tarjeta <b>Panel de documentos</b> aparece automáticamente para quienes tengan acceso habilitado. Aquí agregas los demás módulos (por ejemplo, el de firmas) con su enlace y controlas quién los ve.</p>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+          <div class="card-title" style="margin:0">🔗 Módulos externos</div>
+          <button class="add-btn" style="margin-bottom:0" onclick="openHubModal()">+ Nueva tarjeta</button>
+        </div>
+        <div class="link-cards-grid" id="grid-config"><div class="loading">Cargando...</div></div>
       </div>
 
     </div>
@@ -1300,6 +1354,27 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
   </div>
 </div>
 
+<!-- MODAL TARJETA DEL PORTAL (HUB) -->
+<div class="modal-overlay" id="modal-hub">
+  <div class="modal">
+    <div class="modal-title" id="modal-hub-title">Nueva tarjeta del portal</div>
+    <label class="form-label">Ícono <span class="form-hint">(un emoji)</span></label>
+    <input class="form-input" id="hub-icono" maxlength="4" placeholder="✍️" style="font-size:22px;width:70px;text-align:center">
+    <label class="form-label">Nombre *</label>
+    <input class="form-input" id="hub-nombre" maxlength="60" placeholder="Ej: Módulo de firmas">
+    <label class="form-label">Descripción <span class="form-hint">(opcional)</span></label>
+    <input class="form-input" id="hub-desc" maxlength="120" placeholder="Ej: Firma digital de documentos">
+    <label class="form-label">Enlace del módulo *</label>
+    <input class="form-input" id="hub-url" type="url" placeholder="https://...">
+    <label class="form-label">Visible para <span class="form-hint">(deja todo sin marcar = visible para todos)</span></label>
+    <div id="hub-visibilidad" style="display:flex;flex-direction:column;gap:7px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-50);max-height:160px;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-hub')">Cancelar</button>
+      <button class="btn-primary" onclick="saveHubTarjeta()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CARPETA PHVA -->
 <div class="modal-overlay" id="modal-carpeta">
   <div class="modal">
@@ -1409,6 +1484,7 @@ let allPhvaCarpetas=[], allPhvaArchivos=[], editCarpetaId=null, currentCarpetaId
 let phvaPath=[], carpetaParentId=null;
 let allDocCarpetas=[], allDocArchivos=[], editDocCarpetaId=null, currentDocCarpetaId=null;
 let docPath=[], docCarpetaParentId=null;
+let allHubTarjetas=[], editHubId=null;
 const docSel={SST:new Set(),Calidad:new Set(),Ambiental:new Set(),'Maestro SIG':new Set()};
 
 
@@ -1438,14 +1514,14 @@ async function doLogin() {
     if(error) throw error;
     currentUser=data.user;
     await loadPerfil();
-    if(!currentPerfil || currentPerfil.acceso_sig===false){
+    if(!currentPerfil){
       await sb.auth.signOut();
       currentUser=null; currentPerfil=null;
-      errEl.textContent='No tienes acceso a este panel. Contacta al administrador.';
+      errEl.textContent='Tu cuenta no está registrada en el sistema. Contacta al administrador.';
       errEl.style.display='block';
       return;
     }
-    enterApp();
+    showHub();
   } catch(e) {
     errEl.textContent=e.message==='Invalid login credentials'?'Correo o contraseña incorrectos':e.message;
     errEl.style.display='block';
@@ -1457,6 +1533,7 @@ async function doLogout() {
   currentUser=null;currentPerfil=null;allDocs=[];allUsers=[];allTareas=[];
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app').classList.remove('visible');
+  document.getElementById('hub-screen').classList.remove('visible');
   document.getElementById('l-email').value='';
   document.getElementById('l-pass').value='';
   document.getElementById('profile-dropdown').classList.remove('open');
@@ -1467,8 +1544,62 @@ async function loadPerfil() {
   currentPerfil=data;
 }
 
+async function showHub() {
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('hub-screen').classList.add('visible');
+  const loginLogo=document.querySelector('.login-logo img');
+  if(loginLogo) document.getElementById('hub-logo').src=loginLogo.src;
+  document.getElementById('hub-username').textContent=(currentPerfil?.nombre||'').split(' ')[0]||'';
+  try {
+    const {data}=await sb.from('hub_tarjetas').select('*').order('orden');
+    allHubTarjetas=data||[];
+  } catch(e){ allHubTarjetas=[]; }
+  renderHub();
+}
+
+function renderHub() {
+  const grid=document.getElementById('hub-grid');
+  const cards=[];
+  // Tarjeta fija del Panel de documentos (solo si el usuario tiene acceso)
+  if(currentPerfil?.acceso_sig!==false){
+    cards.push(`<a class="hub-card" onclick="enterPanelDocs()">
+      <div class="hub-card-ico">📄</div>
+      <div class="hub-card-name">Panel de documentos</div>
+      <div class="hub-card-desc">Sistema Integrado de Gestión — SST, Calidad y Ambiental</div>
+      <div class="hub-card-go">Ingresar →</div>
+    </a>`);
+  }
+  // Tarjetas configurables (links), filtradas por visibilidad
+  allHubTarjetas.forEach(t=>{
+    const vp=t.visible_para;
+    const visible = !vp || vp.length===0 || vp.includes(currentUser.id);
+    if(!visible) return;
+    cards.push(`<a class="hub-card" href="${esc(t.url)}" target="_blank" rel="noopener">
+      <div class="hub-card-ico">${esc(t.icono)||'🔗'}</div>
+      <div class="hub-card-name">${esc(t.nombre)}</div>
+      <div class="hub-card-desc">${esc(t.descripcion)||''}</div>
+      <div class="hub-card-go">Abrir →</div>
+    </a>`);
+  });
+  grid.innerHTML = cards.length ? cards.join('') : '<div class="hub-empty">No tienes módulos disponibles por el momento. Contacta al administrador.</div>';
+}
+
+function enterPanelDocs() {
+  if(currentPerfil?.acceso_sig===false){ showToast('No tienes acceso al panel de documentos','error'); return; }
+  document.getElementById('hub-screen').classList.remove('visible');
+  enterApp();
+}
+
+function backToHub() {
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('profile-dropdown')?.classList.remove('open');
+  showHub();
+}
+
 function enterApp() {
   document.getElementById('login-screen').style.display='none';
+  document.getElementById('hub-screen').classList.remove('visible');
   document.getElementById('app').classList.add('visible');
   updateTopbar();
   applyPermissions();
@@ -1485,7 +1616,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   const {data:{session}}=await sb.auth.getSession();
   if(session){
     currentUser=session.user;await loadPerfil();
-    if(currentPerfil && currentPerfil.acceso_sig!==false) enterApp();
+    if(currentPerfil) showHub();
     else { await sb.auth.signOut(); currentUser=null; currentPerfil=null; }
   }
 });
@@ -1578,6 +1709,7 @@ function showPage(id,el) {
   if(id==='organigrama') renderOrganigrama();
   if(id==='phva') renderPhva();
   if(id==='documentacion'){ if(typeof closeDocPanel==='function') closeDocPanel(); renderDocumentacion(); }
+  if(id==='config') renderConfig();
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────
@@ -4045,6 +4177,109 @@ async function deleteDocCarpeta(id){
     else await renderDocPanel();
   }
   renderDocumentacion();
+}
+
+// ── CONFIGURACIÓN — Tarjetas del portal (HUB) ─────────────
+async function renderConfig() {
+  const grid=document.getElementById('grid-config');
+  if(!grid) return;
+  const {data}=await sb.from('hub_tarjetas').select('*').order('orden');
+  allHubTarjetas=data||[];
+  if(!allHubTarjetas.length){
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1;padding:40px 0;text-align:center;color:var(--gray-500)">Sin módulos externos. Usa <b>+ Nueva tarjeta</b> para agregar el de firmas u otros.</div>';
+    return;
+  }
+  grid.innerHTML=allHubTarjetas.map(t=>{
+    const vp=t.visible_para;
+    const etiq=vp&&vp.length?`<div style="font-size:10px;color:var(--gray-500);margin-top:2px">👁 ${vp.map(uid=>{const u=allUsers.find(x=>x.id===uid);return u?u.nombre.split(' ')[0]:'?';}).join(', ')}</div>`:'<div style="font-size:10px;color:var(--gray-500);margin-top:2px">👁 Visible para todos</div>';
+    return `<div class="link-card">
+      <div class="link-card-actions">
+        <button class="icon-btn" onclick="openEditHub('${t.id}')" title="Editar">✏</button>
+        <button class="icon-btn danger" onclick="deleteHubTarjeta('${t.id}')" title="Eliminar">🗑</button>
+      </div>
+      <div class="link-card-icon">${esc(t.icono)||'🔗'}</div>
+      <div class="link-card-name">${esc(t.nombre)}</div>
+      ${t.descripcion?`<div class="link-card-desc">${esc(t.descripcion)}</div>`:'<div class="link-card-desc"></div>'}
+      ${etiq}
+      <a class="link-card-btn" href="${esc(t.url)}" target="_blank" rel="noopener">Abrir ↗</a>
+    </div>`;
+  }).join('');
+}
+
+function buildHubVisibilidad(selectedIds=[]) {
+  const cont=document.getElementById('hub-visibilidad');
+  if(!allUsers.length){cont.innerHTML='<span style="font-size:12px;color:var(--gray-500)">No hay usuarios registrados aún.</span>';return;}
+  cont.innerHTML=allUsers.map(u=>`
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+      <input type="checkbox" value="${u.id}" ${selectedIds.includes(u.id)?'checked':''} style="width:15px;height:15px;accent-color:var(--navy)">
+      <span>${esc(u.nombre)}</span>
+      <span style="font-size:11px;color:var(--gray-500);font-weight:400">${esc(u.cargo||'')}</span>
+    </label>`).join('');
+}
+
+function openHubModal() {
+  editHubId=null;
+  document.getElementById('modal-hub-title').textContent='Nueva tarjeta del portal';
+  document.getElementById('hub-icono').value='';
+  document.getElementById('hub-nombre').value='';
+  document.getElementById('hub-desc').value='';
+  document.getElementById('hub-url').value='';
+  buildHubVisibilidad([]);
+  document.getElementById('modal-hub').classList.add('open');
+}
+
+function openEditHub(id) {
+  const t=allHubTarjetas.find(x=>x.id===id);
+  if(!t) return;
+  editHubId=id;
+  document.getElementById('modal-hub-title').textContent='Editar tarjeta del portal';
+  document.getElementById('hub-icono').value=t.icono||'';
+  document.getElementById('hub-nombre').value=t.nombre||'';
+  document.getElementById('hub-desc').value=t.descripcion||'';
+  document.getElementById('hub-url').value=t.url||'';
+  buildHubVisibilidad(t.visible_para||[]);
+  document.getElementById('modal-hub').classList.add('open');
+}
+
+async function saveHubTarjeta() {
+  const nombre=document.getElementById('hub-nombre').value.trim();
+  const url=document.getElementById('hub-url').value.trim();
+  if(!nombre){showToast('El nombre es obligatorio','error');return;}
+  if(!url){showToast('El enlace es obligatorio','error');return;}
+  const checks=[...document.querySelectorAll('#hub-visibilidad input[type=checkbox]:checked')];
+  const visible_para=checks.map(c=>c.value);
+  const data={
+    icono:document.getElementById('hub-icono').value.trim()||'🔗',
+    nombre,
+    descripcion:document.getElementById('hub-desc').value.trim()||null,
+    url,
+    visible_para: visible_para.length ? visible_para : null,
+    orden: editHubId ? allHubTarjetas.find(x=>x.id===editHubId)?.orden??99 : (allHubTarjetas.length+1),
+    actualizado_en:new Date().toISOString()
+  };
+  let error;
+  if(editHubId){
+    ({error}=await sb.from('hub_tarjetas').update(data).eq('id',editHubId));
+  } else {
+    data.creado_en=new Date().toISOString();
+    ({error}=await sb.from('hub_tarjetas').insert(data));
+  }
+  if(error){showToast('Error: '+error.message,'error');return;}
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editHubId?'EDITAR':'CREAR',tabla:'hub_tarjetas',detalle:`${editHubId?'Editó':'Creó'} tarjeta del portal "${nombre}"`});
+  closeModal('modal-hub');
+  showToast(editHubId?'Tarjeta actualizada ✓':'Tarjeta creada ✓','success');
+  renderConfig();
+}
+
+async function deleteHubTarjeta(id) {
+  const t=allHubTarjetas.find(x=>x.id===id);
+  if(!t||!confirm(`¿Eliminar la tarjeta "${t.nombre}" del portal?`)) return;
+  const {error}=await sb.from('hub_tarjetas').delete().eq('id',id);
+  if(error){showToast('Error: '+error.message,'error');return;}
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'hub_tarjetas',detalle:`Eliminó tarjeta del portal "${t.nombre}"`});
+  showToast('Tarjeta eliminada');
+  allHubTarjetas=allHubTarjetas.filter(x=>x.id!==id);
+  renderConfig();
 }
 
 // ── ENLACES RECURSOS ──────────────────────────────────────
