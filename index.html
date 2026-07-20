@@ -44,67 +44,83 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .login-btn:hover{background:var(--navy-dark)}
 .login-btn:disabled{background:var(--gray-300);cursor:not-allowed}
 
-/* ═══ DON ASEO WORKSPACE (LAUNCHER) ═══════════════════════ */
-:root{--ws-bg:#F4F7FB;--ws-text:#1F2937;--ws-muted:#6b7280;--ws-line:#e6ebf2}
-#hub-screen{position:fixed;inset:0;z-index:9998;display:none;flex-direction:column;background:var(--ws-bg);overflow-y:auto;color:var(--ws-text)}
+/* ═══ DON ASEO WORKSPACE (LAUNCHER v2) ════════════════════ */
+:root{--ws-bg:#eef3fb;--ws-text:#1F2937;--ws-muted:#6b7280;--ws-line:#e6ebf2}
+#hub-screen{position:fixed;inset:0;z-index:9998;display:none;flex-direction:column;overflow-y:auto;color:var(--ws-text);
+  background:
+    radial-gradient(900px 500px at 8% -6%, #dbe6fb 0%, transparent 55%),
+    radial-gradient(820px 520px at 104% 118%, #dde8fc 0%, transparent 55%),
+    var(--ws-bg)}
 #hub-screen.visible{display:flex}
 
-/* Header fijo */
-.ws-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 26px;height:64px;background:var(--navy);box-shadow:0 2px 14px rgba(0,0,51,.18);flex-shrink:0}
+/* Header con degradado */
+.ws-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 30px;height:70px;flex-shrink:0;
+  background:linear-gradient(100deg,#002a8a 0%,#0039b3 46%,#1f5be0 100%);box-shadow:0 6px 24px rgba(0,30,90,.22)}
 .ws-brand{display:flex;align-items:center;gap:13px;min-width:0}
-.ws-brand img{height:36px;object-fit:contain;background:#fff;border-radius:8px;padding:3px 6px}
-.ws-brand-txt{color:#fff;font-weight:800;font-size:16px;letter-spacing:-.01em;white-space:nowrap}
-.ws-brand-txt small{display:block;font-size:10px;font-weight:600;color:rgba(255,255,255,.6);letter-spacing:.04em}
-.ws-header-right{display:flex;align-items:center;gap:10px}
-.ws-icon-btn{width:38px;height:38px;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .14s}
-.ws-icon-btn:hover{background:rgba(255,255,255,.2)}
-.ws-user{display:flex;align-items:center;gap:9px;padding-left:6px}
-.ws-avatar{width:36px;height:36px;border-radius:50%;background:#fff;color:var(--navy);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.ws-brand img{height:40px;object-fit:contain;background:#fff;border-radius:9px;padding:3px 7px}
+.ws-brand-txt{color:#fff;font-weight:800;font-size:17px;letter-spacing:-.01em;white-space:nowrap}
+.ws-brand-txt small{display:block;font-size:10.5px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.03em}
+.ws-header-right{display:flex;align-items:center;gap:12px}
+.ws-icon-btn{position:relative;width:42px;height:42px;border-radius:12px;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .14s}
+.ws-icon-btn:hover{background:rgba(255,255,255,.26)}
+.ws-user{display:flex;align-items:center;gap:9px;padding:5px 6px 5px 10px;border-radius:12px;cursor:pointer;transition:background .14s}
+.ws-user:hover{background:rgba(255,255,255,.12)}
+.ws-user-name{color:#fff;font-size:13.5px;font-weight:700;line-height:1.2;text-align:right}
+.ws-user-name small{display:block;font-size:10.5px;font-weight:500;color:rgba(255,255,255,.7)}
+.ws-avatar{width:40px;height:40px;border-radius:50%;background:#fff;color:var(--navy);font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,.5)}
 .ws-avatar img{width:100%;height:100%;object-fit:cover}
-.ws-user-name{color:#fff;font-size:13px;font-weight:700;line-height:1.2}
-.ws-user-name small{display:block;font-size:10px;font-weight:500;color:rgba(255,255,255,.6)}
-.ws-logout{font-size:12px;color:#fff;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);border-radius:9px;padding:8px 14px;cursor:pointer;font-family:var(--font);font-weight:600;transition:background .14s}
-.ws-logout:hover{background:rgba(255,255,255,.24)}
+.ws-logout{font-size:13px;color:var(--navy);background:#fff;border:none;border-radius:11px;padding:10px 20px;cursor:pointer;font-family:var(--font);font-weight:800;transition:transform .12s,box-shadow .12s;box-shadow:0 4px 12px rgba(0,0,50,.15)}
+.ws-logout:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(0,0,50,.22)}
 
 /* Contenedor */
-.ws-main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:38px 26px 70px;animation:wsFade .4s ease}
-@keyframes wsFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.ws-welcome-title{font-size:30px;font-weight:800;letter-spacing:-.025em;color:var(--ws-text)}
-.ws-welcome-sub{font-size:15px;color:var(--ws-muted);margin-top:6px}
-.ws-welcome-hint{font-size:13px;color:#9aa4b2;margin-top:2px}
+.ws-main{flex:1;width:100%;max-width:1200px;margin:0 auto;padding:40px 30px 30px;animation:wsFade .45s ease}
+@keyframes wsFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.ws-welcome-title{font-size:33px;font-weight:800;letter-spacing:-.025em;color:#12213b}
+.ws-welcome-sub{font-size:15px;color:var(--ws-muted);margin-top:8px}
+.ws-welcome-hint{font-size:13.5px;color:#9aa4b2;margin-top:2px}
 
 /* Buscador */
-.ws-search{position:relative;margin:26px 0 30px;max-width:460px}
-.ws-search input{width:100%;padding:13px 16px 13px 44px;border:1.5px solid var(--ws-line);border-radius:13px;font-family:var(--font);font-size:14px;color:var(--ws-text);background:#fff;outline:none;transition:border .15s,box-shadow .15s}
-.ws-search input:focus{border-color:var(--navy);box-shadow:0 0 0 4px rgba(0,51,153,.08)}
-.ws-search .ws-search-ico{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:15px;color:#9aa4b2}
+.ws-search{position:relative;margin:26px 0 32px;max-width:540px}
+.ws-search input{width:100%;padding:16px 18px 16px 50px;border:1px solid var(--ws-line);border-radius:16px;font-family:var(--font);font-size:14.5px;color:var(--ws-text);background:#fff;outline:none;box-shadow:0 8px 26px rgba(20,40,90,.07);transition:box-shadow .15s}
+.ws-search input:focus{box-shadow:0 8px 30px rgba(0,51,153,.16)}
+.ws-search .ws-search-ico{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--navy)}
 
 /* Estadísticas */
-.ws-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:34px}
-.ws-stat{background:#fff;border:1px solid var(--ws-line);border-radius:15px;padding:18px 20px;transition:box-shadow .15s}
-.ws-stat:hover{box-shadow:0 6px 22px rgba(31,41,55,.07)}
-.ws-stat-val{font-size:26px;font-weight:800;color:var(--ws-text);line-height:1;display:flex;align-items:center;gap:8px}
-.ws-stat-label{font-size:12px;color:var(--ws-muted);margin-top:7px;font-weight:600}
-.ws-dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(29,185,84,.16)}
+.ws-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:38px}
+.ws-stat{background:#fff;border-radius:18px;padding:20px 22px;display:flex;align-items:center;gap:15px;box-shadow:0 8px 26px rgba(20,40,90,.06);transition:transform .15s,box-shadow .15s}
+.ws-stat:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(20,40,90,.11)}
+.ws-stat-ico{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;background:var(--sc-soft);color:var(--sc)}
+.ws-stat-body{min-width:0}
+.ws-stat-val{font-size:25px;font-weight:800;color:var(--sc,var(--ws-text));line-height:1.05}
+.ws-stat-label{font-size:12.5px;color:var(--ws-text);margin-top:3px;font-weight:700}
+.ws-stat-sub{font-size:11px;color:var(--ws-muted);margin-top:1px;display:flex;align-items:center;gap:5px}
+.ws-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
 
 /* Sección */
-.ws-section-title{font-size:14px;font-weight:800;color:var(--ws-text);margin-bottom:15px;letter-spacing:.01em}
+.ws-section-title{font-size:15px;font-weight:800;color:#12213b;margin-bottom:16px}
 
 /* Grid de módulos: 4 / 2 / 1 columnas */
-.ws-modules{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.ws-module{background:#fff;border:1px solid var(--ws-line);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:11px;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s;text-decoration:none;position:relative;overflow:hidden}
-.ws-module::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--mc,var(--navy));opacity:0;transition:opacity .18s}
-.ws-module:hover{transform:translateY(-6px);box-shadow:0 18px 42px rgba(31,41,55,.14);border-color:transparent}
-.ws-module:hover::before{opacity:1}
-.ws-module-ico{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:27px;background:var(--mc-soft,var(--navy-light))}
-.ws-module-name{font-size:16px;font-weight:800;color:var(--ws-text)}
-.ws-module-desc{font-size:12.5px;color:var(--ws-muted);line-height:1.5;flex:1}
-.ws-module-btn{margin-top:4px;align-self:flex-start;font-size:12.5px;font-weight:700;color:#fff;background:var(--navy);padding:9px 20px;border-radius:10px;border:none;font-family:var(--font);cursor:pointer;transition:background .14s}
-.ws-module:hover .ws-module-btn{background:var(--navy-dark)}
-.ws-empty{grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--ws-muted);background:#fff;border:1px dashed var(--ws-line);border-radius:16px;font-size:14px}
+.ws-modules{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.ws-module{border-radius:22px;padding:26px;display:flex;flex-direction:column;gap:12px;cursor:pointer;text-decoration:none;position:relative;overflow:hidden;min-height:230px;
+  background:linear-gradient(145deg,var(--mc-soft) 0%,#ffffff 62%);border:1px solid rgba(20,40,90,.06);
+  box-shadow:0 10px 30px rgba(20,40,90,.07);transition:transform .2s ease,box-shadow .2s ease}
+.ws-module:hover{transform:translateY(-8px);box-shadow:0 24px 50px rgba(20,40,90,.18)}
+.ws-module-bg{position:absolute;right:-6px;bottom:-6px;width:190px;height:170px;object-fit:contain;object-position:right bottom;opacity:.9;pointer-events:none}
+.ws-module-ico{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:30px;background:#fff;box-shadow:0 6px 16px var(--mc-shadow);position:relative;z-index:1}
+.ws-module-ico img{width:38px;height:38px;object-fit:contain}
+.ws-module-name{font-size:17px;font-weight:800;color:#12213b;position:relative;z-index:1}
+.ws-module-desc{font-size:12.5px;color:#5a6577;line-height:1.55;flex:1;position:relative;z-index:1;max-width:78%}
+.ws-module-btn{margin-top:6px;align-self:flex-start;font-size:13px;font-weight:800;color:#fff;background:var(--mc);padding:11px 22px;border-radius:12px;border:none;font-family:var(--font);cursor:pointer;position:relative;z-index:1;box-shadow:0 6px 16px var(--mc-shadow);transition:filter .14s}
+.ws-module:hover .ws-module-btn{filter:brightness(1.08)}
+.ws-empty{grid-column:1/-1;text-align:center;padding:54px 20px;color:var(--ws-muted);background:#fff;border:1px dashed var(--ws-line);border-radius:18px;font-size:14px}
 
-@media(max-width:900px){.ws-stats{grid-template-columns:repeat(2,1fr)}.ws-modules{grid-template-columns:repeat(2,1fr)}.ws-welcome-title{font-size:25px}}
-@media(max-width:560px){.ws-modules{grid-template-columns:1fr}.ws-user-name{display:none}.ws-brand-txt small{display:none}}
+/* Footer */
+.ws-footer{text-align:center;padding:20px;color:#8994a6;font-size:12px}
+.ws-footer a{color:var(--navy);text-decoration:none;font-weight:700}
+.ws-footer a:hover{text-decoration:underline}
+
+@media(max-width:980px){.ws-stats{grid-template-columns:repeat(2,1fr)}.ws-modules{grid-template-columns:repeat(2,1fr)}.ws-welcome-title{font-size:27px}}
+@media(max-width:560px){.ws-modules{grid-template-columns:1fr}.ws-user-name{display:none}.ws-brand-txt small{display:none}.ws-module-desc{max-width:100%}}
 .login-err{font-size:12px;color:var(--red);padding:9px 13px;background:var(--red-light);border-radius:var(--radius-sm);margin-bottom:12px;display:none;font-weight:600}
 
 /* APP */
@@ -620,6 +636,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
     <div class="ws-section-title">Módulos disponibles</div>
     <div class="ws-modules" id="ws-modules"><div class="ws-empty">Cargando módulos…</div></div>
   </main>
+  <footer class="ws-footer">© <span id="ws-year">2026</span> Don Aseo Ltda. Todos los derechos reservados.</footer>
 </div>
 
 <!-- APP -->
@@ -687,7 +704,6 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-sec">Administración</div>
       <div class="nav-item" onclick="showPage('usuarios',this)">👥&nbsp;Usuarios</div>
       <div class="nav-item editor-up" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
-      <div class="nav-item admin-only" onclick="showPage('config',this)">⚙️&nbsp;Configuración</div>
     </div>
 
     <div class="main">
@@ -1026,21 +1042,6 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         <div class="card">
           <div id="list-auditoria"><div class="loading">Cargando...</div></div>
         </div>
-      </div>
-
-      <!-- CONFIGURACIÓN -->
-      <div class="page" id="page-config">
-        <div class="page-title">Configuración</div>
-        <div class="page-sub">Tarjetas del portal de acceso — lo que ven los usuarios al iniciar sesión</div>
-        <div class="card" style="margin-bottom:16px">
-          <div class="card-title">🚪 Portal de acceso</div>
-          <p style="font-size:13px;color:var(--gray-500);line-height:1.6">La tarjeta <b>Panel de documentos</b> aparece automáticamente para quienes tengan acceso habilitado. Aquí agregas los demás módulos (por ejemplo, el de firmas) con su enlace y controlas quién los ve.</p>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
-          <div class="card-title" style="margin:0">🔗 Módulos externos</div>
-          <button class="add-btn" style="margin-bottom:0" onclick="openHubModal()">+ Nueva tarjeta</button>
-        </div>
-        <div class="link-cards-grid" id="grid-config"><div class="loading">Cargando...</div></div>
       </div>
 
     </div>
@@ -1409,22 +1410,59 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 </div>
 
 <!-- MODAL TARJETA DEL PORTAL (HUB) -->
-<div class="modal-overlay" id="modal-hub">
+<!-- MODAL LISTA DE MÓDULOS (gestión desde el workspace) -->
+<div class="modal-overlay" id="modal-ws-config" style="z-index:10000">
+  <div class="modal modal-lg">
+    <div class="modal-title">⚙️ Gestionar módulos del portal</div>
+    <p style="font-size:12.5px;color:var(--gray-500);line-height:1.6;margin-bottom:14px">El módulo <b>Gestión Documental</b> es fijo y aparece a quienes tengan acceso. Aquí agregas y personalizas los demás (firmas, etc.).</p>
+    <div id="ws-config-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+    <button class="add-btn" style="margin:0" onclick="openHubModal()">+ Nuevo módulo</button>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-ws-config')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FORMULARIO DE MÓDULO -->
+<div class="modal-overlay" id="modal-hub" style="z-index:10001">
   <div class="modal">
-    <div class="modal-title" id="modal-hub-title">Nueva tarjeta del portal</div>
-    <label class="form-label">Ícono <span class="form-hint">(un emoji)</span></label>
-    <input class="form-input" id="hub-icono" maxlength="4" placeholder="✍️" style="font-size:22px;width:70px;text-align:center">
-    <label class="form-label">Nombre *</label>
-    <input class="form-input" id="hub-nombre" maxlength="60" placeholder="Ej: Módulo de firmas">
+    <div class="modal-title" id="modal-hub-title">Nuevo módulo</div>
+    <div class="form-row">
+      <div>
+        <label class="form-label">Nombre *</label>
+        <input class="form-input" id="hub-nombre" maxlength="60" placeholder="Ej: Módulo de firmas">
+      </div>
+      <div>
+        <label class="form-label">Color del tema</label>
+        <input type="color" id="hub-color" value="#7c5cff" style="width:100%;height:42px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:var(--gray-50);padding:3px">
+      </div>
+    </div>
     <label class="form-label">Descripción <span class="form-hint">(opcional)</span></label>
     <input class="form-input" id="hub-desc" maxlength="120" placeholder="Ej: Firma digital de documentos">
     <label class="form-label">Enlace del módulo *</label>
     <input class="form-input" id="hub-url" type="url" placeholder="https://...">
+    <div class="form-row">
+      <div>
+        <label class="form-label">Ícono <span class="form-hint">(emoji o imagen 160×160)</span></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="form-input" id="hub-icono" maxlength="4" placeholder="✍️" style="font-size:20px;width:58px;text-align:center">
+          <button type="button" class="btn-secondary" style="padding:9px 12px;font-size:12px" onclick="document.getElementById('hub-icono-file').click()">📷 Imagen</button>
+          <input type="file" id="hub-icono-file" accept="image/*" style="display:none" onchange="onHubImgChosen(this,'icono')">
+        </div>
+        <div id="hub-icono-preview" style="margin-top:6px;font-size:11px;color:var(--green-dark);font-weight:600"></div>
+      </div>
+      <div>
+        <label class="form-label">Fondo <span class="form-hint">(imagen 500×400)</span></label>
+        <button type="button" class="btn-secondary" style="padding:9px 12px;font-size:12px;width:100%" onclick="document.getElementById('hub-fondo-file').click()">🖼️ Subir fondo</button>
+        <input type="file" id="hub-fondo-file" accept="image/*" style="display:none" onchange="onHubImgChosen(this,'fondo')">
+        <div id="hub-fondo-preview" style="margin-top:6px;font-size:11px;color:var(--green-dark);font-weight:600"></div>
+      </div>
+    </div>
     <label class="form-label">Visible para <span class="form-hint">(deja todo sin marcar = visible para todos)</span></label>
-    <div id="hub-visibilidad" style="display:flex;flex-direction:column;gap:7px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-50);max-height:160px;overflow-y:auto"></div>
+    <div id="hub-visibilidad" style="display:flex;flex-direction:column;gap:7px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-50);max-height:130px;overflow-y:auto"></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-hub')">Cancelar</button>
-      <button class="btn-primary" onclick="saveHubTarjeta()">Guardar</button>
+      <button class="btn-primary" id="hub-save-btn" onclick="saveHubTarjeta()">Guardar</button>
     </div>
   </div>
 </div>
@@ -1538,7 +1576,7 @@ let allPhvaCarpetas=[], allPhvaArchivos=[], editCarpetaId=null, currentCarpetaId
 let phvaPath=[], carpetaParentId=null;
 let allDocCarpetas=[], allDocArchivos=[], editDocCarpetaId=null, currentDocCarpetaId=null;
 let docPath=[], docCarpetaParentId=null;
-let allHubTarjetas=[], editHubId=null;
+let allHubTarjetas=[], editHubId=null, hubIconoFile=null, hubFondoFile=null;
 const docSel={SST:new Set(),Calidad:new Set(),Ambiental:new Set(),'Maestro SIG':new Set()};
 
 
@@ -1598,14 +1636,16 @@ async function loadPerfil() {
   currentPerfil=data;
 }
 
-// ═══ DON ASEO WORKSPACE (LAUNCHER) ═══════════════════════════
-// Muestra el launcher tras iniciar sesión: header, bienvenida,
-// buscador, estadísticas reales y grid de módulos.
+// ═══ DON ASEO WORKSPACE (LAUNCHER v2) ════════════════════════
+// Añade un canal alfa a un color hex (#RRGGBB → #RRGGBBAA)
+function hexA(hex,a){ return (hex&&hex[0]==='#'&&hex.length>=7)?hex.slice(0,7)+a:hex; }
+
 async function showHub() {
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').classList.remove('visible');
   document.getElementById('hub-screen').classList.add('visible');
-  document.getElementById('ws-welcome').textContent='Bienvenido, '+((currentPerfil?.nombre||'').split(' ')[0]||'');
+  document.getElementById('ws-welcome').innerHTML='¡Bienvenido, '+esc((currentPerfil?.nombre||'').split(' ')[0]||'')+'! 👋';
+  document.getElementById('ws-year').textContent=new Date().getFullYear();
   document.getElementById('ws-header').innerHTML=wsHeader();
   try {
     const {data}=await sb.from('hub_tarjetas').select('*').order('orden');
@@ -1624,6 +1664,7 @@ function wsHeader() {
   const ini=nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   const rol=currentPerfil?.rol==='admin'?'Administrador':currentPerfil?.rol==='editor'?'Editor':currentPerfil?.rol==='invitado'?'Invitado':'Visualizador';
   const av=currentPerfil?.foto_url?`<img src="${currentPerfil.foto_url}" alt="">`:esc(ini);
+  const bell=`<button class="ws-icon-btn" onclick="showToast('No tienes notificaciones nuevas')" title="Notificaciones">🔔</button>`;
   const configBtn=currentPerfil?.rol==='admin'?`<button class="ws-icon-btn" onclick="gestionarModulos()" title="Gestionar módulos">⚙️</button>`:'';
   return `
     <div class="ws-brand">
@@ -1631,7 +1672,7 @@ function wsHeader() {
       <div class="ws-brand-txt">Don Aseo Workspace<small>Panel Corporativo</small></div>
     </div>
     <div class="ws-header-right">
-      ${configBtn}
+      ${bell}${configBtn}
       <div class="ws-user">
         <div class="ws-avatar">${av}</div>
         <div class="ws-user-name">${esc(nombre.split(' ')[0])}<small>${rol}</small></div>
@@ -1647,7 +1688,7 @@ function getModulos() {
   if(currentPerfil?.acceso_sig!==false){
     mods.push({id:'docs',nombre:'Gestión Documental',icono:'📁',
       descripcion:'Sistema Integrado de Gestión — SST, Calidad y Ambiental.',
-      color:'#003399',accion:'panel'});
+      color:'#0039b3',accion:'panel'});
   }
   // Módulos configurables desde Supabase, filtrados por visibilidad
   allHubTarjetas.forEach(t=>{
@@ -1655,19 +1696,23 @@ function getModulos() {
     const visible=!vp||vp.length===0||vp.includes(currentUser.id);
     if(!visible) return;
     mods.push({id:t.id,nombre:t.nombre,icono:t.icono||'🔗',
-      descripcion:t.descripcion||'',color:'#0078d4',accion:'link',url:t.url});
+      descripcion:t.descripcion||'',color:t.color||'#7c5cff',accion:'link',url:t.url,
+      icono_url:t.icono_url,fondo_url:t.fondo_url});
   });
   return mods;
 }
 
-// ── Componente: tarjeta de módulo ──
+// ── Componente: tarjeta de módulo (color + imágenes personalizables) ──
 function wsModuleCard(m) {
-  const soft=m.color+'1a';
+  const color=m.color||'#0039b3';
   const isPanel=m.accion==='panel';
   const attrs=isPanel?`onclick="enterPanelDocs()"`:`href="${esc(m.url)}" target="_blank" rel="noopener"`;
   const tag=isPanel?'div':'a';
-  return `<${tag} class="ws-module" style="--mc:${m.color};--mc-soft:${soft}" ${attrs}>
-    <div class="ws-module-ico">${esc(m.icono)}</div>
+  const icono=m.icono_url?`<img src="${esc(m.icono_url)}" alt="">`:esc(m.icono||'🔗');
+  const fondo=m.fondo_url?`<img class="ws-module-bg" src="${esc(m.fondo_url)}" alt="" aria-hidden="true">`:'';
+  return `<${tag} class="ws-module" style="--mc:${color};--mc-soft:${hexA(color,'14')};--mc-shadow:${hexA(color,'3d')}" ${attrs}>
+    ${fondo}
+    <div class="ws-module-ico" style="color:${color}">${icono}</div>
     <div class="ws-module-name">${esc(m.nombre)}</div>
     <div class="ws-module-desc">${esc(m.descripcion)}</div>
     <button class="ws-module-btn">Entrar →</button>
@@ -1686,23 +1731,32 @@ function renderModules() {
     : `<div class="ws-empty">${q?'No se encontraron módulos para “'+esc(q)+'”.':'No tienes módulos disponibles por el momento. Contacta al administrador.'}</div>`;
 }
 
-// ── Componente: tarjeta de estadística ──
-function wsStatCard(val,label){
-  return `<div class="ws-stat"><div class="ws-stat-val">${val}</div><div class="ws-stat-label">${label}</div></div>`;
+// ── Componente: tarjeta de estadística (ícono de color) ──
+function wsStatCard(ico,color,val,label,sub){
+  return `<div class="ws-stat" style="--sc:${color};--sc-soft:${hexA(color,'22')}">
+    <div class="ws-stat-ico">${ico}</div>
+    <div class="ws-stat-body">
+      <div class="ws-stat-val">${val}</div>
+      <div class="ws-stat-label">${label}</div>
+      ${sub?`<div class="ws-stat-sub">${sub}</div>`:''}
+    </div>
+  </div>`;
 }
 
 // ── Render de estadísticas con datos reales ──
 async function renderStats() {
   const cont=document.getElementById('ws-stats');
   if(!cont) return;
-  const nModulos=getModulos().length;
-  const base=(u,d)=>wsStatCard(nModulos,'Módulos disponibles')+
-    wsStatCard(u,'Usuarios activos')+wsStatCard(d,'Documentos')+
-    wsStatCard('<span class="ws-dot"></span>Operativo','Estado del sistema');
-  cont.innerHTML=base('—','—');
+  const n=getModulos().length;
+  const build=(u,d)=>
+    wsStatCard('🗂️','#3557d8',n,'Módulos disponibles','Activos para tu cuenta')+
+    wsStatCard('👥','#1aa053',u,'Usuarios activos','Miembros en el sistema')+
+    wsStatCard('📄','#7c5cff',d,'Documentos','Almacenados en total')+
+    wsStatCard('✓','#1aa053','Operativo','Estado del sistema','<span class="ws-dot"></span>Todo funcionando');
+  cont.innerHTML=build('—','—');
   try {
     const {data}=await sb.rpc('estadisticas_workspace');
-    if(data) cont.innerHTML=base(data.usuarios??'—',(data.documentos??0).toLocaleString('es-CO'));
+    if(data) cont.innerHTML=build(data.usuarios??'—',(data.documentos??0).toLocaleString('es-CO'));
   } catch(e){ /* mantiene los guiones si falla */ }
 }
 
@@ -1713,9 +1767,11 @@ function enterPanelDocs() {
 }
 
 // Engranaje ⚙️: entra al panel y abre directamente la gestión de módulos
+// Abre la gestión de módulos SIN salir del workspace (modal propio)
 function gestionarModulos() {
-  enterPanelDocs();
-  setTimeout(()=>{ showPage('config', document.querySelector('.nav-item[onclick*="config"]')); }, 60);
+  if(currentPerfil?.rol!=='admin') return;
+  renderWsConfigList();
+  document.getElementById('modal-ws-config').classList.add('open');
 }
 
 function backToHub() {
@@ -1836,7 +1892,6 @@ function showPage(id,el) {
   if(id==='organigrama') renderOrganigrama();
   if(id==='phva') renderPhva();
   if(id==='documentacion'){ if(typeof closeDocPanel==='function') closeDocPanel(); renderDocumentacion(); }
-  if(id==='config') renderConfig();
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────
@@ -4306,29 +4361,29 @@ async function deleteDocCarpeta(id){
   renderDocumentacion();
 }
 
-// ── CONFIGURACIÓN — Tarjetas del portal (HUB) ─────────────
-async function renderConfig() {
-  const grid=document.getElementById('grid-config');
-  if(!grid) return;
+// ── GESTIÓN DE MÓDULOS DEL PORTAL (desde el workspace) ────
+async function renderWsConfigList() {
+  const cont=document.getElementById('ws-config-list');
+  if(!cont) return;
+  cont.innerHTML='<div style="padding:20px;text-align:center;color:var(--gray-500);font-size:13px">Cargando…</div>';
   const {data}=await sb.from('hub_tarjetas').select('*').order('orden');
   allHubTarjetas=data||[];
   if(!allHubTarjetas.length){
-    grid.innerHTML='<div class="empty" style="grid-column:1/-1;padding:40px 0;text-align:center;color:var(--gray-500)">Sin módulos externos. Usa <b>+ Nueva tarjeta</b> para agregar el de firmas u otros.</div>';
+    cont.innerHTML='<div style="padding:26px;text-align:center;color:var(--gray-500);font-size:13px;background:var(--gray-50);border-radius:10px">Aún no hay módulos externos. Usa <b>+ Nuevo módulo</b> para agregar el de firmas u otros.</div>';
     return;
   }
-  grid.innerHTML=allHubTarjetas.map(t=>{
+  cont.innerHTML=allHubTarjetas.map(t=>{
     const vp=t.visible_para;
-    const etiq=vp&&vp.length?`<div style="font-size:10px;color:var(--gray-500);margin-top:2px">👁 ${vp.map(uid=>{const u=allUsers.find(x=>x.id===uid);return u?u.nombre.split(' ')[0]:'?';}).join(', ')}</div>`:'<div style="font-size:10px;color:var(--gray-500);margin-top:2px">👁 Visible para todos</div>';
-    return `<div class="link-card">
-      <div class="link-card-actions">
-        <button class="icon-btn" onclick="openEditHub('${t.id}')" title="Editar">✏</button>
-        <button class="icon-btn danger" onclick="deleteHubTarjeta('${t.id}')" title="Eliminar">🗑</button>
+    const vis=vp&&vp.length?vp.map(uid=>{const u=allUsers.find(x=>x.id===uid);return u?u.nombre.split(' ')[0]:'?';}).join(', '):'Todos';
+    const ico=t.icono_url?`<img src="${esc(t.icono_url)}" style="width:26px;height:26px;object-fit:contain">`:esc(t.icono||'🔗');
+    return `<div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border:1.5px solid var(--border);border-radius:11px">
+      <div style="width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:${hexA(t.color||'#7c5cff','20')};color:${t.color||'#7c5cff'}">${ico}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:13.5px;color:var(--gray-900)">${esc(t.nombre)}</div>
+        <div style="font-size:11px;color:var(--gray-500)">👁 ${esc(vis)}</div>
       </div>
-      <div class="link-card-icon">${esc(t.icono)||'🔗'}</div>
-      <div class="link-card-name">${esc(t.nombre)}</div>
-      ${t.descripcion?`<div class="link-card-desc">${esc(t.descripcion)}</div>`:'<div class="link-card-desc"></div>'}
-      ${etiq}
-      <a class="link-card-btn" href="${esc(t.url)}" target="_blank" rel="noopener">Abrir ↗</a>
+      <button class="icon-btn" onclick="openEditHub('${t.id}')" title="Editar">✏</button>
+      <button class="icon-btn danger" onclick="deleteHubTarjeta('${t.id}')" title="Eliminar">🗑</button>
     </div>`;
   }).join('');
 }
@@ -4344,13 +4399,19 @@ function buildHubVisibilidad(selectedIds=[]) {
     </label>`).join('');
 }
 
+function onHubImgChosen(input,tipo){
+  const file=input.files[0]; if(!file) return;
+  if(tipo==='icono'){ hubIconoFile=file; document.getElementById('hub-icono-preview').textContent='✓ '+file.name; }
+  else { hubFondoFile=file; document.getElementById('hub-fondo-preview').textContent='✓ '+file.name; }
+}
+
 function openHubModal() {
-  editHubId=null;
-  document.getElementById('modal-hub-title').textContent='Nueva tarjeta del portal';
-  document.getElementById('hub-icono').value='';
-  document.getElementById('hub-nombre').value='';
-  document.getElementById('hub-desc').value='';
-  document.getElementById('hub-url').value='';
+  editHubId=null; hubIconoFile=null; hubFondoFile=null;
+  document.getElementById('modal-hub-title').textContent='Nuevo módulo';
+  ['hub-icono','hub-nombre','hub-desc','hub-url'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('hub-color').value='#7c5cff';
+  document.getElementById('hub-icono-preview').textContent='';
+  document.getElementById('hub-fondo-preview').textContent='';
   buildHubVisibilidad([]);
   document.getElementById('modal-hub').classList.add('open');
 }
@@ -4358,14 +4419,26 @@ function openHubModal() {
 function openEditHub(id) {
   const t=allHubTarjetas.find(x=>x.id===id);
   if(!t) return;
-  editHubId=id;
-  document.getElementById('modal-hub-title').textContent='Editar tarjeta del portal';
+  editHubId=id; hubIconoFile=null; hubFondoFile=null;
+  document.getElementById('modal-hub-title').textContent='Editar módulo';
   document.getElementById('hub-icono').value=t.icono||'';
   document.getElementById('hub-nombre').value=t.nombre||'';
   document.getElementById('hub-desc').value=t.descripcion||'';
   document.getElementById('hub-url').value=t.url||'';
+  document.getElementById('hub-color').value=t.color||'#7c5cff';
+  document.getElementById('hub-icono-preview').textContent=t.icono_url?'✓ imagen actual':'';
+  document.getElementById('hub-fondo-preview').textContent=t.fondo_url?'✓ imagen actual':'';
   buildHubVisibilidad(t.visible_para||[]);
   document.getElementById('modal-hub').classList.add('open');
+}
+
+// Sube una imagen del módulo al bucket 'modulos' y devuelve su URL pública
+async function uploadModuloImg(file,tipo){
+  const ext=(file.name.split('.').pop()||'png').replace(/[^a-zA-Z0-9]/g,'')||'png';
+  const path=`${tipo}/${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+  const {error}=await sb.storage.from('modulos').upload(path,file,{upsert:true,contentType:file.type});
+  if(error) throw error;
+  return sb.storage.from('modulos').getPublicUrl(path).data.publicUrl;
 }
 
 async function saveHubTarjeta() {
@@ -4373,40 +4446,49 @@ async function saveHubTarjeta() {
   const url=document.getElementById('hub-url').value.trim();
   if(!nombre){showToast('El nombre es obligatorio','error');return;}
   if(!url){showToast('El enlace es obligatorio','error');return;}
-  const checks=[...document.querySelectorAll('#hub-visibilidad input[type=checkbox]:checked')];
-  const visible_para=checks.map(c=>c.value);
-  const data={
-    icono:document.getElementById('hub-icono').value.trim()||'🔗',
-    nombre,
-    descripcion:document.getElementById('hub-desc').value.trim()||null,
-    url,
-    visible_para: visible_para.length ? visible_para : null,
-    orden: editHubId ? allHubTarjetas.find(x=>x.id===editHubId)?.orden??99 : (allHubTarjetas.length+1),
-    actualizado_en:new Date().toISOString()
-  };
-  let error;
-  if(editHubId){
-    ({error}=await sb.from('hub_tarjetas').update(data).eq('id',editHubId));
-  } else {
-    data.creado_en=new Date().toISOString();
-    ({error}=await sb.from('hub_tarjetas').insert(data));
-  }
-  if(error){showToast('Error: '+error.message,'error');return;}
-  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editHubId?'EDITAR':'CREAR',tabla:'hub_tarjetas',detalle:`${editHubId?'Editó':'Creó'} tarjeta del portal "${nombre}"`});
-  closeModal('modal-hub');
-  showToast(editHubId?'Tarjeta actualizada ✓':'Tarjeta creada ✓','success');
-  renderConfig();
+  const btn=document.getElementById('hub-save-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Guardando...';
+  try {
+    const checks=[...document.querySelectorAll('#hub-visibilidad input[type=checkbox]:checked')];
+    const visible_para=checks.map(c=>c.value);
+    const existing=editHubId?allHubTarjetas.find(x=>x.id===editHubId):null;
+    let icono_url=existing?.icono_url||null, fondo_url=existing?.fondo_url||null;
+    if(hubIconoFile) icono_url=await uploadModuloImg(hubIconoFile,'icono');
+    if(hubFondoFile) fondo_url=await uploadModuloImg(hubFondoFile,'fondo');
+    const data={
+      icono:document.getElementById('hub-icono').value.trim()||'🔗',
+      nombre,
+      descripcion:document.getElementById('hub-desc').value.trim()||null,
+      url,
+      color:document.getElementById('hub-color').value||'#7c5cff',
+      icono_url, fondo_url,
+      visible_para: visible_para.length ? visible_para : null,
+      orden: editHubId ? existing?.orden??99 : (allHubTarjetas.length+1),
+      actualizado_en:new Date().toISOString()
+    };
+    let error;
+    if(editHubId){ ({error}=await sb.from('hub_tarjetas').update(data).eq('id',editHubId)); }
+    else { data.creado_en=new Date().toISOString(); ({error}=await sb.from('hub_tarjetas').insert(data)); }
+    if(error) throw error;
+    await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editHubId?'EDITAR':'CREAR',tabla:'hub_tarjetas',detalle:`${editHubId?'Editó':'Creó'} módulo "${nombre}"`});
+    closeModal('modal-hub');
+    showToast(editHubId?'Módulo actualizado ✓':'Módulo creado ✓','success');
+    const {data:fresh}=await sb.from('hub_tarjetas').select('*').order('orden');
+    allHubTarjetas=fresh||[];
+    renderWsConfigList(); renderModules(); renderStats();
+  } catch(e){ showToast('Error: '+e.message,'error'); }
+  finally{ btn.disabled=false; btn.textContent='Guardar'; }
 }
 
 async function deleteHubTarjeta(id) {
   const t=allHubTarjetas.find(x=>x.id===id);
-  if(!t||!confirm(`¿Eliminar la tarjeta "${t.nombre}" del portal?`)) return;
+  if(!t||!confirm(`¿Eliminar el módulo "${t.nombre}"?`)) return;
   const {error}=await sb.from('hub_tarjetas').delete().eq('id',id);
   if(error){showToast('Error: '+error.message,'error');return;}
-  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'hub_tarjetas',detalle:`Eliminó tarjeta del portal "${t.nombre}"`});
-  showToast('Tarjeta eliminada');
+  await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'hub_tarjetas',detalle:`Eliminó módulo "${t.nombre}"`});
+  showToast('Módulo eliminado');
   allHubTarjetas=allHubTarjetas.filter(x=>x.id!==id);
-  renderConfig();
+  renderWsConfigList(); renderModules(); renderStats();
 }
 
 // ── ENLACES RECURSOS ──────────────────────────────────────
