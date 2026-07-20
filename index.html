@@ -1766,10 +1766,17 @@ function enterPanelDocs() {
   enterApp();
 }
 
-// Engranaje ⚙️: entra al panel y abre directamente la gestión de módulos
 // Abre la gestión de módulos SIN salir del workspace (modal propio)
-function gestionarModulos() {
+async function gestionarModulos() {
   if(currentPerfil?.rol!=='admin') return;
+  // Desde el workspace loadAll() aún no se ha ejecutado (solo corre al
+  // entrar al Panel de Documentos), así que allUsers puede estar vacío.
+  // Lo cargamos aquí para que "Visible para" liste a todos los usuarios.
+  if(!allUsers.length){
+    const {data,error}=await sb.from('perfiles').select('*').eq('activo',true).order('creado_en',{ascending:true});
+    if(error){ showToast('Error cargando usuarios: '+error.message,'error'); return; }
+    allUsers=data||[];
+  }
   renderWsConfigList();
   document.getElementById('modal-ws-config').classList.add('open');
 }
