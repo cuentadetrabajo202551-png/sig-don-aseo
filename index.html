@@ -1779,7 +1779,9 @@ function wsStatCard(ico,color,val,label,sub){
 async function renderStats() {
   const cont=document.getElementById('ws-stats');
   if(!cont) return;
-  const n=getModulos().length;
+  // "Módulos disponibles" cuenta solo los desbloqueados para este usuario,
+  // no el total de tarjetas (que ahora se muestran todas, aunque bloqueadas).
+  const n=getModulos().filter(m=>m.unlocked).length;
   const build=(u,d)=>
     wsStatCard('🗂️','#3557d8',n,'Módulos disponibles','Activos para tu cuenta')+
     wsStatCard('👥','#1aa053',u,'Usuarios activos','Miembros en el sistema')+
