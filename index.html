@@ -2253,7 +2253,7 @@ async function renderFilePreview(body, info) {
     <a href="${url}" target="_blank" style="padding:9px 18px;background:var(--navy);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:700;margin-top:4px">Abrir en nueva pestaña</a>
   </div>`;
   if(info.mime?.startsWith('image/')) {
-    body.innerHTML=`<img src="${info.url}" alt="${info.nombre}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
+    body.innerHTML=`<img src="${esc(info.url)}" alt="${esc(info.nombre)}" style="width:100%;height:100%;object-fit:contain;padding:16px">`;
   } else if(info.mime==='application/pdf'||info.mime?.includes('pdf')) {
     body.innerHTML=`<iframe src="https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(info.url)}" style="width:100%;height:100%;border:none"></iframe>`;
   } else if(info.mime?.includes('word')||info.mime?.includes('officedocument.wordprocessing')||info.nombre?.toLowerCase().endsWith('.docx')||info.nombre?.toLowerCase().endsWith('.doc')) {
@@ -2662,7 +2662,7 @@ function renderTareas() {
         ${t.descripcion?`<div class="task-desc">${esc(t.descripcion)}</div>`:''}
         <div class="task-meta">
           <span class="task-prio prio-${t.prioridad}">${t.prioridad.charAt(0).toUpperCase()+t.prioridad.slice(1)}</span>
-          ${assignee?`<span class="task-assigned">👤 ${assignee.nombre}</span>`:''}
+          ${assignee?`<span class="task-assigned">👤 ${esc(assignee.nombre)}</span>`:''}
           ${t.fecha_limite?`<span class="task-date" style="${overdue?'color:var(--red);font-weight:700':''}">📅 ${fDate(t.fecha_limite)}${overdue?' ⚠️ Vencida':''}</span>`:''}
           <span class="task-date" style="color:var(--gray-300)">Por: ${esc(t.creado_por_nombre)||'—'}</span>
         </div>
