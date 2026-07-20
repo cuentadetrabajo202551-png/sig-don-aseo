@@ -112,6 +112,10 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .ws-module-desc{font-size:12.5px;color:#5a6577;line-height:1.55;flex:1;position:relative;z-index:1;max-width:78%}
 .ws-module-btn{margin-top:6px;align-self:flex-start;font-size:13px;font-weight:800;color:#fff;background:var(--mc);padding:11px 22px;border-radius:12px;border:none;font-family:var(--font);cursor:pointer;position:relative;z-index:1;box-shadow:0 6px 16px var(--mc-shadow);transition:filter .14s}
 .ws-module:hover .ws-module-btn{filter:brightness(1.08)}
+.ws-module-locked{cursor:default;filter:grayscale(.4);opacity:.68}
+.ws-module-locked:hover{transform:none;box-shadow:0 10px 30px rgba(20,40,90,.07)}
+.ws-module-locked:hover .ws-module-btn{filter:none}
+.ws-module-lock{font-size:11px;font-weight:800;color:var(--red);display:flex;align-items:center;gap:5px;position:relative;z-index:1;margin-top:-2px}
 .ws-empty{grid-column:1/-1;text-align:center;padding:54px 20px;color:var(--ws-muted);background:#fff;border:1px dashed var(--ws-line);border-radius:18px;font-size:14px}
 
 /* Footer */
@@ -1439,8 +1443,11 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
     </div>
     <label class="form-label">Descripción <span class="form-hint">(opcional)</span></label>
     <input class="form-input" id="hub-desc" maxlength="120" placeholder="Ej: Firma digital de documentos">
-    <label class="form-label">Enlace del módulo *</label>
-    <input class="form-input" id="hub-url" type="url" placeholder="https://...">
+    <div id="hub-url-wrap">
+      <label class="form-label">Enlace del módulo *</label>
+      <input class="form-input" id="hub-url" type="url" placeholder="https://...">
+    </div>
+    <div id="hub-panel-note" style="display:none;font-size:12px;color:var(--gray-500);background:var(--navy-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;margin-top:4px;line-height:1.5">📁 Este módulo abre el <b>Panel de Documentos</b> directamente. El acceso se controla desde <b>Usuarios</b> (🔒 Bloquear / 🔓 Dar acceso), no aquí.</div>
     <div class="form-row">
       <div>
         <label class="form-label">Ícono <span class="form-hint">(emoji o imagen 160×160)</span></label>
@@ -1464,8 +1471,11 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         <input type="file" id="hub-fondo-file" accept="image/*" style="display:none" onchange="onHubImgChosen(this,'fondo')">
       </div>
     </div>
-    <label class="form-label">Visible para <span class="form-hint">(deja todo sin marcar = visible para todos)</span></label>
-    <div id="hub-visibilidad" style="display:flex;flex-direction:column;gap:7px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-50);max-height:130px;overflow-y:auto"></div>
+    <div id="hub-vis-wrap">
+      <label class="form-label">Habilitado para <span class="form-hint">(deja todo sin marcar = habilitado para todos)</span></label>
+      <p style="font-size:11.5px;color:var(--gray-500);margin:-2px 0 7px;line-height:1.5">Todos ven la tarjeta siempre. A quien no marques aquí le saldrá bloqueada con 🔒.</p>
+      <div id="hub-visibilidad" style="display:flex;flex-direction:column;gap:7px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-50);max-height:130px;overflow-y:auto"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-hub')">Cancelar</button>
       <button class="btn-primary" id="hub-save-btn" onclick="saveHubTarjeta()">Guardar</button>
@@ -1688,42 +1698,56 @@ function wsHeader() {
 }
 
 // ── Arreglo dinámico de módulos (escalable) ──
+// Arma la lista de módulos a partir de hub_tarjetas (incluye la tarjeta
+// fija "Gestión Documental", tipo='panel'). Todas las tarjetas se
+// muestran siempre; "unlocked" decide si se puede entrar o sale bloqueada.
+// El admin siempre entra a todo, para poder gestionar y probar cada módulo.
 function getModulos() {
-  const mods=[];
-  // Módulo fijo: Gestión Documental (solo si el usuario tiene acceso)
-  if(currentPerfil?.acceso_sig!==false){
-    mods.push({id:'docs',nombre:'Gestión Documental',icono:'📁',
-      descripcion:'Sistema Integrado de Gestión — SST, Calidad y Ambiental.',
-      color:'#0039b3',accion:'panel'});
-  }
-  // Módulos configurables desde Supabase, filtrados por visibilidad
-  // El admin siempre ve todos los módulos (para poder gestionarlos/probarlos),
-  // igual que ya ocurre con las tarjetas de Recursos.
-  allHubTarjetas.forEach(t=>{
+  const isAdmin=currentPerfil?.rol==='admin';
+  const mods=allHubTarjetas.map(t=>{
+    const isPanel=t.tipo==='panel';
     const vp=t.visible_para;
-    const visible=currentPerfil?.rol==='admin'||!vp||vp.length===0||vp.includes(currentUser.id);
-    if(!visible) return;
-    mods.push({id:t.id,nombre:t.nombre,icono:t.icono||'🔗',
-      descripcion:t.descripcion||'',color:t.color||'#7c5cff',accion:'link',url:t.url,
-      icono_url:t.icono_url,fondo_url:t.fondo_url});
+    const unlocked=isAdmin||(isPanel
+      ? currentPerfil?.acceso_sig!==false
+      : (!vp||vp.length===0||vp.includes(currentUser.id)));
+    return {id:t.id,nombre:t.nombre,icono:t.icono||(isPanel?'📁':'🔗'),
+      descripcion:t.descripcion||'',color:t.color||(isPanel?'#0039b3':'#7c5cff'),
+      accion:isPanel?'panel':'link',url:t.url,
+      icono_url:t.icono_url,fondo_url:t.fondo_url,unlocked};
   });
+  // Compatibilidad: si aún no se migró la tarjeta 'panel' a la base de
+  // datos, se sintetiza para que el launcher no quede sin ella.
+  if(!mods.some(m=>m.accion==='panel')){
+    mods.unshift({id:'docs',nombre:'Gestión Documental',icono:'📁',
+      descripcion:'Sistema Integrado de Gestión — SST, Calidad y Ambiental.',
+      color:'#0039b3',accion:'panel',unlocked:isAdmin||currentPerfil?.acceso_sig!==false});
+  }
   return mods;
 }
 
-// ── Componente: tarjeta de módulo (color + imágenes personalizables) ──
+// ── Componente: tarjeta de módulo (color + imágenes + estado bloqueado) ──
 function wsModuleCard(m) {
   const color=m.color||'#0039b3';
   const isPanel=m.accion==='panel';
-  const attrs=isPanel?`onclick="enterPanelDocs()"`:`href="${esc(m.url)}" target="_blank" rel="noopener"`;
-  const tag=isPanel?'div':'a';
+  const locked=!m.unlocked;
+  let tag='div', attrs='';
+  if(!locked){
+    if(isPanel){ attrs=`onclick="enterPanelDocs()"`; }
+    else { tag='a'; attrs=`href="${esc(m.url)}" target="_blank" rel="noopener"`; }
+  }
   const icono=m.icono_url?`<img src="${esc(m.icono_url)}" alt="">`:esc(m.icono||'🔗');
   const fondo=m.fondo_url?`<img class="ws-module-bg" src="${esc(m.fondo_url)}" alt="" aria-hidden="true">`:'';
-  return `<${tag} class="ws-module" style="--mc:${color};--mc-soft:${hexA(color,'14')};--mc-shadow:${hexA(color,'3d')}" ${attrs}>
+  const btn=locked
+    ?`<button class="ws-module-btn" disabled style="background:var(--gray-300);cursor:not-allowed;box-shadow:none">Sin acceso</button>`
+    :`<button class="ws-module-btn">Entrar →</button>`;
+  const lockNote=locked?`<div class="ws-module-lock">🔒 No tienes acceso a este módulo</div>`:'';
+  return `<${tag} class="ws-module${locked?' ws-module-locked':''}" style="--mc:${color};--mc-soft:${hexA(color,'14')};--mc-shadow:${hexA(color,'3d')}" ${attrs}>
     ${fondo}
     <div class="ws-module-ico" style="color:${color}">${icono}</div>
     <div class="ws-module-name">${esc(m.nombre)}</div>
     <div class="ws-module-desc">${esc(m.descripcion)}</div>
-    <button class="ws-module-btn">Entrar →</button>
+    ${btn}
+    ${lockNote}
   </${tag}>`;
 }
 
@@ -1736,7 +1760,7 @@ function renderModules() {
   if(q) mods=mods.filter(m=>(m.nombre+' '+m.descripcion).toLowerCase().includes(q));
   cont.innerHTML = mods.length
     ? mods.map(wsModuleCard).join('')
-    : `<div class="ws-empty">${q?'No se encontraron módulos para “'+esc(q)+'”.':'No tienes módulos disponibles por el momento. Contacta al administrador.'}</div>`;
+    : `<div class="ws-empty">No se encontraron módulos para “${esc(q)}”.</div>`;
 }
 
 // ── Componente: tarjeta de estadística (ícono de color) ──
@@ -4388,17 +4412,18 @@ async function renderWsConfigList() {
     return;
   }
   cont.innerHTML=allHubTarjetas.map(t=>{
+    const isPanel=t.tipo==='panel';
     const vp=t.visible_para;
-    const vis=vp&&vp.length?vp.map(uid=>{const u=allUsers.find(x=>x.id===uid);return u?u.nombre.split(' ')[0]:'?';}).join(', '):'Todos';
-    const ico=t.icono_url?`<img src="${esc(t.icono_url)}" style="width:26px;height:26px;object-fit:contain">`:esc(t.icono||'🔗');
+    const vis=isPanel?'Según acceso al panel (ver Usuarios)':(vp&&vp.length?vp.map(uid=>{const u=allUsers.find(x=>x.id===uid);return u?u.nombre.split(' ')[0]:'?';}).join(', '):'Todos habilitados');
+    const ico=t.icono_url?`<img src="${esc(t.icono_url)}" style="width:26px;height:26px;object-fit:contain">`:esc(t.icono||(isPanel?'📁':'🔗'));
     return `<div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border:1.5px solid var(--border);border-radius:11px">
       <div style="width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:${hexA(t.color||'#7c5cff','20')};color:${t.color||'#7c5cff'}">${ico}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:13.5px;color:var(--gray-900)">${esc(t.nombre)}</div>
+        <div style="font-weight:700;font-size:13.5px;color:var(--gray-900)">${esc(t.nombre)}${isPanel?' <span class="badge b-ver" style="margin-left:4px">Panel principal</span>':''}</div>
         <div style="font-size:11px;color:var(--gray-500)">👁 ${esc(vis)}</div>
       </div>
       <button class="icon-btn" onclick="openEditHub('${t.id}')" title="Editar">✏</button>
-      <button class="icon-btn danger" onclick="deleteHubTarjeta('${t.id}')" title="Eliminar">🗑</button>
+      ${isPanel?'':`<button class="icon-btn danger" onclick="deleteHubTarjeta('${t.id}')" title="Eliminar">🗑</button>`}
     </div>`;
   }).join('');
 }
@@ -4444,6 +4469,9 @@ function openHubModal() {
   document.getElementById('hub-color').value='#7c5cff';
   document.getElementById('hub-icono-file').value='';
   document.getElementById('hub-fondo-file').value='';
+  document.getElementById('hub-url-wrap').style.display='';
+  document.getElementById('hub-panel-note').style.display='none';
+  document.getElementById('hub-vis-wrap').style.display='';
   showHubThumb('icono',null);
   showHubThumb('fondo',null);
   buildHubVisibilidad([]);
@@ -4453,6 +4481,7 @@ function openHubModal() {
 function openEditHub(id) {
   const t=allHubTarjetas.find(x=>x.id===id);
   if(!t) return;
+  const isPanel=t.tipo==='panel';
   editHubId=id; hubIconoFile=null; hubFondoFile=null; hubIconoClear=false; hubFondoClear=false;
   document.getElementById('modal-hub-title').textContent='Editar módulo';
   document.getElementById('hub-icono').value=t.icono||'';
@@ -4462,6 +4491,11 @@ function openEditHub(id) {
   document.getElementById('hub-color').value=t.color||'#7c5cff';
   document.getElementById('hub-icono-file').value='';
   document.getElementById('hub-fondo-file').value='';
+  // La tarjeta del panel principal no tiene enlace propio ni lista de
+  // "Habilitado para" — su acceso se controla desde Usuarios.
+  document.getElementById('hub-url-wrap').style.display=isPanel?'none':'';
+  document.getElementById('hub-panel-note').style.display=isPanel?'':'none';
+  document.getElementById('hub-vis-wrap').style.display=isPanel?'none':'';
   showHubThumb('icono',t.icono_url);
   showHubThumb('fondo',t.fondo_url);
   buildHubVisibilidad(t.visible_para||[]);
@@ -4480,14 +4514,15 @@ async function uploadModuloImg(file,tipo){
 async function saveHubTarjeta() {
   const nombre=document.getElementById('hub-nombre').value.trim();
   const url=document.getElementById('hub-url').value.trim();
+  const existing=editHubId?allHubTarjetas.find(x=>x.id===editHubId):null;
+  const isPanelEdit=existing?.tipo==='panel';
   if(!nombre){showToast('El nombre es obligatorio','error');return;}
-  if(!url){showToast('El enlace es obligatorio','error');return;}
+  if(!isPanelEdit && !url){showToast('El enlace es obligatorio','error');return;}
   const btn=document.getElementById('hub-save-btn');
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Guardando...';
   try {
     const checks=[...document.querySelectorAll('#hub-visibilidad input[type=checkbox]:checked')];
     const visible_para=checks.map(c=>c.value);
-    const existing=editHubId?allHubTarjetas.find(x=>x.id===editHubId):null;
     let icono_url=existing?.icono_url||null, fondo_url=existing?.fondo_url||null;
     if(hubIconoFile) icono_url=await uploadModuloImg(hubIconoFile,'icono');
     else if(hubIconoClear) icono_url=null;
@@ -4497,16 +4532,26 @@ async function saveHubTarjeta() {
       icono:document.getElementById('hub-icono').value.trim()||'🔗',
       nombre,
       descripcion:document.getElementById('hub-desc').value.trim()||null,
-      url,
       color:document.getElementById('hub-color').value||'#7c5cff',
       icono_url, fondo_url,
-      visible_para: visible_para.length ? visible_para : null,
-      orden: editHubId ? existing?.orden??99 : (allHubTarjetas.length+1),
       actualizado_en:new Date().toISOString()
     };
+    if(isPanelEdit){
+      // El panel principal no usa enlace propio ni restricción por checklist
+      // (su acceso lo controla acceso_sig, gestionado desde Usuarios).
+      data.visible_para=null;
+    } else {
+      data.url=url;
+      data.visible_para=visible_para.length?visible_para:null;
+    }
     let error;
     if(editHubId){ ({error}=await sb.from('hub_tarjetas').update(data).eq('id',editHubId)); }
-    else { data.creado_en=new Date().toISOString(); ({error}=await sb.from('hub_tarjetas').insert(data)); }
+    else {
+      data.tipo='link';
+      data.orden=allHubTarjetas.length+1;
+      data.creado_en=new Date().toISOString();
+      ({error}=await sb.from('hub_tarjetas').insert(data));
+    }
     if(error) throw error;
     await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editHubId?'EDITAR':'CREAR',tabla:'hub_tarjetas',detalle:`${editHubId?'Editó':'Creó'} módulo "${nombre}"`});
     closeModal('modal-hub');
@@ -4520,7 +4565,9 @@ async function saveHubTarjeta() {
 
 async function deleteHubTarjeta(id) {
   const t=allHubTarjetas.find(x=>x.id===id);
-  if(!t||!confirm(`¿Eliminar el módulo "${t.nombre}"?`)) return;
+  if(!t) return;
+  if(t.tipo==='panel'){ showToast('No puedes eliminar la tarjeta del Panel de Documentos','error'); return; }
+  if(!confirm(`¿Eliminar el módulo "${t.nombre}"?`)) return;
   const {error}=await sb.from('hub_tarjetas').delete().eq('id',id);
   if(error){showToast('Error: '+error.message,'error');return;}
   await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'hub_tarjetas',detalle:`Eliminó módulo "${t.nombre}"`});
