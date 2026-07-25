@@ -2514,15 +2514,17 @@ async function saveNewUser() {
   const nombre=document.getElementById('nu-nombre').value.trim();
   const email=document.getElementById('nu-email').value.trim();
   const pass=document.getElementById('nu-pass').value;
+  const cargo=document.getElementById('nu-cargo').value.trim();
+  const rol=document.getElementById('nu-rol').value;
   if(!nombre||!email||pass.length<6){showToast('Completa todos los campos (contraseña mín. 6 caracteres)','error');return;}
   const btn=document.getElementById('btn-save-user');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Creando...';
   try {
-    const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{nombre,rol:document.getElementById('nu-rol').value}}});
+    // Se crea vía Edge Function (Admin API) para no iniciar sesión como el
+    // usuario nuevo, y para dejar full_name en auth.users desde el inicio.
+    const {data,error}=await sb.functions.invoke('manage-user',{body:{action:'create',email,password:pass,nombre,cargo,rol}});
     if(error) throw error;
-    if(data.user) {
-      await sb.from('perfiles').upsert({id:data.user.id,nombre,cargo:document.getElementById('nu-cargo').value.trim(),rol:document.getElementById('nu-rol').value,activo:true});
-    }
+    if(!data?.success) throw new Error(data?.error||'No se pudo crear el usuario');
     showToast('Usuario creado correctamente ✓','success');
     closeModal('modal-user');
     await loadAll();renderUsers();
@@ -2605,6 +2607,14 @@ async function saveEditProfile() {
     if(currentPerfil?.rol==='admin') updates.rol=document.getElementById('ep-rol').value;
     await sb.from('perfiles').update(updates).eq('id',editProfileUserId);
     if(editProfileUserId===currentUser.id){currentPerfil={...currentPerfil,...updates};updateTopbar();}
+    // Sincronizar nombre hacia auth.users.raw_user_meta_data.full_name
+    // (lo usa el Sistema de Evidencias Digitales, que comparte este Supabase)
+    if(nombre!==u.nombre){
+      const {data:syncData,error:syncErr}=await sb.functions.invoke('manage-user',{body:{action:'update_name',userId:editProfileUserId,nombre}});
+      if(syncErr||!syncData?.success){
+        showToast('Perfil guardado, pero no se pudo sincronizar el nombre con Authentication','error');
+      }
+    }
     // Sincronizar foto con tarjeta de organigrama vinculada
     if(editProfilePhotoFile && foto_url) {
       const {data:orgVinc}=await sb.from('organigrama').select('id').eq('perfil_id',editProfileUserId).maybeSingle();
