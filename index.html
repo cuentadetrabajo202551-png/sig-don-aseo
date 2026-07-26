@@ -1807,7 +1807,7 @@ async function gestionarModulos() {
   // entrar al Panel de Documentos), así que allUsers puede estar vacío.
   // Lo cargamos aquí para que "Visible para" liste a todos los usuarios.
   if(!allUsers.length){
-    const {data,error}=await sb.from('perfiles').select('*').eq('activo',true).order('creado_en',{ascending:true});
+    const {data,error}=await sb.from('perfiles').select('*').eq('activo',true).order('creado_en',{ascending:true}).order('id',{ascending:true});
     if(error){ showToast('Error cargando usuarios: '+error.message,'error'); return; }
     allUsers=data||[];
   }
@@ -1947,7 +1947,7 @@ async function loadAll() {
 
     const [docsRes,usersRes,tareasRes,comRes,actasRes,miembrosRes,orgRes,enlacesRes,phvaCarpRes,phvaArchRes,docCarpRes,docArchRes]=await Promise.all([
       docsQuery,
-      sb.from('perfiles').select('*').eq('activo',true).order('creado_en',{ascending:true}),
+      sb.from('perfiles').select('*').eq('activo',true).order('creado_en',{ascending:true}).order('id',{ascending:true}),
       sb.from('tareas').select('*').order('creado_en',{ascending:false}),
       sb.from('comentarios').select('documento_id'),
       sb.from('actas_comites').select('*').order('fecha_reunion',{ascending:false}),
@@ -2487,7 +2487,7 @@ function renderUsers() {
       <div class="u-actions">
         ${(currentPerfil?.rol==='admin'||currentPerfil?.id===u.id)?`<button class="text-btn" onclick="openEditProfile('${u.id}')">✏ Editar</button>`:''}
         ${(currentPerfil?.rol==='admin'&&currentPerfil?.id!==u.id)?`<button class="text-btn" style="color:${sinAcceso?'var(--green-dark)':'var(--amber)'}" onclick="toggleAccesoSig('${u.id}')">${sinAcceso?'🔓 Dar acceso':'🔒 Bloquear'}</button>`:''}
-        ${(currentPerfil?.rol==='admin'&&currentPerfil?.id!==u.id)?`<button class="icon-btn danger" style="margin-top:4px" onclick="deleteUser('${u.id}')">🗑</button>`:''}
+        ${(currentPerfil?.rol==='admin'&&currentPerfil?.id!==u.id)?`<button class="icon-btn danger" style="margin-top:4px" onclick="deleteUser('${u.id}')" title="Eliminar definitivamente (no se puede deshacer)">🗑</button>`:''}
       </div>
     </div>`;
   }).join('')+(currentPerfil?.rol==='admin'?`<div class="user-card" style="border-style:dashed;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:6px" onclick="openUserModal()"><div style="font-size:28px;color:var(--gray-300)">+</div><div style="font-size:13px;color:var(--gray-500);font-weight:600">Agregar usuario</div></div>`:'');
@@ -2541,10 +2541,15 @@ async function deleteUser(id) {
     showToast('No puedes eliminarte a ti mismo','error');
     return;
   }
-  if(!confirm('¿Desactivar este usuario?')) return;
+  const u=allUsers.find(x=>x.id===id);
+  const nombre=u?.nombre||'este usuario';
+  if(!confirm(`¿Eliminar definitivamente a ${nombre}?\n\nEsto borra su perfil Y su cuenta de acceso por completo. No se puede deshacer.`)) return;
   try {
-    await sb.from('perfiles').update({activo:false}).eq('id',id);
-    showToast('Usuario desactivado','success');
+    const {data,error}=await sb.functions.invoke('manage-user',{body:{action:'delete',userId:id}});
+    if(error) throw error;
+    if(!data?.success) throw new Error(data?.error||'No se pudo eliminar el usuario');
+    await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'perfiles',registro_id:id,detalle:`Eliminó definitivamente al usuario ${nombre}`});
+    showToast('Usuario eliminado definitivamente','success');
     await loadAll();renderUsers();
   } catch(e){showToast('Error: '+e.message,'error');}
 }
