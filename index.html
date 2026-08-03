@@ -3830,7 +3830,8 @@ function phvaCreatorName(uid){
   const u=allUsers.find(x=>x.id===uid);
   return u?u.nombre.split(' ')[0]:'';
 }
-// Admin borra cualquier carpeta/archivo PHVA; Editor solo lo que él creó/subió
+// Admin edita/borra cualquier carpeta/archivo PHVA; Editor solo lo que él creó/subió
+// (se usa tanto para el botón Renombrar como para Eliminar)
 function canDeletePhvaItem(creatorId){
   return canDelete()||(canEdit()&&creatorId&&creatorId===currentUser?.id);
 }
@@ -3866,7 +3867,7 @@ function renderPhva() {
               <div class="phva-folder-cnt">${n} elemento${n!==1?'s':''}</div>
             </div>
             ${canEdit()?`<div class="phva-folder-acts">
-              <button class="icon-btn" onclick="event.stopPropagation();openEditCarpeta('${c.id}')" title="Renombrar">✏</button>
+              ${canDeletePhvaItem(c.creado_por)?`<button class="icon-btn" onclick="event.stopPropagation();openEditCarpeta('${c.id}')" title="Renombrar">✏</button>`:''}
               ${canDeletePhvaItem(c.creado_por)?`<button class="icon-btn danger" onclick="event.stopPropagation();deleteCarpeta('${c.id}')" title="Eliminar">🗑</button>`:''}
             </div>`:''}
             ${creador?`<span class="phva-creator-badge" title="Creado por ${esc(creador)}">👤 ${esc(creador)}</span>`:''}
@@ -3939,7 +3940,7 @@ async function loadCarpetaContenido(id) {
         <div class="phva-file-meta">${items} elemento${items!==1?'s':''}${creador?`<span class="phva-creator-badge">👤 ${esc(creador)}</span>`:''}</div>
       </div>
       <div class="phva-file-acts" onclick="event.stopPropagation()">
-        ${canEdit()?`<button class="icon-btn" onclick="openEditCarpeta('${s.id}')" title="Renombrar">✏</button>`:''}
+        ${canDeletePhvaItem(s.creado_por)?`<button class="icon-btn" onclick="openEditCarpeta('${s.id}')" title="Renombrar">✏</button>`:''}
         ${canDeletePhvaItem(s.creado_por)?`<button class="icon-btn danger" onclick="deleteCarpeta('${s.id}')" title="Eliminar">🗑</button>`:''}
         <span style="color:var(--gray-300);font-size:17px;font-weight:700">›</span>
       </div>
