@@ -166,6 +166,9 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .dot-sst{background:#ff6b6b}.dot-cal{background:#74b9ff}.dot-amb{background:var(--green)}.dot-all{background:#a29bfe}
 .nav-cnt{margin-left:auto;font-size:10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);padding:1px 8px;border-radius:20px;font-weight:700}
 .nav-item.active .nav-cnt{background:var(--green);color:#fff}
+.nav-item.nav-locked{opacity:.4;cursor:not-allowed;pointer-events:none}
+.nav-item.nav-locked:hover{background:none;color:rgba(255,255,255,.7)}
+.nav-item.nav-locked::after{content:'🔒';margin-left:auto;font-size:10px}
 
 /* MAIN */
 .main{flex:1;overflow-y:auto;padding:24px;background:var(--gray-50)}
@@ -261,6 +264,7 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .modal-overlay.open{display:flex}
 .modal{background:var(--white);border-radius:var(--radius);padding:28px;width:520px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,51,.2)}
 .modal-lg{width:680px}
+.modal-xl{width:860px;max-width:94vw}
 .modal-title{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:18px;letter-spacing:-.01em}
 .form-label{font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:5px;display:block;margin-top:14px}
 .form-hint{font-size:11px;color:var(--gray-500);font-weight:400}
@@ -268,6 +272,9 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--navy);background:var(--white)}
 .form-textarea{resize:vertical;min-height:70px}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.secciones-check{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-50);max-height:180px;overflow-y:auto}
+.secciones-check label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600}
+.secciones-check input{width:15px;height:15px;accent-color:var(--navy);flex-shrink:0}
 .code-preview{font-family:monospace;font-size:13px;background:var(--navy-light);color:var(--navy);padding:8px 12px;border-radius:var(--radius-sm);margin-top:6px;font-weight:700;letter-spacing:.05em}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
 .btn-primary{padding:10px 22px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:background .12s}
@@ -277,6 +284,21 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .btn-secondary:hover{border-color:var(--gray-500)}
 .add-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:18px;transition:background .12s}
 .add-btn:hover{background:var(--navy-dark)}
+
+/* ROLES / INSTRUCCIONES (solo admin) */
+.roles-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px}
+@media(max-width:640px){.roles-grid{grid-template-columns:1fr}}
+.role-card{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;background:var(--gray-50)}
+.role-card h4{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:10px}
+.role-card h4 .chip{font-size:13px;font-weight:800;padding:6px 14px;border-radius:9px}
+.role-card-sub{font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px}
+.role-card ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.role-card li{font-size:12.5px;color:var(--gray-700);line-height:1.4;padding-left:19px;position:relative}
+.role-card li.perm-yes::before{content:'✔';position:absolute;left:0;top:0;color:var(--green-dark);font-weight:800}
+.role-card li.perm-no::before{content:'✘';position:absolute;left:0;top:0;color:var(--red);font-weight:800}
+.roles-notes{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:8px}
+.roles-notes li{font-size:12.5px;color:var(--gray-700);line-height:1.5;padding-left:22px;position:relative}
+.roles-notes li::before{content:'ℹ';position:absolute;left:0;top:0;color:var(--navy);font-weight:800}
 
 /* BULK SELECT */
 .bulk-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -311,12 +333,14 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .phva-folder-cnt{font-size:10px;color:var(--gray-500);margin-top:2px}
 .phva-folder-acts{display:flex;gap:3px;flex-shrink:0;opacity:0;transition:opacity .12s}
 .phva-folder:hover .phva-folder-acts{opacity:1}
-.phva-file-row{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid var(--gray-100);font-size:13px}
+.phva-creator-badge{position:absolute;bottom:5px;right:8px;font-size:9px;color:var(--gray-500);background:var(--gray-100);padding:1px 7px;border-radius:20px;font-weight:700;white-space:nowrap}
+.phva-file-row{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;position:relative}
 .phva-file-row:last-child{border-bottom:none}
 .phva-file-ico{font-size:22px;flex-shrink:0}
 .phva-file-info{flex:1;min-width:0}
 .phva-file-name{font-weight:600;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .phva-file-meta{font-size:11px;color:var(--gray-500);margin-top:1px}
+.phva-file-meta .phva-creator-badge{position:static;margin-left:6px;padding:0;background:none}
 .phva-file-acts{display:flex;gap:5px;flex-shrink:0}
 #phva-panel-body.drop-active,#doc-panel-body.drop-active{outline:3px dashed var(--navy);outline-offset:-10px;background:var(--navy-light)}
 .phva-drop-hint{display:none;position:absolute;inset:0;z-index:5;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(0,51,153,.06);pointer-events:none;color:var(--navy);font-weight:800;font-size:15px}
@@ -687,24 +711,24 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <div class="nav-sec">General</div>
       <div class="nav-item active" onclick="showPage('dashboard',this)"><div class="nav-dot dot-all"></div>Panel principal</div>
       <div class="nav-sec">Sistemas</div>
-      <div class="nav-item" onclick="showPage('sig',this)"><div class="nav-dot" style="background:#a29bfe"></div>Maestro SIG<span class="nav-cnt" id="cnt-sig">—</span></div>
-      <div class="nav-item" onclick="showPage('sst',this)"><div class="nav-dot dot-sst"></div>SST<span class="nav-cnt" id="cnt-sst">—</span></div>
-      <div class="nav-item" onclick="showPage('calidad',this)"><div class="nav-dot dot-cal"></div>Calidad<span class="nav-cnt" id="cnt-cal">—</span></div>
-      <div class="nav-item" onclick="showPage('ambiental',this)"><div class="nav-dot dot-amb"></div>Ambiental<span class="nav-cnt" id="cnt-amb">—</span></div>
+      <div class="nav-item" id="nav-sig" onclick="showPage('sig',this)"><div class="nav-dot" style="background:#a29bfe"></div>Maestro SIG<span class="nav-cnt" id="cnt-sig">—</span></div>
+      <div class="nav-item" id="nav-sst" onclick="showPage('sst',this)"><div class="nav-dot dot-sst"></div>SST<span class="nav-cnt" id="cnt-sst">—</span></div>
+      <div class="nav-item" id="nav-calidad" onclick="showPage('calidad',this)"><div class="nav-dot dot-cal"></div>Calidad<span class="nav-cnt" id="cnt-cal">—</span></div>
+      <div class="nav-item" id="nav-ambiental" onclick="showPage('ambiental',this)"><div class="nav-dot dot-amb"></div>Ambiental<span class="nav-cnt" id="cnt-amb">—</span></div>
       <div class="nav-sec">Ciclo PHVA</div>
-      <div class="nav-item" onclick="showPage('phva',this)">🔄&nbsp;Ciclo PHVA<span class="nav-cnt" id="cnt-phva">—</span></div>
+      <div class="nav-item" id="nav-phva" onclick="showPage('phva',this)">🔄&nbsp;Ciclo PHVA<span class="nav-cnt" id="cnt-phva">—</span></div>
       <div class="nav-sec">Comités</div>
-      <div class="nav-item" onclick="showPage('copasst',this)"><div class="nav-dot" style="background:#ff8c42"></div>COPASST</div>
-      <div class="nav-item" onclick="showPage('ccl',this)"><div class="nav-dot" style="background:#9b59b6"></div>CCL</div>
+      <div class="nav-item" id="nav-copasst" onclick="showPage('copasst',this)"><div class="nav-dot" style="background:#ff8c42"></div>COPASST</div>
+      <div class="nav-item" id="nav-ccl" onclick="showPage('ccl',this)"><div class="nav-dot" style="background:#9b59b6"></div>CCL</div>
       <div class="nav-sec">Recursos</div>
-      <div class="nav-item" onclick="showPage('recursos',this)">📁&nbsp;Recursos</div>
-      <div class="nav-item" onclick="showPage('documentacion',this)">📚&nbsp;Documentación</div>
+      <div class="nav-item" id="nav-recursos" onclick="showPage('recursos',this)">📁&nbsp;Recursos</div>
+      <div class="nav-item" id="nav-documentacion" onclick="showPage('documentacion',this)">📚&nbsp;Documentación</div>
       <div class="nav-sec">Herramientas</div>
       <div class="nav-item" onclick="showPage('buscar',this)">🔍&nbsp;Buscador</div>
       <div class="nav-item" onclick="showPage('pendientes',this)">⏰&nbsp;Pendientes</div>
       <div class="nav-item" onclick="showPage('generar',this)">📄&nbsp;Generar doc.</div>
-      <div class="nav-item" onclick="showPage('tareas',this)">✅&nbsp;Tareas</div>
-      <div class="nav-item" onclick="showPage('organigrama',this)">🏢&nbsp;Organigrama</div>
+      <div class="nav-item" id="nav-tareas" onclick="showPage('tareas',this)">✅&nbsp;Tareas</div>
+      <div class="nav-item" id="nav-organigrama" onclick="showPage('organigrama',this)">🏢&nbsp;Organigrama</div>
       <div class="nav-sec">Administración</div>
       <div class="nav-item" onclick="showPage('usuarios',this)">👥&nbsp;Usuarios</div>
       <div class="nav-item editor-up" onclick="showPage('auditoria',this)">🔎&nbsp;Auditoría</div>
@@ -1125,7 +1149,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 
 <!-- MODAL NUEVO USUARIO -->
 <div class="modal-overlay" id="modal-user">
-  <div class="modal">
+  <div class="modal modal-lg">
     <div class="modal-title">Nuevo usuario</div>
     <div class="photo-circle" id="nu-photo" onclick="document.getElementById('nu-photo-input').click()">
       <div>📷<br>Foto<br>(opcional)</div>
@@ -1146,6 +1170,8 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <option value="viewer">Visualizador — solo ver y descargar</option>
       <option value="invitado">Invitado — solo ver (sin descargar)</option>
     </select>
+    <label class="form-label">Áreas del panel permitidas <span class="form-hint">(todo marcado = sin restricción)</span></label>
+    <div id="nu-secciones" class="secciones-check"></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-user')">Cancelar</button>
       <button class="btn-primary" id="btn-save-user" onclick="saveNewUser()">Crear usuario</button>
@@ -1153,9 +1179,74 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
   </div>
 </div>
 
+<!-- MODAL INSTRUCCIONES / ROLES (solo admin) -->
+<div class="modal-overlay" id="modal-roles">
+  <div class="modal modal-xl">
+    <div class="modal-title">📖 Roles y permisos</div>
+    <div style="font-size:12.5px;color:var(--gray-500);margin:-12px 0 18px">Referencia rápida de qué puede hacer cada rol en el panel. Esta información solo la puede ver un administrador.</div>
+    <div class="roles-grid">
+      <div class="role-card">
+        <h4><span class="chip chip-admin">👑 Administrador</span></h4>
+        <ul>
+          <li class="perm-yes">Crear, editar y eliminar en todos los módulos: documentos, tareas, comités, organigrama, Ciclo PHVA, Documentación y Recursos</li>
+          <li class="perm-yes">Ver y descargar documentos ocultos/congelados</li>
+          <li class="perm-yes">Eliminar cualquier carpeta/archivo de Ciclo PHVA, sin importar quién lo creó</li>
+          <li class="perm-yes">Crear, editar, cambiar rol, bloquear acceso (acceso_sig) y eliminar usuarios de forma permanente</li>
+          <li class="perm-yes">Ver el registro de Auditoría completo</li>
+          <li class="perm-yes">Configurar los módulos del Workspace (portal de inicio)</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4><span class="chip chip-editor">✏️ Editor</span></h4>
+        <ul>
+          <li class="perm-yes">Crear y editar documentos, versiones, tareas, actas, miembros, organigrama, carpetas y archivos</li>
+          <li class="perm-yes">Ver y descargar documentos ocultos/congelados</li>
+          <li class="perm-yes">Eliminar SOLO las carpetas/archivos de Ciclo PHVA que él mismo creó o subió</li>
+          <li class="perm-yes">Ver el registro de Auditoría</li>
+          <li class="perm-no">Eliminar documentos, tareas, actas o carpetas del sistema principal (exclusivo admin)</li>
+          <li class="perm-no">Eliminar carpetas/archivos de PHVA creados por otra persona</li>
+          <li class="perm-no">Crear/editar tarjetas de Recursos, ni gestionar usuarios</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4><span class="chip chip-viewer">👁️ Visualizador</span></h4>
+        <ul>
+          <li class="perm-yes">Ver y descargar todo el contenido al que tenga acceso</li>
+          <li class="perm-yes">Cambiar el estado de una tarea que tenga asignada</li>
+          <li class="perm-no">Crear, editar o eliminar cualquier cosa</li>
+          <li class="perm-no">Ver documentos ocultos/congelados</li>
+          <li class="perm-no">Ver el módulo de Auditoría</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4><span class="chip chip-invitado">🎫 Invitado</span></h4>
+        <ul>
+          <li class="perm-yes">Ver el contenido al que tenga acceso</li>
+          <li class="perm-no">Descargar archivos</li>
+          <li class="perm-no">Crear, editar o eliminar cualquier cosa</li>
+          <li class="perm-no">Ver documentos ocultos/congelados o el módulo de Auditoría</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-title" style="margin:20px 0 4px;font-size:14px">Notas importantes</div>
+    <ul class="roles-notes">
+      <li><b>Acceso al panel</b> (candado en la tarjeta del usuario) es independiente del rol: si se lo quitas a alguien, esa persona no puede volver a entrar a este panel aunque su cuenta siga existiendo — útil si solo debe usar el otro sistema (Evidencias/Firmas) que comparte el mismo inicio de sesión.</li>
+      <li><b>Documentación</b> (carpetas con responsable): cada carpeta raíz tiene un único responsable asignado. Solo esa persona o un admin puede subir, editar o borrar archivos ahí — ni siquiera otro editor puede hacerlo si no es el responsable de esa carpeta.</li>
+      <li><b>Ciclo PHVA</b>: cada carpeta y archivo recuerda quién lo creó (nombre de pila visible en una etiqueta de la tarjeta). Un editor solo borra lo que él mismo creó; un admin borra cualquier cosa.</li>
+      <li><b>Recursos</b> (tarjetas tipo OneDrive): crear o editar estas tarjetas está reservado solo para admin, ni siquiera el editor puede hacerlo.</li>
+      <li><b>Auditoría</b> es un registro que nadie puede editar ni borrar, ni siquiera un admin; solo admin y editor pueden consultarlo.</li>
+      <li><b>Tareas</b>: cualquier persona con acceso puede cambiar el estado de una tarea que tenga asignada, aunque no sea editor. Para editar el resto de los campos sí se necesita ser editor o el propio asignado.</li>
+      <li><b>Organigrama</b>: si un usuario está vinculado a una ficha, puede actualizar su propia foto ahí aunque no sea editor; el resto de los campos solo los edita un editor o admin.</li>
+    </ul>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="closeModal('modal-roles')">Entendido</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EDITAR PERFIL -->
 <div class="modal-overlay" id="modal-edit-profile">
-  <div class="modal">
+  <div class="modal modal-lg">
     <div class="modal-title" id="ep-title">Editar perfil</div>
     <div class="photo-circle" id="ep-photo" onclick="document.getElementById('ep-photo-input').click()"></div>
     <input type="file" id="ep-photo-input" accept="image/*" style="display:none" onchange="previewPhoto(this,'ep-photo')">
@@ -1171,6 +1262,8 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         <option value="viewer">Visualizador</option>
         <option value="invitado">Invitado</option>
       </select>
+      <label class="form-label">Áreas del panel permitidas <span class="form-hint">(todo marcado = sin restricción)</span></label>
+      <div id="ep-secciones" class="secciones-check"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('modal-edit-profile')">Cancelar</button>
@@ -1893,14 +1986,53 @@ function updateTopbar() {
 function canEdit(){return currentPerfil&&(currentPerfil.rol==='admin'||currentPerfil.rol==='editor');}
 function canDelete(){return currentPerfil&&currentPerfil.rol==='admin';}
 function canDownload(){return currentPerfil&&currentPerfil.rol!=='invitado';}
+
+// ── SECCIONES DEL PANEL (acceso específico por área) ────────
+const SECCIONES_SIG=[
+  {key:'sig',label:'Maestro SIG'},
+  {key:'sst',label:'SST'},
+  {key:'calidad',label:'Calidad'},
+  {key:'ambiental',label:'Ambiental'},
+  {key:'phva',label:'Ciclo PHVA'},
+  {key:'copasst',label:'COPASST'},
+  {key:'ccl',label:'CCL'},
+  {key:'tareas',label:'Tareas'},
+  {key:'organigrama',label:'Organigrama'},
+  {key:'recursos',label:'Recursos'},
+  {key:'documentacion',label:'Documentación'},
+];
+const SECCIONES_SIG_KEYS=new Set(SECCIONES_SIG.map(s=>s.key));
+function tieneSeccion(sec){
+  if(!currentPerfil) return false;
+  if(currentPerfil.rol==='admin') return true;
+  const sp=currentPerfil.secciones_permitidas;
+  return sp==null || sp.includes(sec);
+}
+function renderSeccionesChecklist(containerId,selected){
+  const cont=document.getElementById(containerId);
+  if(!cont) return;
+  cont.innerHTML=SECCIONES_SIG.map(s=>`
+    <label>
+      <input type="checkbox" value="${s.key}" ${(selected==null||selected.includes(s.key))?'checked':''}>
+      <span>${s.label}</span>
+    </label>`).join('');
+}
+function leerSeccionesChecklist(containerId){
+  const checked=[...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(c=>c.value);
+  return checked.length===SECCIONES_SIG.length ? null : checked;
+}
 function applyPermissions() {
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=currentPerfil?.rol==='admin'?'':'none');
+  SECCIONES_SIG.forEach(s=>{
+    const nav=document.getElementById('nav-'+s.key);
+    if(nav) nav.classList.toggle('nav-locked',!tieneSeccion(s.key));
+  });
   document.querySelectorAll('.editor-up').forEach(el=>el.style.display=canEdit()?'':'none');
   [['sst','SST'],['calidad','Calidad'],['ambiental','Ambiental'],['sig','Maestro SIG']].forEach(([id,sysName])=>{
     document.getElementById('addbtn-'+id).innerHTML=canEdit()?`<button class="add-btn" onclick="openDocModal('${sysName}')">+ Nuevo documento</button>`:'';
     document.getElementById('perm-'+id).innerHTML='';
   });
-  document.getElementById('addbtn-usuarios').innerHTML=currentPerfil?.rol==='admin'?'<button class="add-btn" onclick="openUserModal()">+ Nuevo usuario</button>':'';
+  document.getElementById('addbtn-usuarios').innerHTML=currentPerfil?.rol==='admin'?'<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="add-btn" onclick="openUserModal()">+ Nuevo usuario</button><button class="btn-secondary" style="margin-bottom:18px" onclick="openRolesModal()">📖 Roles y permisos</button></div>':'';
   const spDl=document.getElementById('sp-download-btn');
   if(spDl) spDl.style.display=canDownload()?'':'none';
   document.getElementById('addbtn-tareas').innerHTML=canEdit()?'<button class="add-btn" onclick="openTareaModal()">+ Nueva tarea</button>':'';
@@ -1917,6 +2049,10 @@ function applyPermissions() {
 
 // ── NAVIGATION ────────────────────────────────────────────
 function showPage(id,el) {
+  if(SECCIONES_SIG_KEYS.has(id) && !tieneSeccion(id)){
+    showToast('No tienes acceso a esta sección del panel','error');
+    return;
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
@@ -2498,7 +2634,13 @@ function openUserModal() {
   ['nu-nombre','nu-email','nu-pass','nu-cargo'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('nu-rol').value='viewer';
   document.getElementById('nu-photo').innerHTML='<div>📷<br>Foto<br>(opcional)</div>';
+  renderSeccionesChecklist('nu-secciones',null);
   document.getElementById('modal-user').classList.add('open');
+}
+
+function openRolesModal(){
+  if(currentPerfil?.rol!=='admin') return;
+  document.getElementById('modal-roles').classList.add('open');
 }
 
 function previewPhoto(input,circleId) {
@@ -2516,13 +2658,14 @@ async function saveNewUser() {
   const pass=document.getElementById('nu-pass').value;
   const cargo=document.getElementById('nu-cargo').value.trim();
   const rol=document.getElementById('nu-rol').value;
+  const secciones_permitidas=leerSeccionesChecklist('nu-secciones');
   if(!nombre||!email||pass.length<6){showToast('Completa todos los campos (contraseña mín. 6 caracteres)','error');return;}
   const btn=document.getElementById('btn-save-user');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Creando...';
   try {
     // Se crea vía Edge Function (Admin API) para no iniciar sesión como el
     // usuario nuevo, y para dejar full_name en auth.users desde el inicio.
-    const {data,error}=await sb.functions.invoke('manage-user',{body:{action:'create',email,password:pass,nombre,cargo,rol}});
+    const {data,error}=await sb.functions.invoke('manage-user',{body:{action:'create',email,password:pass,nombre,cargo,rol,secciones_permitidas}});
     if(error) throw error;
     if(!data?.success) throw new Error(data?.error||'No se pudo crear el usuario');
     showToast('Usuario creado correctamente ✓','success');
@@ -2588,7 +2731,11 @@ function openEditProfile(uid) {
   const circle=document.getElementById('ep-photo');
   circle.innerHTML=u.foto_url?`<img src="${u.foto_url}" alt="">`:`<span style="font-size:22px;font-weight:700;color:var(--navy)">${u.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</span>`;
   const adminSec=document.getElementById('ep-admin-section');
-  if(currentPerfil?.rol==='admin'){adminSec.style.display='block';document.getElementById('ep-rol').value=u.rol;}
+  if(currentPerfil?.rol==='admin'){
+    adminSec.style.display='block';
+    document.getElementById('ep-rol').value=u.rol;
+    renderSeccionesChecklist('ep-secciones',u.secciones_permitidas);
+  }
   else adminSec.style.display='none';
   document.getElementById('modal-edit-profile').classList.add('open');
 }
@@ -2609,7 +2756,10 @@ async function saveEditProfile() {
       foto_url=urlData.publicUrl;
     }
     const updates={nombre,cargo:document.getElementById('ep-cargo').value.trim(),foto_url,actualizado_en:new Date().toISOString()};
-    if(currentPerfil?.rol==='admin') updates.rol=document.getElementById('ep-rol').value;
+    if(currentPerfil?.rol==='admin') {
+      updates.rol=document.getElementById('ep-rol').value;
+      updates.secciones_permitidas=leerSeccionesChecklist('ep-secciones');
+    }
     await sb.from('perfiles').update(updates).eq('id',editProfileUserId);
     if(editProfileUserId===currentUser.id){currentPerfil={...currentPerfil,...updates};updateTopbar();}
     // Sincronizar nombre hacia auth.users.raw_user_meta_data.full_name
@@ -3618,6 +3768,32 @@ function phvaFileIcon(nombre){
   return '📄';
 }
 
+// Extrae el número inicial de un nombre ("01. Actas 2025" → 1); null si no tiene
+function parseLeadingNumber(nombre){
+  const m=(nombre||'').match(/^\s*(\d+)/);
+  return m?parseInt(m[1],10):null;
+}
+// Ordena por el número escrito al inicio del nombre; sin número, al final por orden alfabético
+function sortByLeadingNumber(arr){
+  return [...arr].sort((a,b)=>{
+    const na=parseLeadingNumber(a.nombre), nb=parseLeadingNumber(b.nombre);
+    if(na!==null&&nb!==null) return na-nb;
+    if(na!==null) return -1;
+    if(nb!==null) return 1;
+    return (a.nombre||'').localeCompare(b.nombre||'','es');
+  });
+}
+// Primer nombre de quien creó/subió un elemento PHVA, o '' si no hay dato
+function phvaCreatorName(uid){
+  if(!uid) return '';
+  const u=allUsers.find(x=>x.id===uid);
+  return u?u.nombre.split(' ')[0]:'';
+}
+// Admin borra cualquier carpeta/archivo PHVA; Editor solo lo que él creó/subió
+function canDeletePhvaItem(creatorId){
+  return canDelete()||(canEdit()&&creatorId&&creatorId===currentUser?.id);
+}
+
 function renderPhva() {
   const cont=document.getElementById('phva-container');
   if(!cont) return;
@@ -3640,6 +3816,7 @@ function renderPhva() {
       <div class="phva-grid">
         ${carpetas.map(c=>{
           const n=(cntArch[c.id]||0)+(cntSub[c.id]||0);
+          const creador=phvaCreatorName(c.creado_por);
           return `<div class="phva-folder fp-${f.letra}" onclick="openCarpeta('${c.id}')" ondragover="onFolderDragOver(event)" ondragleave="onFolderDragLeave(event)" ondrop="onFolderDrop(event,'${c.id}')">
             <div class="phva-folder-ico">${n>0?'📂':'📁'}</div>
             <div class="phva-folder-info">
@@ -3649,8 +3826,9 @@ function renderPhva() {
             </div>
             ${canEdit()?`<div class="phva-folder-acts">
               <button class="icon-btn" onclick="event.stopPropagation();openEditCarpeta('${c.id}')" title="Renombrar">✏</button>
-              ${canDelete()?`<button class="icon-btn danger" onclick="event.stopPropagation();deleteCarpeta('${c.id}')" title="Eliminar">🗑</button>`:''}
+              ${canDeletePhvaItem(c.creado_por)?`<button class="icon-btn danger" onclick="event.stopPropagation();deleteCarpeta('${c.id}')" title="Eliminar">🗑</button>`:''}
             </div>`:''}
+            ${creador?`<span class="phva-creator-badge" title="Creado por ${esc(creador)}">👤 ${esc(creador)}</span>`:''}
           </div>`;
         }).join('')}
       </div>
@@ -3701,9 +3879,9 @@ async function renderPhvaPanel() {
 async function loadCarpetaContenido(id) {
   const body=document.getElementById('phva-content');
   body.innerHTML=`<div class="side-panel-loading"><div class="spin"></div><div>Cargando…</div></div>`;
-  const subcarpetas=allPhvaCarpetas.filter(c=>c.parent_id===id);
-  const {data}=await sb.from('phva_archivos').select('*').eq('carpeta_id',id).order('creado_en',{ascending:false});
-  const archivos=data||[];
+  const subcarpetas=sortByLeadingNumber(allPhvaCarpetas.filter(c=>c.parent_id===id));
+  const {data}=await sb.from('phva_archivos').select('*').eq('carpeta_id',id);
+  const archivos=sortByLeadingNumber(data||[]);
   if(!subcarpetas.length && !archivos.length){
     body.innerHTML=`<div class="side-panel-loading" style="height:auto;padding:50px 20px"><div style="font-size:42px">📁</div><div>Esta carpeta está vacía.</div>${canEdit()?'<div style="font-size:12px;color:var(--gray-400);text-align:center">Arrastra aquí archivos o carpetas,<br>o usa los botones de abajo.</div>':''}</div>`;
     return;
@@ -3712,32 +3890,35 @@ async function loadCarpetaContenido(id) {
   const cntSub={}; allPhvaCarpetas.forEach(c=>{if(c.parent_id)cntSub[c.parent_id]=(cntSub[c.parent_id]||0)+1;});
   const subHtml=subcarpetas.map(s=>{
     const items=(cntArch[s.id]||0)+(cntSub[s.id]||0);
+    const creador=phvaCreatorName(s.creado_por);
     return `<div class="phva-file-row" style="cursor:pointer" onclick="enterCarpeta('${s.id}')">
       <div class="phva-file-ico">${items>0?'📂':'📁'}</div>
       <div class="phva-file-info">
         <div class="phva-file-name" title="${esc(s.nombre)}">${esc(s.nombre)}</div>
-        <div class="phva-file-meta">${items} elemento${items!==1?'s':''}</div>
+        <div class="phva-file-meta">${items} elemento${items!==1?'s':''}${creador?`<span class="phva-creator-badge">👤 ${esc(creador)}</span>`:''}</div>
       </div>
       <div class="phva-file-acts" onclick="event.stopPropagation()">
         ${canEdit()?`<button class="icon-btn" onclick="openEditCarpeta('${s.id}')" title="Renombrar">✏</button>`:''}
-        ${canDelete()?`<button class="icon-btn danger" onclick="deleteCarpeta('${s.id}')" title="Eliminar">🗑</button>`:''}
+        ${canDeletePhvaItem(s.creado_por)?`<button class="icon-btn danger" onclick="deleteCarpeta('${s.id}')" title="Eliminar">🗑</button>`:''}
         <span style="color:var(--gray-300);font-size:17px;font-weight:700">›</span>
       </div>
     </div>`;
   }).join('');
-  const archHtml=archivos.map(a=>`
-    <div class="phva-file-row">
+  const archHtml=archivos.map(a=>{
+    const creador=phvaCreatorName(a.subido_por);
+    return `<div class="phva-file-row">
       <div class="phva-file-ico">${phvaFileIcon(a.nombre)}</div>
       <div class="phva-file-info">
         <div class="phva-file-name" title="${esc(a.nombre)}">${esc(a.nombre)}</div>
-        <div class="phva-file-meta">${a.archivo_size?Math.round(a.archivo_size/1024)+' KB':''} · ${fDate(a.creado_en)}</div>
+        <div class="phva-file-meta">${a.archivo_size?Math.round(a.archivo_size/1024)+' KB':''} · ${fDate(a.creado_en)}${creador?`<span class="phva-creator-badge">👤 ${esc(creador)}</span>`:''}</div>
       </div>
       <div class="phva-file-acts">
         <button class="icon-btn green" onclick="previewPhvaArchivo('${a.id}')">👁 Ver</button>
         ${canDownload()?`<button class="icon-btn green" onclick="downloadPhvaArchivo('${a.id}')">⬇</button>`:''}
-        ${canDelete()?`<button class="icon-btn danger" onclick="deletePhvaArchivo('${a.id}')">🗑</button>`:''}
+        ${canDeletePhvaItem(a.subido_por)?`<button class="icon-btn danger" onclick="deletePhvaArchivo('${a.id}')">🗑</button>`:''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   body.innerHTML=subHtml+archHtml;
 }
 
@@ -3794,7 +3975,7 @@ async function uploadPhvaFile(file, carpetaId) {
 // Crea una subcarpeta y devuelve su id (para drag de carpetas)
 async function crearSubcarpetaSilenciosa(nombre, parentId) {
   const padre=allPhvaCarpetas.find(x=>x.id===parentId);
-  const {data,error}=await sb.from('phva_carpetas').insert({fase:padre?.fase||'P',nombre,parent_id:parentId,creado_en:new Date().toISOString()}).select().single();
+  const {data,error}=await sb.from('phva_carpetas').insert({fase:padre?.fase||'P',nombre,parent_id:parentId,creado_por:currentUser.id,creado_en:new Date().toISOString()}).select().single();
   if(error) throw error;
   allPhvaCarpetas.push(data);
   return data.id;
@@ -3961,12 +4142,12 @@ async function saveCarpeta() {
   } else if(carpetaParentId){
     // Subcarpeta: hereda la fase del padre, sin número
     const padre=allPhvaCarpetas.find(x=>x.id===carpetaParentId);
-    ({error}=await sb.from('phva_carpetas').insert({fase:padre?.fase||'P',nombre,parent_id:carpetaParentId,creado_en:new Date().toISOString()}));
+    ({error}=await sb.from('phva_carpetas').insert({fase:padre?.fase||'P',nombre,parent_id:carpetaParentId,creado_por:currentUser.id,creado_en:new Date().toISOString()}));
   } else {
     // Carpeta raíz nueva
     const fase=document.getElementById('carpeta-fase').value;
     const maxNum=allPhvaCarpetas.reduce((m,c)=>Math.max(m,c.numero||0),0);
-    ({error}=await sb.from('phva_carpetas').insert({fase,nombre,numero:maxNum+1,creado_en:new Date().toISOString()}));
+    ({error}=await sb.from('phva_carpetas').insert({fase,nombre,numero:maxNum+1,creado_por:currentUser.id,creado_en:new Date().toISOString()}));
   }
   if(error){showToast('Error: '+error.message,'error');return;}
   await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:editCarpetaId?'EDITAR':'CREAR',tabla:'phva_carpetas',detalle:`${editCarpetaId?'Renombró':carpetaParentId?'Creó subcarpeta':'Creó carpeta'} PHVA "${nombre}"`});
