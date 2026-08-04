@@ -1,4 +1,4 @@
-}<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1193,7 +1193,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <li class="perm-yes">Crear, editar y eliminar en todos los módulos: documentos, tareas, comités, organigrama, Ciclo PHVA, Documentación y Recursos</li>
           <li class="perm-yes">Ver y descargar documentos ocultos/congelados</li>
           <li class="perm-yes">Eliminar y renombrar cualquier carpeta/archivo de Ciclo PHVA, sin importar quién lo creó</li>
-          <li class="perm-yes">Crear carpetas RAÍZ nuevas en Ciclo PHVA (las subcarpetas dentro de una ya existente sí las puede crear un Supervisor o Editor)</li>
+          <li class="perm-yes">Crear carpetas RAÍZ nuevas en Ciclo PHVA (Editor también puede; las subcarpetas dentro de una ya existente las puede crear cualquiera de los dos)</li>
           <li class="perm-yes">Crear, editar, cambiar rol, bloquear acceso (acceso_sig), asignar áreas permitidas y eliminar usuarios de forma permanente</li>
           <li class="perm-yes">Ver la página de Usuarios y el registro de Auditoría completo — exclusivos de admin, ningún otro rol los ve</li>
           <li class="perm-yes">Restringir a cualquier usuario a solo ciertas áreas del menú (ej: que alguien únicamente vea Ciclo PHVA)</li>
@@ -1206,9 +1206,10 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <li class="perm-yes">Crear documentos, tareas, actas, miembros, fichas de organigrama, subcarpetas y archivos nuevos en sus áreas permitidas</li>
           <li class="perm-yes">Editar, renombrar o eliminar SOLO lo que él mismo creó o subió — en cualquier módulo, no solo PHVA</li>
           <li class="perm-yes">Ver todo el contenido al que tenga acceso, incluido lo creado por otros o de antes de que él tuviera cuenta</li>
-          <li class="perm-yes">Ver y descargar documentos ocultos/congelados</li>
           <li class="perm-no">Editar, renombrar o eliminar cualquier cosa que NO haya creado él mismo — solo puede verla</li>
-          <li class="perm-no">Crear carpetas RAÍZ nuevas en Ciclo PHVA (exclusivo admin)</li>
+          <li class="perm-no">Ver ni descargar documentos ocultos/congelados (ni siquiera los que él mismo subió)</li>
+          <li class="perm-no">Crear, editar o eliminar nada en el Organigrama — ahí queda de solo lectura, como un Visualizador</li>
+          <li class="perm-no">Crear carpetas RAÍZ nuevas en Ciclo PHVA (exclusivo admin y Editor)</li>
           <li class="perm-no">Crear/editar tarjetas de Recursos</li>
           <li class="perm-no">Ver la página de Usuarios ni el registro de Auditoría (exclusivo admin)</li>
         </ul>
@@ -1218,7 +1219,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
         <ul>
           <li class="perm-yes">Crear, editar, renombrar y eliminar CUALQUIER documento, tarea, acta, miembro, ficha de organigrama, subcarpeta o archivo en sus áreas permitidas — sin importar quién lo haya creado</li>
           <li class="perm-yes">Ver y descargar documentos ocultos/congelados</li>
-          <li class="perm-no">Crear carpetas RAÍZ nuevas en Ciclo PHVA (exclusivo admin)</li>
+          <li class="perm-yes">Crear carpetas RAÍZ nuevas en Ciclo PHVA, igual que admin</li>
           <li class="perm-no">Crear/editar tarjetas de Recursos</li>
           <li class="perm-no">Ver la página de Usuarios ni el registro de Auditoría (exclusivo admin)</li>
         </ul>
@@ -1251,11 +1252,12 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       <li><b>Supervisor vs. Editor — la diferencia real</b>: Editor puede tocar TODO lo que esté a su alcance, sin importar de quién sea. Supervisor solo puede tocar lo que ÉL MISMO agregó; todo lo demás (de otra persona, o que ya existía antes de que él llegara) lo ve pero no lo edita ni lo borra. Un ✏ o 🗑 que no aparece en una tarjeta/fila para un Supervisor casi siempre significa "esto no lo creaste tú".</li>
       <li><b>"Agregado por ...":</b> ahora los documentos, tareas, actas, miembros de comité, fichas de organigrama y contenido de PHVA muestran quién lo creó, precisamente para que un Supervisor entienda por qué puede editar unas cosas y otras no.</li>
       <li><b>Documentación</b> (carpetas con responsable) es un caso aparte y no cambia con lo anterior: cada carpeta raíz tiene un único responsable asignado, y SOLO esa persona o un admin puede subir, editar o borrar archivos ahí — ni siquiera un Editor (que en todo lo demás puede tocar cualquier cosa) puede hacerlo si no es el responsable de esa carpeta.</li>
-      <li><b>Ciclo PHVA</b>: solo un admin puede crear carpetas RAÍZ nuevas (las 60 de la resolución + cualquiera adicional) — Supervisor y Editor solo crean subcarpetas dentro de una que ya exista.</li>
+      <li><b>Ciclo PHVA</b>: admin y Editor pueden crear carpetas RAÍZ nuevas (las 60 de la resolución + cualquiera adicional) — Supervisor solo crea subcarpetas dentro de una que ya exista, nunca carpetas raíz.</li>
+      <li><b>Documentos ocultos/congelados</b>: solo admin y Editor los ven y descargan. Supervisor NO — ni siquiera los que él mismo congeló, así que si un Supervisor oculta su propio documento, dejará de poder verlo hasta que un admin o Editor lo muestre de nuevo.</li>
+      <li><b>Organigrama</b> es exclusivo de admin y Editor para crear, editar o eliminar fichas — Supervisor lo ve pero no lo toca, ni siquiera las fichas que él mismo hubiera agregado. La excepción de siempre se mantiene aparte: cualquier usuario vinculado a una ficha puede actualizar su propia foto ahí, haciéndolo desde "Editar mi perfil" en Usuarios (eso no depende del rol).</li>
       <li><b>Recursos</b> (tarjetas tipo OneDrive): crear o editar estas tarjetas está reservado solo para admin, ni Supervisor ni Editor pueden hacerlo.</li>
       <li><b>Auditoría</b> es un registro que nadie puede editar ni borrar, ni siquiera un admin; es de solo lectura y exclusiva de admin.</li>
       <li><b>Tareas</b>: cualquier persona con acceso puede cambiar el estado de una tarea que tenga asignada, aunque no la haya creado ni sea Supervisor/Editor. Para editar el resto de los campos hace falta ser admin, Editor, el Supervisor que la creó, o la persona asignada (esta última excepción es aparte de quién la creó).</li>
-      <li><b>Organigrama</b>: si un usuario está vinculado a una ficha, puede actualizar su propia foto ahí aunque no la haya creado ni sea Supervisor/Editor (eso se hace desde su propio perfil, en Usuarios). El resto de los campos de una ficha los edita un admin, un Editor, o el Supervisor que la creó.</li>
     </ul>
     <div class="modal-actions">
       <button class="btn-primary" onclick="closeModal('modal-roles')">Entendido</button>
@@ -2011,6 +2013,8 @@ function canModify(creatorId){
   if(currentPerfil.rol==='supervisor') return !!creatorId && creatorId===currentUser?.id;
   return true;
 }
+// Organigrama es exclusivo de admin/editor — Supervisor no lo toca ni siquiera lo suyo
+function canOrgManage(){return currentPerfil&&(currentPerfil.rol==='admin'||currentPerfil.rol==='editor');}
 function canDownload(){return currentPerfil&&currentPerfil.rol!=='invitado';}
 function rolLabel(rol){return {admin:'Administrador',supervisor:'Supervisor',editor:'Editor',viewer:'Visualizador',invitado:'Invitado'}[rol]||'Visualizador';}
 
@@ -2062,7 +2066,7 @@ function applyPermissions() {
   const spDl=document.getElementById('sp-download-btn');
   if(spDl) spDl.style.display=canDownload()?'':'none';
   document.getElementById('addbtn-tareas').innerHTML=canEdit()?'<button class="add-btn" onclick="openTareaModal()">+ Nueva tarea</button>':'';
-  document.getElementById('addbtn-org').innerHTML=canEdit()?'<button class="add-btn" style="margin-bottom:0" onclick="openOrgModal()">+ Agregar persona</button>':'';
+  document.getElementById('addbtn-org').innerHTML=canOrgManage()?'<button class="add-btn" style="margin-bottom:0" onclick="openOrgModal()">+ Agregar persona</button>':'';
   document.getElementById('perm-org').innerHTML='';
   ['copasst','ccl'].forEach(c=>{
     const comite=c.toUpperCase();
@@ -2070,7 +2074,7 @@ function applyPermissions() {
     document.getElementById('addbtn-miembro-'+c).innerHTML=canEdit()?`<button class="add-btn" style="margin-bottom:0" onclick="openMiembroModal('${comite}')">+ Miembro</button>`:'';
     document.getElementById('addbtn-acta-'+c).innerHTML=canEdit()?`<button class="add-btn" style="margin-bottom:0" onclick="openActaModal('${comite}')">+ Acta</button>`:'';
   });
-  document.getElementById('addbtn-phva').innerHTML=currentPerfil?.rol==='admin'?'<button class="add-btn" style="margin-bottom:0" onclick="openCarpetaModal()">+ Nueva carpeta</button>':'';
+  document.getElementById('addbtn-phva').innerHTML=(currentPerfil?.rol==='admin'||currentPerfil?.rol==='editor')?'<button class="add-btn" style="margin-bottom:0" onclick="openCarpetaModal()">+ Nueva carpeta</button>':'';
 }
 
 // ── NAVIGATION ────────────────────────────────────────────
@@ -2104,9 +2108,9 @@ function showPage(id,el) {
 // ── LOAD DATA ─────────────────────────────────────────────
 async function loadAll() {
   try {
-    // Si es viewer, filtrar documentos ocultos. Admin y editor ven todo
+    // Ocultos: solo admin y editor los ven. Supervisor, viewer e invitado, no.
     let docsQuery = sb.from('documentos').select('*,versiones(*)');
-    if(currentPerfil?.rol === 'viewer' || currentPerfil?.rol === 'invitado') {
+    if(currentPerfil?.rol !== 'admin' && currentPerfil?.rol !== 'editor') {
       docsQuery = docsQuery.eq('oculto', false);
     }
     docsQuery = docsQuery.order('sistema').order('codigo');
@@ -3523,7 +3527,7 @@ function renderOrganigrama() {
     const photo = persona.foto_url
       ? `<img src="${esc(persona.foto_url)}" alt="">`
       : `<span>${ini}</span>`;
-    const puedeEditarNodo=canModify(persona.creado_por);
+    const puedeEditarNodo=canOrgManage();
     let nodeHtml = `<div class="org-node">
       <div class="org-card" onclick="showOrgDetail('${persona.id}')">
         ${puedeEditarNodo?`<div class="org-actions">
@@ -3715,7 +3719,7 @@ function showOrgDetail(id) {
         ${p.notas?`<div class="pd-info-row" style="align-items:flex-start"><span class="pd-info-icon">📝</span><span class="pd-info-label">Notas</span><span class="pd-info-value">${esc(p.notas)}</span></div>`:''}
       </div>
     </div>`;
-  document.getElementById('btn-edit-from-detail').style.display = canModify(p.creado_por) ? '' : 'none';
+  document.getElementById('btn-edit-from-detail').style.display = canOrgManage() ? '' : 'none';
   document.getElementById('modal-org-detail').classList.add('open');
 }
 
@@ -4124,7 +4128,7 @@ async function deletePhvaArchivo(id) {
 }
 
 function openCarpetaModal() {
-  if(currentPerfil?.rol!=='admin') return;
+  if(currentPerfil?.rol!=='admin'&&currentPerfil?.rol!=='editor') return;
   editCarpetaId=null; carpetaParentId=null;
   document.getElementById('modal-carpeta-title').textContent='Nueva carpeta';
   document.getElementById('carpeta-fase-wrap').style.display='';
