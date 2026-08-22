@@ -2687,6 +2687,16 @@ function previewPhoto(input,circleId) {
   reader.readAsDataURL(file);
 }
 
+// sb.functions.invoke() deja el detalle real del error (el JSON que devuelve
+// la función) dentro de error.context, no en error.message — sin esto solo
+// se ve el genérico "Edge Function returned a non-2xx status code"
+async function edgeFunctionErrorMessage(error){
+  try{
+    const body=await error.context.json();
+    if(body?.error) return body.error;
+  }catch(_){}
+  return error.message;
+}
 async function saveNewUser() {
   const nombre=document.getElementById('nu-nombre').value.trim();
   const email=document.getElementById('nu-email').value.trim();
@@ -2701,7 +2711,7 @@ async function saveNewUser() {
     // Se crea vía Edge Function (Admin API) para no iniciar sesión como el
     // usuario nuevo, y para dejar full_name en auth.users desde el inicio.
     const {data,error}=await sb.functions.invoke('manage-user',{body:{action:'create',email,password:pass,nombre,cargo,rol,secciones_permitidas}});
-    if(error) throw error;
+    if(error) throw new Error(await edgeFunctionErrorMessage(error));
     if(!data?.success) throw new Error(data?.error||'No se pudo crear el usuario');
     showToast('Usuario creado correctamente ✓','success');
     closeModal('modal-user');
@@ -2724,7 +2734,7 @@ async function deleteUser(id) {
   if(!confirm(`¿Eliminar definitivamente a ${nombre}?\n\nEsto borra su perfil Y su cuenta de acceso por completo. No se puede deshacer.`)) return;
   try {
     const {data,error}=await sb.functions.invoke('manage-user',{body:{action:'delete',userId:id}});
-    if(error) throw error;
+    if(error) throw new Error(await edgeFunctionErrorMessage(error));
     if(!data?.success) throw new Error(data?.error||'No se pudo eliminar el usuario');
     await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'perfiles',registro_id:id,detalle:`Eliminó definitivamente al usuario ${nombre}`});
     showToast('Usuario eliminado definitivamente','success');
