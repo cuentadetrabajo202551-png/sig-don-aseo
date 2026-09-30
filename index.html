@@ -235,16 +235,6 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .prio-high{background:var(--red)}.prio-med{background:var(--amber)}.prio-low{background:var(--green)}
 .pend-name{flex:1;color:var(--gray-900);font-weight:600}
 .pend-date{font-size:11px;color:var(--gray-500);flex-shrink:0;min-width:80px;text-align:right}
-
-/* USERS */
-.users-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.user-card{border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--white);display:flex;align-items:flex-start;gap:12px;transition:border-color .15s,box-shadow .15s}
-.user-card:hover{border-color:var(--gray-300);box-shadow:var(--shadow)}
-.u-av{width:52px;height:52px;border-radius:50%;flex-shrink:0;overflow:hidden;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;background:var(--gray-100)}
-.u-av img{width:100%;height:100%;object-fit:cover}
-.u-name{font-size:14px;font-weight:700;color:var(--gray-900)}
-.u-cargo{font-size:11px;color:var(--gray-500);margin-top:1px}
-.u-actions{margin-left:auto;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
 .text-btn{font-size:11px;color:var(--navy);cursor:pointer;background:none;border:none;font-family:var(--font);font-weight:700;padding:2px 0}
 .text-btn:hover{text-decoration:underline}
 
@@ -274,9 +264,6 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--navy);background:var(--white)}
 .form-textarea{resize:vertical;min-height:70px}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.secciones-check{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--gray-50);max-height:180px;overflow-y:auto}
-.secciones-check label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600}
-.secciones-check input{width:15px;height:15px;accent-color:var(--navy);flex-shrink:0}
 .code-preview{font-family:monospace;font-size:13px;background:var(--navy-light);color:var(--navy);padding:8px 12px;border-radius:var(--radius-sm);margin-top:6px;font-weight:700;letter-spacing:.05em}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
 .btn-primary{padding:10px 22px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:background .12s}
@@ -535,7 +522,6 @@ body.dark .form-input,body.dark .form-select,body.dark .form-textarea{background
 body.dark .linput{background:#1a1a2e;border-color:#353560;color:#e8e8f0}
 body.dark .side-panel{background:#252540;border-color:#353560}
 body.dark .side-panel-meta{background:#1a1a2e}
-body.dark .user-card{background:#252540;border-color:#353560}
 body.dark .filter-btn{background:#252540;border-color:#353560;color:#b0b0c8}
 body.dark .icon-btn{border-color:#353560;color:#b0b0c8}
 body.dark .doc-row:hover{background:#2a2a4a}
@@ -1061,10 +1047,15 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 
       <!-- USUARIOS -->
       <div class="page" id="page-usuarios">
-        <div class="page-title">Gestión de usuarios</div>
-        <div class="page-sub">Administra acceso, roles y perfiles del personal</div>
-        <div id="addbtn-usuarios"></div>
-        <div class="users-grid" id="users-grid"><div class="loading">Cargando...</div></div>
+        <div class="page-title">Usuarios</div>
+        <div class="page-sub">Los usuarios y sus accesos se administran en el Portal</div>
+        <div class="card" style="max-width:520px">
+          <p style="margin:0 0 18px;color:var(--gray-600);font-size:14px;line-height:1.6">Crear o eliminar cuentas, cambiar rol, acceso o áreas permitidas, y actualizar nombre, cargo, foto o contraseña de cualquier persona: todo eso se hace ahora desde el Portal de accesos.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn-primary" onclick="location.href=PORTAL_URL">Ir al Portal →</button>
+            <button class="btn-secondary" onclick="openRolesModal()">📖 Roles y permisos</button>
+          </div>
+        </div>
       </div>
 
       <!-- AUDITORÍA -->
@@ -1151,39 +1142,6 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 </div>
 
 
-<!-- MODAL NUEVO USUARIO -->
-<div class="modal-overlay" id="modal-user">
-  <div class="modal modal-lg">
-    <div class="modal-title">Nuevo usuario</div>
-    <div class="photo-circle" id="nu-photo" onclick="document.getElementById('nu-photo-input').click()">
-      <div>📷<br>Foto<br>(opcional)</div>
-    </div>
-    <input type="file" id="nu-photo-input" accept="image/*" style="display:none" onchange="previewPhoto(this,'nu-photo')">
-    <label class="form-label">Nombre completo *</label>
-    <input class="form-input" id="nu-nombre" placeholder="Ej. María Pérez">
-    <label class="form-label">Correo electrónico * <span class="form-hint">(será su usuario de ingreso)</span></label>
-    <input class="form-input" id="nu-email" type="email" placeholder="maria@donaseo.com">
-    <label class="form-label">Contraseña * <span class="form-hint">(mínimo 6 caracteres)</span></label>
-    <input class="form-input" id="nu-pass" type="password" placeholder="••••••••">
-    <label class="form-label">Cargo</label>
-    <input class="form-input" id="nu-cargo" placeholder="Ej. Coordinador SST">
-    <label class="form-label">Rol *</label>
-    <select class="form-select" id="nu-rol">
-      <option value="admin">Administrador — crear, editar, eliminar, descargar</option>
-      <option value="supervisor">Supervisor — crea; solo edita o elimina lo que él mismo agrega</option>
-      <option value="editor">Editor — crea, edita y elimina todo lo que tenga permitido</option>
-      <option value="viewer">Visualizador — solo ver y descargar</option>
-      <option value="invitado">Invitado — solo ver (sin descargar)</option>
-    </select>
-    <label class="form-label">Áreas del panel permitidas <span class="form-hint">(todo marcado = sin restricción)</span></label>
-    <div id="nu-secciones" class="secciones-check"></div>
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeModal('modal-user')">Cancelar</button>
-      <button class="btn-primary" id="btn-save-user" onclick="saveNewUser()">Crear usuario</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL INSTRUCCIONES / ROLES (solo admin) -->
 <div class="modal-overlay" id="modal-roles">
   <div class="modal modal-xl">
@@ -1197,9 +1155,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <li class="perm-yes">Ver y descargar documentos ocultos/congelados</li>
           <li class="perm-yes">Eliminar y renombrar cualquier carpeta/archivo de Ciclo PHVA, sin importar quién lo creó</li>
           <li class="perm-yes">Crear carpetas RAÍZ nuevas en Ciclo PHVA (Editor también puede; las subcarpetas dentro de una ya existente las puede crear cualquiera de los dos)</li>
-          <li class="perm-yes">Crear, editar, cambiar rol, bloquear acceso (acceso_sig), asignar áreas permitidas y eliminar usuarios de forma permanente</li>
-          <li class="perm-yes">Ver la página de Usuarios y el registro de Auditoría completo — exclusivos de admin, ningún otro rol los ve</li>
-          <li class="perm-yes">Restringir a cualquier usuario a solo ciertas áreas del menú (ej: que alguien únicamente vea Ciclo PHVA)</li>
+          <li class="perm-yes">Ver el registro de Auditoría completo — exclusivo de admin, ningún otro rol lo ve</li>
           <li class="perm-yes">Configurar los módulos del Workspace (portal de inicio)</li>
         </ul>
       </div>
@@ -1214,7 +1170,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <li class="perm-no">Crear, editar o eliminar nada en el Organigrama — ahí queda de solo lectura, como un Visualizador</li>
           <li class="perm-no">Crear carpetas RAÍZ nuevas en Ciclo PHVA (exclusivo admin y Editor)</li>
           <li class="perm-no">Crear/editar tarjetas de Recursos</li>
-          <li class="perm-no">Ver la página de Usuarios ni el registro de Auditoría (exclusivo admin)</li>
+          <li class="perm-no">Ver el registro de Auditoría (exclusivo admin)</li>
         </ul>
       </div>
       <div class="role-card">
@@ -1224,7 +1180,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <li class="perm-yes">Ver y descargar documentos ocultos/congelados</li>
           <li class="perm-yes">Crear carpetas RAÍZ nuevas en Ciclo PHVA, igual que admin</li>
           <li class="perm-no">Crear/editar tarjetas de Recursos</li>
-          <li class="perm-no">Ver la página de Usuarios ni el registro de Auditoría (exclusivo admin)</li>
+          <li class="perm-no">Ver el registro de Auditoría (exclusivo admin)</li>
         </ul>
       </div>
       <div class="role-card">
@@ -1234,7 +1190,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <li class="perm-yes">Cambiar el estado de una tarea que tenga asignada</li>
           <li class="perm-no">Crear, editar o eliminar cualquier cosa</li>
           <li class="perm-no">Ver documentos ocultos/congelados</li>
-          <li class="perm-no">Ver la página de Usuarios ni el registro de Auditoría</li>
+          <li class="perm-no">Ver el registro de Auditoría</li>
         </ul>
       </div>
       <div class="role-card">
@@ -1243,15 +1199,15 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           <li class="perm-yes">Ver el contenido al que tenga acceso</li>
           <li class="perm-no">Descargar archivos</li>
           <li class="perm-no">Crear, editar o eliminar cualquier cosa</li>
-          <li class="perm-no">Ver documentos ocultos/congelados, la página de Usuarios o el registro de Auditoría</li>
+          <li class="perm-no">Ver documentos ocultos/congelados ni el registro de Auditoría</li>
         </ul>
       </div>
     </div>
     <div class="modal-title" style="margin:20px 0 4px;font-size:14px">Notas importantes</div>
     <ul class="roles-notes">
-      <li><b>Acceso al panel</b> (candado en la tarjeta del usuario) es independiente del rol: si se lo quitas a alguien, esa persona no puede volver a entrar a este panel aunque su cuenta siga existiendo — útil si solo debe usar el otro sistema (Evidencias/Firmas) que comparte el mismo inicio de sesión.</li>
-      <li><b>Áreas del panel permitidas</b>: además del rol, a cada usuario se le puede marcar en un checklist (al crearlo o editarlo) para que solo vea ciertas áreas del menú — por ejemplo, que alguien únicamente tenga acceso a Ciclo PHVA. Las demás áreas le siguen apareciendo en el menú, pero en gris y sin poder darles clic. Un admin nunca queda restringido por esto, siempre ve todo.</li>
-      <li><b>Usuarios y Auditoría</b> no dependen de ese checklist: son exclusivas de admin siempre, sin excepción — ningún otro rol puede verlas ni acceder a ellas, sin importar las áreas que tenga marcadas.</li>
+      <li><b>Cuentas y accesos</b>: crear o eliminar usuarios, cambiar su rol, su acceso al panel, sus áreas permitidas, y su nombre, cargo, foto o contraseña — todo eso se administra ahora desde el Portal de accesos, no desde Documental.</li>
+      <li><b>Áreas del panel permitidas</b>: cada usuario puede estar limitado, desde el Portal, a solo ciertas áreas del menú de Documental — por ejemplo, que alguien únicamente tenga acceso a Ciclo PHVA. Las demás áreas le siguen apareciendo en el menú, pero en gris y sin poder darles clic. Un admin nunca queda restringido por esto, siempre ve todo.</li>
+      <li><b>Auditoría</b> no depende de esas áreas permitidas: es exclusiva de admin siempre, sin excepción — ningún otro rol puede verla ni acceder a ella, sin importar las áreas que tenga marcadas.</li>
       <li><b>Supervisor vs. Editor — la diferencia real</b>: Editor puede tocar TODO lo que esté a su alcance, sin importar de quién sea. Supervisor solo puede tocar lo que ÉL MISMO agregó; todo lo demás (de otra persona, o que ya existía antes de que él llegara) lo ve pero no lo edita ni lo borra. Un ✏ o 🗑 que no aparece en una tarjeta/fila para un Supervisor casi siempre significa "esto no lo creaste tú".</li>
       <li><b>"Agregado por ...":</b> ahora los documentos, tareas, actas, miembros de comité, fichas de organigrama y contenido de PHVA muestran quién lo creó, precisamente para que un Supervisor entienda por qué puede editar unas cosas y otras no.</li>
       <li><b>Documentación</b> (carpetas con responsable) es un caso aparte y no cambia con lo anterior: cada carpeta raíz tiene un único responsable asignado, y SOLO esa persona o un admin puede subir, editar o borrar archivos ahí — ni siquiera un Editor (que en todo lo demás puede tocar cualquier cosa) puede hacerlo si no es el responsable de esa carpeta.</li>
@@ -1707,7 +1663,7 @@ const empresa = {
 let currentUser=null, currentPerfil=null;
 let allDocs=[], allUsers=[], allTareas=[];
 let searchFilter='', editDocId=null;
-let newUserPhotoFile=null, previewUrl=null;
+let previewUrl=null;
 let currentComDocId=null, editTareaId=null, tareaFilter='todas';
 let chartSistema=null, chartEstado=null, chartTipo=null;
 let allActas=[], allMiembros=[];
@@ -2028,7 +1984,7 @@ document.addEventListener('click',e=>{
 });
 function openOwnProfile() {
   document.getElementById('profile-dropdown').classList.remove('open');
-  openEditProfile(currentPerfil.id);
+  openEditProfile();
 }
 
 // ── TOPBAR ────────────────────────────────────────────────
@@ -2087,19 +2043,6 @@ function tieneSeccion(sec){
   const sp=currentPerfil.secciones_permitidas;
   return sp==null || sp.includes(sec);
 }
-function renderSeccionesChecklist(containerId,selected){
-  const cont=document.getElementById(containerId);
-  if(!cont) return;
-  cont.innerHTML=SECCIONES_SIG.map(s=>`
-    <label>
-      <input type="checkbox" value="${s.key}" ${(selected==null||selected.includes(s.key))?'checked':''}>
-      <span>${s.label}</span>
-    </label>`).join('');
-}
-function leerSeccionesChecklist(containerId){
-  const checked=[...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(c=>c.value);
-  return checked.length===SECCIONES_SIG.length ? null : checked;
-}
 function applyPermissions() {
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=currentPerfil?.rol==='admin'?'':'none');
   SECCIONES_SIG.forEach(s=>{
@@ -2110,7 +2053,6 @@ function applyPermissions() {
     document.getElementById('addbtn-'+id).innerHTML=canEdit()?`<button class="add-btn" onclick="openDocModal('${sysName}')">+ Nuevo documento</button>`:'';
     document.getElementById('perm-'+id).innerHTML='';
   });
-  document.getElementById('addbtn-usuarios').innerHTML=currentPerfil?.rol==='admin'?'<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="add-btn" onclick="openUserModal()">+ Nuevo usuario</button><button class="btn-secondary" style="margin-bottom:18px" onclick="openRolesModal()">📖 Roles y permisos</button></div>':'';
   const spDl=document.getElementById('sp-download-btn');
   if(spDl) spDl.style.display=canDownload()?'':'none';
   document.getElementById('addbtn-tareas').innerHTML=canEdit()?'<button class="add-btn" onclick="openTareaModal()">+ Nueva tarea</button>':'';
@@ -2144,7 +2086,6 @@ function showPage(id,el) {
   if(typeof closeDocPanel==='function') closeDocPanel();
   if(id==='buscar') renderSearch();
   if(id==='pendientes') renderPendientes();
-  if(id==='usuarios') renderUsers();
   if(id==='auditoria') loadAuditoria();
   if(id==='tareas') renderTareas();
   if(id==='copasst'||id==='ccl') renderComite(id.toUpperCase());
@@ -2683,120 +2624,19 @@ async function deleteDoc(id) {
   } catch(e){showToast('Error: '+e.message,'error');}
 }
 
-// ── USERS ─────────────────────────────────────────────────
-function renderUsers() {
-  const el=document.getElementById('users-grid');
-  const colors=['#003399','#1db954','#7f77dd','#e67700','#e03131','#0078d4'];
-  el.innerHTML=allUsers.map((u,i)=>{
-    const ini=u.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const c=colors[i%colors.length];
-    const rl=rolLabel(u.rol);
-    const av=u.foto_url?`<img src="${u.foto_url}" alt="">`:`<span style="color:${c};font-weight:700;font-size:17px">${ini}</span>`;
-    const sinAcceso=u.acceso_sig===false;
-    return`<div class="user-card"${sinAcceso?' style="opacity:.6"':''}>
-      <div class="u-av" style="background:${c}15;border-color:${c}40">${av}</div>
-      <div style="flex:1;min-width:0">
-        <div class="u-name">${esc(u.nombre)}</div>
-        <div class="u-cargo">${esc(u.cargo)||'—'}</div>
-        <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
-          <span class="chip chip-${u.rol}">${rl}</span>
-          ${sinAcceso?'<span class="chip" style="background:#ffe9e9;color:#c0392b">🔒 Sin acceso</span>':''}
-        </div>
-      </div>
-      <div class="u-actions">
-        <button class="text-btn" onclick="openEditProfile('${u.id}')">👁 Ver perfil</button>
-        ${(currentPerfil?.rol==='admin'&&currentPerfil?.id!==u.id)?`<button class="icon-btn danger" style="margin-top:4px" onclick="deleteUser('${u.id}')" title="Eliminar definitivamente (no se puede deshacer)">🗑</button>`:''}
-      </div>
-    </div>`;
-  }).join('')+(currentPerfil?.rol==='admin'?`<div class="user-card" style="border-style:dashed;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:6px" onclick="openUserModal()"><div style="font-size:28px;color:var(--gray-300)">+</div><div style="font-size:13px;color:var(--gray-500);font-weight:600">Agregar usuario</div></div>`:'');
-}
-
-function openUserModal() {
-  newUserPhotoFile=null;
-  ['nu-nombre','nu-email','nu-pass','nu-cargo'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('nu-rol').value='viewer';
-  document.getElementById('nu-photo').innerHTML='<div>📷<br>Foto<br>(opcional)</div>';
-  renderSeccionesChecklist('nu-secciones',null);
-  document.getElementById('modal-user').classList.add('open');
-}
-
 function openRolesModal(){
   if(currentPerfil?.rol!=='admin') return;
   document.getElementById('modal-roles').classList.add('open');
 }
 
-function previewPhoto(input,circleId) {
-  const file=input.files[0];if(!file)return;
-  newUserPhotoFile=file;
-  const reader=new FileReader();
-  reader.onload=e=>{document.getElementById(circleId).innerHTML=`<img src="${e.target.result}" alt="">`;}
-  reader.readAsDataURL(file);
-}
-
-// sb.functions.invoke() deja el detalle real del error (el JSON que devuelve
-// la función) dentro de error.context, no en error.message — sin esto solo
-// se ve el genérico "Edge Function returned a non-2xx status code"
-async function edgeFunctionErrorMessage(error){
-  try{
-    const body=await error.context.json();
-    if(body?.error) return body.error;
-  }catch(_){}
-  return error.message;
-}
-async function saveNewUser() {
-  const nombre=document.getElementById('nu-nombre').value.trim();
-  const email=document.getElementById('nu-email').value.trim();
-  const pass=document.getElementById('nu-pass').value;
-  const cargo=document.getElementById('nu-cargo').value.trim();
-  const rol=document.getElementById('nu-rol').value;
-  const secciones_permitidas=leerSeccionesChecklist('nu-secciones');
-  if(!nombre||!email||pass.length<6){showToast('Completa todos los campos (contraseña mín. 6 caracteres)','error');return;}
-  const btn=document.getElementById('btn-save-user');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Creando...';
-  try {
-    // Se crea vía Edge Function (Admin API) para no iniciar sesión como el
-    // usuario nuevo, y para dejar full_name en auth.users desde el inicio.
-    const {data,error}=await sb.functions.invoke('manage-user',{body:{action:'create',email,password:pass,nombre,cargo,rol,secciones_permitidas}});
-    if(error) throw new Error(await edgeFunctionErrorMessage(error));
-    if(!data?.success) throw new Error(data?.error||'No se pudo crear el usuario');
-    showToast('Usuario creado correctamente ✓','success');
-    closeModal('modal-user');
-    await loadAll();renderUsers();
-  } catch(e){showToast('Error: '+e.message,'error');}
-  finally{btn.disabled=false;btn.textContent='Crear usuario';}
-}
-
-async function deleteUser(id) {
-  if(currentPerfil?.rol!=='admin') {
-    showToast('Solo los administradores pueden eliminar usuarios','error');
-    return;
-  }
-  if(id===currentUser.id) {
-    showToast('No puedes eliminarte a ti mismo','error');
-    return;
-  }
-  const u=allUsers.find(x=>x.id===id);
-  const nombre=u?.nombre||'este usuario';
-  if(!confirm(`¿Eliminar definitivamente a ${nombre}?\n\nEsto borra su perfil Y su cuenta de acceso por completo. No se puede deshacer.`)) return;
-  try {
-    const {data,error}=await sb.functions.invoke('manage-user',{body:{action:'delete',userId:id}});
-    if(error) throw new Error(await edgeFunctionErrorMessage(error));
-    if(!data?.success) throw new Error(data?.error||'No se pudo eliminar el usuario');
-    await sb.from('auditoria').insert({usuario_id:currentUser.id,usuario_nombre:currentPerfil.nombre,accion:'ELIMINAR',tabla:'perfiles',registro_id:id,detalle:`Eliminó definitivamente al usuario ${nombre}`});
-    showToast('Usuario eliminado definitivamente','success');
-    await loadAll();renderUsers();
-  } catch(e){showToast('Error: '+e.message,'error');}
-}
-
 // Perfil (nombre/cargo/foto/rol/áreas/contraseña) ahora es de solo lectura
 // aquí — todo eso se administra desde el Portal de accesos centralizado.
-function openEditProfile(uid) {
-  const u=allUsers.find(x=>x.id===uid);if(!u)return;
-  document.getElementById('ep-title').textContent='Perfil: '+u.nombre;
-  document.getElementById('ep-nombre').textContent=u.nombre;
-  document.getElementById('ep-cargo').textContent=u.cargo||'—';
+function openEditProfile() {
+  document.getElementById('ep-title').textContent='Mi perfil';
+  document.getElementById('ep-nombre').textContent=currentPerfil.nombre;
+  document.getElementById('ep-cargo').textContent=currentPerfil.cargo||'—';
   const circle=document.getElementById('ep-photo');
-  circle.innerHTML=u.foto_url?`<img src="${u.foto_url}" alt="">`:`<span style="font-size:22px;font-weight:700;color:var(--navy)">${u.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</span>`;
+  circle.innerHTML=currentPerfil.foto_url?`<img src="${currentPerfil.foto_url}" alt="">`:`<span style="font-size:22px;font-weight:700;color:var(--navy)">${currentPerfil.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</span>`;
   document.getElementById('ep-portal-link').href=PORTAL_URL;
   document.getElementById('modal-edit-profile').classList.add('open');
 }
