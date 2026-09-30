@@ -125,6 +125,7 @@ html,body{height:100%;font-family:var(--font);background:var(--gray-50);color:va
 
 @media(max-width:980px){.ws-stats{grid-template-columns:repeat(2,1fr)}.ws-modules{grid-template-columns:repeat(2,1fr)}.ws-welcome-title{font-size:27px}}
 @media(max-width:560px){.ws-modules{grid-template-columns:1fr}.ws-user-name{display:none}.ws-brand-txt small{display:none}.ws-module-desc{max-width:100%}}
+@media(max-width:480px){.btn-portal-txt{display:none}}
 .login-err{font-size:12px;color:var(--red);padding:9px 13px;background:var(--red-light);border-radius:var(--radius-sm);margin-bottom:12px;display:none;font-weight:600}
 
 /* APP */
@@ -680,6 +681,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
       </div>
     </div>
     <div class="topbar-right">
+      <button class="dark-toggle" onclick="location.href=PORTAL_URL" title="Volver al Portal de accesos">↩<span class="btn-portal-txt">&nbsp;Portal</span></button>
       <button class="dark-toggle" onclick="toggleDark()" id="dark-btn">🌙 Oscuro</button>
       <div style="position:relative">
         <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="toggleProfileDropdown()">
