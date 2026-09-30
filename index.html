@@ -699,6 +699,7 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
           </div>
           <div class="pd-item" onclick="openOwnProfile()">👤 &nbsp;Mi perfil</div>
           <div class="pd-item" onclick="backToHub()">⊞ &nbsp;Cambiar de módulo</div>
+          <div class="pd-item" onclick="location.href=PORTAL_URL">↩ &nbsp;Ir al Portal</div>
           <div class="pd-item" onclick="toggleDark()">🌙 &nbsp;Modo oscuro</div>
           <hr class="pd-sep">
           <div class="pd-item" style="color:var(--red)" onclick="doLogout()">⬅ &nbsp;Cerrar sesión</div>
@@ -1670,8 +1671,23 @@ body.dark .btn-secondary{background:#252540;border-color:#353560;color:#e8e8f0}
 <div class="toast" id="toast"></div>
 
 <script>
+// ═══ FASE 4 — «puerta» del Portal: entrar sin contraseña con un pase de
+// un solo uso. Va ANTES de crear el cliente de Supabase y antes de
+// cualquier otra cosa que lea location.hash. Ver fase4-puerta.md.
+const PASE = (() => {
+  const m = /(?:^#|&)pase=([^&]+)/.exec(location.hash);
+  if (!m) return null;
+  history.replaceState(null, '', location.pathname + location.search); // no queda en la barra ni en el historial
+  try { sessionStorage.setItem('portal.pestana', Date.now().toString(36) + Math.random().toString(36).slice(2, 10)); } catch (e) {}
+  try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
+})();
+let PESTANA = null;
+try { PESTANA = sessionStorage.getItem('portal.pestana'); } catch (e) {}
+const DESDE_PORTAL = !!PESTANA; // esta pestaña vino del Portal: sesión propia, solo de esta pestaña
+
 const { createClient } = supabase;
-const sb = createClient('https://nqkiepqaujlgmkvsevdr.supabase.co', 'sb_publishable_cl1Dx7YVlYr4JO9qOWlZ6g_9h9oP2p0');
+const sb = createClient('https://nqkiepqaujlgmkvsevdr.supabase.co', 'sb_publishable_cl1Dx7YVlYr4JO9qOWlZ6g_9h9oP2p0',
+  DESDE_PORTAL ? { auth: { storage: window.sessionStorage, storageKey: 'portal-pestana-sesion-' + PESTANA } } : {});
 // Portal de accesos centralizado: nombre/cargo/foto/contraseña se administran ahí.
 // Fase 6: pasa a panel.donaseoltda.com — actualizar solo esta línea cuando cambie.
 const PORTAL_URL = 'https://alex-campbelli.github.io/portal-don-aseo/';
@@ -1731,7 +1747,7 @@ async function doLogin() {
     currentUser=data.user;
     await loadPerfil();
     if(!currentPerfil){
-      await sb.auth.signOut();
+      await sb.auth.signOut({scope:'local'});
       currentUser=null; currentPerfil=null;
       errEl.textContent='Tu cuenta no está registrada en el sistema. Contacta al administrador.';
       errEl.style.display='block';
@@ -1745,7 +1761,7 @@ async function doLogin() {
 }
 
 async function doLogout() {
-  await sb.auth.signOut();
+  await sb.auth.signOut({scope:'local'}); // no cierra sesión en el Portal ni en otros programas
   currentUser=null;currentPerfil=null;allDocs=[];allUsers=[];allTareas=[];
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app').classList.remove('visible');
@@ -1756,8 +1772,9 @@ async function doLogout() {
 }
 
 async function loadPerfil() {
-  const {data}=await sb.from('perfiles').select('*').eq('id',currentUser.id).single();
+  const {data,error}=await sb.from('perfiles').select('*').eq('id',currentUser.id).single();
   currentPerfil=data;
+  return {error}; // callers viejos ignoran esto, sigue igual para ellos
 }
 
 // ═══ DON ASEO WORKSPACE (LAUNCHER v2) ════════════════════════
@@ -1908,6 +1925,25 @@ function enterPanelDocs() {
   enterApp();
 }
 
+// «Puerta» del Portal (fase 4): entrar con pase va directo aquí, sin pasar
+// por el Workspace. La puerta vuelve a revisar el acceso aunque el Portal
+// ya lo haya validado — defensa en profundidad.
+async function entrarConPase() {
+  if(currentPerfil?.acceso_sig===false){
+    await sb.auth.signOut({scope:'local'});
+    currentUser=null;currentPerfil=null;
+    document.getElementById('hub-screen').classList.remove('visible');
+    document.getElementById('app').classList.remove('visible');
+    document.getElementById('login-screen').style.display='flex';
+    const errEl=document.getElementById('login-err');
+    errEl.innerHTML='No tienes acceso a Gestión Documental. Pídeselo al administrador. <a href="'+PORTAL_URL+'" style="color:inherit;font-weight:800">Volver al Portal</a>';
+    errEl.style.display='block';
+    return;
+  }
+  document.getElementById('login-screen').style.display='none';
+  enterApp();
+}
+
 // Abre la gestión de módulos SIN salir del workspace (modal propio)
 async function gestionarModulos() {
   if(currentPerfil?.rol!=='admin') return;
@@ -1945,11 +1981,28 @@ function enterApp() {
 
 window.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  if(PASE){
+    const {error:paseErr}=await sb.auth.verifyOtp({token_hash:PASE,type:'email'});
+    if(paseErr){
+      const errEl=document.getElementById('login-err');
+      errEl.textContent='El enlace del Portal ya se usó o venció. Vuelve al Portal y entra otra vez, o ingresa con tu contraseña.';
+      errEl.style.display='block';
+    }
+  }
   const {data:{session}}=await sb.auth.getSession();
   if(session){
-    currentUser=session.user;await loadPerfil();
-    if(currentPerfil) showHub();
-    else { await sb.auth.signOut(); currentUser=null; currentPerfil=null; }
+    currentUser=session.user;
+    const {error:perfilErr}=await loadPerfil();
+    if(currentPerfil){
+      if(DESDE_PORTAL) await entrarConPase();
+      else showHub();
+    } else if(DESDE_PORTAL && perfilErr && perfilErr.code!=='PGRST116'){
+      // Falla de red/consulta al leer el perfil: con el pase ya gastado, NO
+      // se decide "sin acceso" por un error transitorio — se queda aquí.
+      showToast('No se pudo verificar tu acceso. Recarga la página para intentar de nuevo.','error');
+    } else {
+      await sb.auth.signOut({scope:'local'}); currentUser=null; currentPerfil=null;
+    }
   }
 });
 
